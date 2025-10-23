@@ -1,6 +1,6 @@
 import lvgl as lv
-from .ui_consts import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH
-
+from ..basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH
+from ..basic.symbol_lib import BTC_ICONS
 
 class InterfacesMenu(lv.obj):
     """Menu to enable/disable hardware interfaces.
@@ -26,9 +26,9 @@ class InterfacesMenu(lv.obj):
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
             self.back_btn = lv.button(self)
             self.back_btn.set_size(40, 28)
-            self.back_lbl = lv.label(self.back_btn)
-            self.back_lbl.set_text("<")
-            self.back_lbl.center()
+            self.back_ico = lv.image(self.back_btn)
+            BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
+            self.back_ico.center()
             # wire back to navigation callback: wrap handler in a lambda so the
             # LVGL binding's argument passing doesn't mismatch the method signature.
             self.back_btn.add_event_cb(lambda e: self.on_back(e), lv.EVENT.CLICKED, None)
@@ -48,18 +48,18 @@ class InterfacesMenu(lv.obj):
         self.container.set_style_pad_all(PAD_SIZE, 0)
         self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, PAD_SIZE)
 
-        # Build interface rows: list of tuples (label_text, state_attr)
+        # Build interface rows: list of tuples (icon, label_text, state_attr)
         rows = []
         if self.state.hasQR:
-            rows.append(("QR Scanner", "enabledQR"))
+            rows.append((BTC_ICONS.QR_CODE, "QR Scanner", "enabledQR"))
         if self.state.hasUSB:
-            rows.append(("USB", "enabledUSB"))
+            rows.append((BTC_ICONS.USB, "USB", "enabledUSB"))
         if self.state.hasSD:
-            rows.append(("SD Card", "enabledSD"))
+            rows.append((BTC_ICONS.SD_CARD, "SD Card", "enabledSD"))
         if self.state.hasSmartCard:
-            rows.append(("SmartCard", "enabledSmartCard"))
+            rows.append((BTC_ICONS.SMARTCARD, "SmartCard", "enabledSmartCard"))
 
-        for text, state_attr in rows:
+        for icon, text, state_attr in rows:
             row = lv.obj(self.container)
             row.set_style_border_width(0, 0)
 
@@ -68,12 +68,18 @@ class InterfacesMenu(lv.obj):
             row.set_layout(lv.LAYOUT.FLEX)
             row.set_flex_flow(lv.FLEX_FLOW.ROW)
             row.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+            row.set_style_pad_row(0, 0)
+            row.set_style_pad_column(8, 0)  # Space between icon and text
 
-            # Left label
+            # Left icon
+            icon_img = lv.image(row)
+            icon.add_to_parent(icon_img)
+
+            # Text label
             lbl = lv.label(row)
             lbl.set_text(text)
-            lbl.set_width(lv.pct(70))
             lbl.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
+            lbl.set_flex_grow(1)  # Take remaining space
 
             # Right toggle button
             sw = lv.switch(row)
@@ -103,6 +109,8 @@ class InterfacesMenu(lv.obj):
 
 
             sw.add_event_cb(lambda e, a=state_attr: _handler(e, a), lv.EVENT.VALUE_CHANGED, None)
+
+
 
     def on_back(self, e):
         if e.get_code() == lv.EVENT.CLICKED:

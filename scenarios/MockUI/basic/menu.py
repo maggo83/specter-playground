@@ -1,12 +1,13 @@
 import lvgl as lv
 from .ui_consts import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE
+from .symbol_lib import Icon, BTC_ICONS
 
 
 class GenericMenu(lv.obj):
     """Reusable menu builder.
 
     title: string title shown at top
-    menu_items: list of (text, action) where action=None creates a label/spacer
+    menu_items: list of (icon, text, action) where action=None creates a label/spacer (then also icon is ignored)
     """
 
     def __init__(self, menu_id, title, menu_items, parent, *args, **kwargs):
@@ -24,14 +25,18 @@ class GenericMenu(lv.obj):
         # Fill parent
         self.set_width(lv.pct(100))
         self.set_height(lv.pct(100))
+        # Remove padding from base menu object to allow full-width content
+        self.set_style_pad_all(0, 0)
+        # Remove border
+        self.set_style_border_width(0, 0)
 
         # If ui_state has history, show back button to the left of the title
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
             self.back_btn = lv.button(self)
             self.back_btn.set_size(40, 28)
-            self.back_lbl = lv.label(self.back_btn)
-            self.back_lbl.set_text("<")
-            self.back_lbl.center()
+            self.back_ico = lv.image(self.back_btn)
+            BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
+            self.back_ico.center()
             # wire back to navigation callback: wrap handler in a lambda so the
             # LVGL binding's argument passing doesn't mismatch the method signature.
             self.back_btn.add_event_cb(lambda e: self.on_back(e), lv.EVENT.CLICKED, None)
@@ -51,23 +56,44 @@ class GenericMenu(lv.obj):
         self.container.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self.container.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         self.container.set_style_pad_all(PAD_SIZE, 0)
+        self.container.set_style_border_width(0, 0)
         # smaller gap between title and container
         self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, PAD_SIZE)
 
         # Build items
-        for text, target_menu_id in menu_items:
+        for icon, text, target_menu_id, color in menu_items:
             if target_menu_id is None:
                 spacer = lv.label(self.container)
+                spacer.set_recolor(True)
                 spacer.set_text(text or "")
-                spacer.set_width(BTN_WIDTH)
+                spacer.set_width(lv.pct(BTN_WIDTH))
                 spacer.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
             else:
                 btn = lv.button(self.container)
-                btn.set_width(BTN_WIDTH)
+                btn.set_width(lv.pct(BTN_WIDTH))
                 btn.set_height(BTN_HEIGHT)
+                if color:
+                    btn.set_style_bg_color(color, lv.PART.MAIN)
+                
+                if icon:
+                    # Check if icon is an Icon (includes ColoredIcon subclass)
+                    if isinstance(icon, Icon):
+                        icon_img = lv.image(btn)
+                        icon.add_to_parent(icon_img)
+                        icon_img.align(lv.ALIGN.LEFT_MID, 8, 0)
+                    else:
+                        # Traditional string icon (lv.SYMBOL.*)
+                        ico = lv.label(btn)
+                        ico.set_recolor(True)
+                        ico.set_text(icon or "")
+                        ico.align(lv.ALIGN.LEFT_MID, 8, 0)
+  
+                # Add text label centered
                 lbl = lv.label(btn)
+                lbl.set_recolor(True)
                 lbl.set_text(text)
                 lbl.center()
+
                 btn.add_event_cb(self.make_callback(target_menu_id), lv.EVENT.CLICKED, None)
 
     def make_callback(self, target_menu_id):
