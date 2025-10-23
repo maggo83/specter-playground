@@ -1,8 +1,7 @@
 import lvgl as lv
 import urandom
-from .menu import GenericMenu
-from .wallet import Wallet
-from .ui_consts import SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
+from ..basic import GenericMenu, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
+from ..helpers import Wallet
 
 
 class GenerateSeedMenu(GenericMenu):

@@ -1,5 +1,4 @@
-import lvgl as lv
-from .menu import GenericMenu
+from ..basic import GenericMenu
 
 
 class StorageMenu(GenericMenu):

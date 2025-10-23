@@ -1,6 +1,5 @@
 import lvgl as lv
-from .menu import GenericMenu
-from .ui_consts import BTN_HEIGHT, BTN_WIDTH
+from ..basic import GenericMenu, BTN_HEIGHT, BTN_WIDTH
 
 
 class ChangeWalletMenu(GenericMenu):

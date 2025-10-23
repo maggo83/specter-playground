@@ -1,4 +1,4 @@
-from .menu import GenericMenu
+from ..basic import GenericMenu
 
 
 def SecurityMenu(parent, *args, **kwargs):

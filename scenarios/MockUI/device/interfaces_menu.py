@@ -1,5 +1,5 @@
 import lvgl as lv
-from .ui_consts import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH
+from ..basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH
 
 
 class InterfacesMenu(lv.obj):

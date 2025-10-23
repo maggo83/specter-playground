@@ -1,5 +1,4 @@
-import lvgl as lv
-from .menu import GenericMenu
+from ..basic import GenericMenu
 
 
 class FirmwareMenu(GenericMenu):
@@ -32,5 +31,3 @@ class FirmwareMenu(GenericMenu):
 
         title = "Manage Firmware"
         super().__init__("manage_firmware", title, menu_items, parent, *args, **kwargs)
-
-

@@ -1,5 +1,4 @@
-from .menu import GenericMenu
-
+from ..basic import GenericMenu
 
 def WalletMenu(parent, *args, **kwargs):
     on_navigate = getattr(parent, "on_navigate", None)

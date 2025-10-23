@@ -1,6 +1,5 @@
 import lvgl as lv
-from .menu import GenericMenu
-from .ui_consts import BTN_WIDTH, BTN_HEIGHT, PAD_SIZE
+from ..basic import GenericMenu, BTN_WIDTH, BTN_HEIGHT, PAD_SIZE
 
 
 class PassphraseMenu(GenericMenu):
