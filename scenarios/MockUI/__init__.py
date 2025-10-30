@@ -1,6 +1,7 @@
 # MockUI/__init__.py
 from .basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE
 from .basic import MainMenu, LockedMenu, StatusBar, ActionScreen, GenericMenu
+from .basic import NavigationController
 
 from .helpers import UIState, SpecterState, Wallet
 
@@ -46,4 +47,5 @@ __all__ = [
     "GenerateSeedMenu",
     "StorageMenu",
     "PassphraseMenu",
+    "NavigationController",
 ]
