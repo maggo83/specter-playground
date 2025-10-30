@@ -23,7 +23,7 @@ def MainMenu(parent, *args, **kwargs):
         if (state and state.active_wallet and not state.active_wallet.isMultiSig):
             menu_items.append(("Sign Message", "sign_message"))
         if (state and state.active_wallet is None and state.hasSmartCard and state.enabledSmartCard and state.detectedSmartCard):
-            menu_items.append(("Load SeedPhrase From SmartCard", "import_from_smartcard"))
+            menu_items.append(("Import SeedPhrase From SmartCard", "import_from_smartcard"))
 
     menu_items.append(("Manage Settings", None))
     if (state and not state.active_wallet is None):
