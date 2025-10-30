@@ -16,7 +16,8 @@ def DeviceMenu(parent, *args, **kwargs):
     menu_items += [
         ("Manage Security Features", "manage_security"),
         ("Enable/Disable Interfaces", "interfaces"),
-        ("Manage Sounds", "sounds")
+        ("Manage Display", "display_settings"),
+        ("Manage Sounds", "sound_settings")
     ]
 
     menu_items += [
