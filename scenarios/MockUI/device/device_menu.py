@@ -10,11 +10,14 @@ def DeviceMenu(parent, *args, **kwargs):
     if state and state.hasSD and state.enabledSD and state.detectedSD:
         menu_items.append(("Manage Backup(s)", "manage_backups"))
 
+    if state and ((state.hasQR and state.enabledQR) or (state.hasSD and state.enabledSD and state.detectedSD) or (state.hasUSB and state.enabledUSB)):
+        menu_items.append(("Manage Firmware", "manage_firmware"))    
+
     menu_items += [
-        ("Manage Firmware", "manage_firmware"),
         ("Manage Security Features", "manage_security"),
         ("Enable/Disable Interfaces", "interfaces"),
-        ("Manage Sounds", "sounds")]
+        ("Manage Sounds", "sounds")
+    ]
 
     menu_items += [
         ("Dangerzone", None),
