@@ -1,4 +1,5 @@
 from ..basic import GenericMenu
+import lvgl as lv
 
 
 class FirmwareMenu(GenericMenu):
@@ -20,10 +21,10 @@ class FirmwareMenu(GenericMenu):
 
         # conditional sources (guard against missing attributes)
         if state and getattr(state, 'hasSD', False) and getattr(state, 'enabledSD', False) and getattr(state, 'detectedSD', False):
-            menu_items.append(("SD Card", "update_fw_sd"))
+            menu_items.append((lv.SYMBOL.SD_CARD + " SD Card", "update_fw_sd"))
 
         if state and getattr(state, 'hasUSB', False) and getattr(state, 'enabledUSB', False):
-            menu_items.append(("USB", "update_fw_usb"))
+            menu_items.append((lv.SYMBOL.USB + " USB", "update_fw_usb"))
 
         if state and getattr(state, 'hasQR', False) and getattr(state, 'enabledQR', False):
             menu_items.append(("QR", "update_fw_qr"))

@@ -49,6 +49,6 @@ class ChangeWalletMenu(GenericMenu):
         add_btn.set_width(BTN_WIDTH)
         add_btn.set_height(BTN_HEIGHT)
         add_lbl = lv.label(add_btn)
-        add_lbl.set_text("Add Wallet")
+        add_lbl.set_text(lv.SYMBOL.PLUS + " Add Wallet")
         add_lbl.center()
         add_btn.add_event_cb(lambda e: self.on_navigate("add_wallet") if e.get_code() == lv.EVENT.CLICKED else None, lv.EVENT.CLICKED, None)

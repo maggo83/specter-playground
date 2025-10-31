@@ -1,5 +1,5 @@
 from ..basic import GenericMenu
-
+import lvgl as lv
 
 def SecurityMenu(parent, *args, **kwargs):
     state = getattr(parent, "specter_state", None)
@@ -13,4 +13,4 @@ def SecurityMenu(parent, *args, **kwargs):
         ("Set duress PIN action", "set_duress_pin_action"),
     ]
 
-    return GenericMenu("manage_security", "Manage Security Features", menu_items, parent, *args, **kwargs)
+    return GenericMenu("manage_security", lv.SYMBOL.BELL + " Manage Security Features", menu_items, parent, *args, **kwargs)

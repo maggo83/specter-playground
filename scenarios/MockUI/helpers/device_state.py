@@ -23,6 +23,7 @@ class SpecterState:
         # device features
         self.has_battery = False
         self.battery_pct = None
+        self.is_charging = False
         
         self.is_locked = False
         self.pin = None

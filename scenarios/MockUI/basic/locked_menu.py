@@ -57,14 +57,16 @@ class LockedMenu(GenericMenu):
                 b.set_width(60)
                 b.set_height(36)
                 lb = lv.label(b)
-                lb.set_text(k)
                 lb.center()
                 if k == "Del":
+                    lb.set_text(lv.SYMBOL.BACKSPACE)
                     b.add_event_cb(lambda e: self._on_del(e), lv.EVENT.CLICKED, None)
                 elif k == "OK":
+                    lb.set_text(lv.SYMBOL.OK)
                     b.add_event_cb(lambda e: self._on_ok(e), lv.EVENT.CLICKED, None)
                 else:
                     # capture digit in default arg
+                    lb.set_text(k)
                     b.add_event_cb(lambda e, d=k: self._on_digit(e, d), lv.EVENT.CLICKED, None)
 
     def _update_mask(self):

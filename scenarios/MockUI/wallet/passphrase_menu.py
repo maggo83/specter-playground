@@ -61,7 +61,7 @@ class PassphraseMenu(GenericMenu):
         self.clear_btn.set_width(BTN_WIDTH)
         self.clear_btn.set_height(BTN_HEIGHT)
         self.clear_lbl = lv.label(self.clear_btn)
-        self.clear_lbl.set_text("Clear")
+        self.clear_lbl.set_text(lv.SYMBOL.CLOSE + " Clear")
         self.clear_lbl.center()
         self.clear_btn.add_event_cb(lambda e: self.pa_ta.set_text("") if e.get_code() == lv.EVENT.CLICKED else None, lv.EVENT.CLICKED, None)
 
@@ -70,7 +70,7 @@ class PassphraseMenu(GenericMenu):
         self.set_btn.set_width(BTN_WIDTH)
         self.set_btn.set_height(BTN_HEIGHT)
         self.set_lbl = lv.label(self.set_btn)
-        self.set_lbl.set_text("Set")
+        self.set_lbl.set_text(lv.SYMBOL.OK + " Set")
         self.set_lbl.center()
         self.set_btn.add_event_cb(self._on_set, lv.EVENT.CLICKED, None)
 

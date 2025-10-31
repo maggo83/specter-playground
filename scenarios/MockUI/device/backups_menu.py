@@ -1,5 +1,5 @@
 from ..basic import GenericMenu
-
+import lvgl as lv
 
 class BackupsMenu(GenericMenu):
     """Menu for managing backups on SD Card.
@@ -11,11 +11,11 @@ class BackupsMenu(GenericMenu):
         state = getattr(parent, "specter_state", None)
 
         menu_items = [
-            ("Backup device to SD Card", "backup_to_sd"),
-            ("Restore device from SD Card", "restore_from_sd"),
-            ("Remove Backup from SD Card", "remove_backup_from_sd"),
+            (lv.SYMBOL.DOWNLOAD + " Backup device to SD Card " + lv.SYMBOL.SD_CARD, "backup_to_sd"),
+            (lv.SYMBOL.UPLOAD + " Restore device from SD Card " + lv.SYMBOL.SD_CARD, "restore_from_sd"),
+            (lv.SYMBOL.TRASH + " Remove Backup from SD Card " + lv.SYMBOL.SD_CARD, "remove_backup_from_sd"),
         ]
 
-        title = "Manage Backups"
+        title = lv.SYMBOL.COPY + " Manage Backups"
 
         super().__init__("manage_backups", title, menu_items, parent, *args, **kwargs)

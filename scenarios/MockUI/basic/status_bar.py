@@ -1,5 +1,6 @@
 import lvgl as lv
-from .ui_consts import PAD_SIZE, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH, TWO_LETTER_SYMBOLD_WIDTH, THREE_LETTER_SYMBOLD_WIDTH
+from ..helpers import Battery
+from .ui_consts import PAD_SIZE, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH, TWO_LETTER_SYMBOL_WIDTH, THREE_LETTER_SYMBOL_WIDTH, GREEN, ORANGE, RED
 
 
 class StatusBar(lv.obj):
@@ -24,7 +25,7 @@ class StatusBar(lv.obj):
         self.power_btn = lv.button(self)
         self.power_btn.set_size(STATUS_BTN_WIDTH, STATUS_BTN_HEIGHT)
         self.power_lbl = lv.label(self.power_btn)
-        self.power_lbl.set_text("PWR")
+        self.power_lbl.set_text(lv.SYMBOL.POWER)
         self.power_lbl.center()
         self.power_btn.add_event_cb(self.power_cb, lv.EVENT.CLICKED, None)
 
@@ -32,14 +33,14 @@ class StatusBar(lv.obj):
         self.lock_btn = lv.button(self)
         self.lock_btn.set_size(STATUS_BTN_WIDTH, STATUS_BTN_HEIGHT)
         self.lock_lbl = lv.label(self.lock_btn)
-        self.lock_lbl.set_text("LOCK")
+        self.lock_lbl.set_text(lv.SYMBOL.EYE_CLOSE)
         self.lock_lbl.center()
         self.lock_btn.add_event_cb(self.lock_cb, lv.EVENT.CLICKED, None)
 
-        # Left side: battery icon (anchored to extreme left)
-        self.batt_lbl = lv.label(self)
-        self.batt_lbl.set_text("")
-        self.batt_lbl.set_width(45)
+        # Battery icon
+        self.batt_icon = Battery(self)
+        self.batt_icon.VALUE = parent.specter_state.battery_pct
+        self.batt_icon.update()
 
         # Center area: wallet name + type + net + peripheral indicators
         self.wallet_name_lbl = lv.label(self)
@@ -55,7 +56,7 @@ class StatusBar(lv.obj):
         # Passphrase indicator (shows 'PP' when the active wallet has a passphrase configured)
         self.pp_lbl = lv.label(self)
         self.pp_lbl.set_text("")
-        self.pp_lbl.set_width(TWO_LETTER_SYMBOLD_WIDTH)
+        self.pp_lbl.set_width(TWO_LETTER_SYMBOL_WIDTH)
 
         self.net_lbl = lv.label(self)
         self.net_lbl.set_text("")
@@ -64,30 +65,33 @@ class StatusBar(lv.obj):
         # peripheral indicators – give them stable small widths so changing text won't shift layout
         self.qr_lbl = lv.label(self)
         self.qr_lbl.set_text("")
-        self.qr_lbl.set_width(TWO_LETTER_SYMBOLD_WIDTH)
+        self.qr_lbl.set_width(TWO_LETTER_SYMBOL_WIDTH)
+        self.qr_lbl.set_recolor(True)
 
         self.usb_lbl = lv.label(self)
         self.usb_lbl.set_text("")
-        self.usb_lbl.set_width(THREE_LETTER_SYMBOLD_WIDTH)
+        self.usb_lbl.set_width(TWO_LETTER_SYMBOL_WIDTH)
+        self.usb_lbl.set_recolor(True)
 
         self.sd_lbl = lv.label(self)
         self.sd_lbl.set_text("")
-        self.sd_lbl.set_width(TWO_LETTER_SYMBOLD_WIDTH)
+        self.sd_lbl.set_width(TWO_LETTER_SYMBOL_WIDTH)
+        self.sd_lbl.set_recolor(True)
 
         self.smartcard_lbl = lv.label(self)
         self.smartcard_lbl.set_text("")
-        self.smartcard_lbl.set_width(TWO_LETTER_SYMBOLD_WIDTH)
+        self.smartcard_lbl.set_width(TWO_LETTER_SYMBOL_WIDTH)
+        self.smartcard_lbl.set_recolor(True)
 
 
         # Language indicator (TODO: make a selector)
         self.lang_lbl = lv.label(self)
         self.lang_lbl.set_text("")
-        self.lang_lbl.set_width(THREE_LETTER_SYMBOLD_WIDTH)        
+        self.lang_lbl.set_width(THREE_LETTER_SYMBOL_WIDTH)        
 
         # Apply a smaller font to all labels in the status bar
         self.font = lv.font_montserrat_12
         labels = [
-            self.batt_lbl,
             self.wallet_name_lbl,
             self.wallet_type_lbl,
             self.pp_lbl,
@@ -180,14 +184,14 @@ class StatusBar(lv.obj):
         locked = state.is_locked
 
         # battery (shared between locked/unlocked)
+        self.batt_icon.CHARGING = state.is_charging
         if state.has_battery:
             perc = state.battery_pct
-            if perc is not None:
-                self.batt_lbl.set_text("B:%d%%" % int(perc))
-            else:
-                self.batt_lbl.set_text("B:")
+            self.batt_icon.VALUE = perc
+            self.batt_icon.update()
         else:
-            self.batt_lbl.set_text("")
+            self.batt_icon.VALUE = 100
+            self.batt_icon.update()
 
         # language is always shown even when locked
         self.lang_lbl.set_text(self._truncate(state.language or "", 3))
@@ -231,33 +235,39 @@ class StatusBar(lv.obj):
             # if feature is present and can be enabled and detected (SD + SmartCard): show lower case when enabled and upper case when also detected
             if state.hasQR:
                 if state.enabledQR:
-                    self.qr_lbl.set_text("QR")
+                    self.qr_lbl.set_text(GREEN+" QR#")
                 else:
-                    self.qr_lbl.set_text("qr")
+                    self.qr_lbl.set_text(ORANGE+" qr#")
             else:
                 self.qr_lbl.set_text("")
 
             if state.hasUSB:
                 if state.enabledUSB:
-                    self.usb_lbl.set_text("USB")
+                    self.usb_lbl.set_text(GREEN+" "+lv.SYMBOL.USB+" #")
                 else:
-                    self.usb_lbl.set_text("usb")
+                    self.usb_lbl.set_text(ORANGE+" "+lv.SYMBOL.USB+" #")
             else:
                 self.usb_lbl.set_text("")
 
-            if state.hasSD and state.enabledSD:
-                if state.detectedSD:
-                    self.sd_lbl.set_text("SD")
+            if state.hasSD:
+                if state.enabledSD:
+                    if state.detectedSD:
+                        self.sd_lbl.set_text(GREEN+" "+lv.SYMBOL.SD_CARD+" #")
+                    else:
+                        self.sd_lbl.set_text(ORANGE+" "+lv.SYMBOL.SD_CARD+" #")
                 else:
-                    self.sd_lbl.set_text("sd")
+                    self.sd_lbl.set_text(RED+" "+lv.SYMBOL.SD_CARD+" #")
             else:
                 self.sd_lbl.set_text("")
 
-            if state.hasSmartCard and state.enabledSmartCard:
-                if state.detectedSmartCard:
-                    self.smartcard_lbl.set_text("SC")
+            if state.hasSmartCard:
+                if state.enabledSmartCard:
+                    if state.detectedSmartCard:
+                        self.smartcard_lbl.set_text(GREEN+" SC#")
+                    else:
+                        self.smartcard_lbl.set_text(ORANGE+" sc#")
                 else:
-                    self.smartcard_lbl.set_text("sc")  
+                    self.smartcard_lbl.set_text(RED+" sc#")
             else:
                 self.smartcard_lbl.set_text("") 
 

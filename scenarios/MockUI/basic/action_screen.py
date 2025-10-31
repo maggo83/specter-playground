@@ -21,7 +21,7 @@ class ActionScreen(lv.obj):
             self.back_btn = lv.button(self)
             self.back_btn.set_size(40, 28)
             self.back_lbl = lv.label(self.back_btn)
-            self.back_lbl.set_text("<")
+            self.back_lbl.set_text(lv.SYMBOL.LEFT)
             self.back_lbl.center()
             # wire back to navigation callback: wrap handler in a lambda so the
             # LVGL binding's argument passing doesn't mismatch the method signature.

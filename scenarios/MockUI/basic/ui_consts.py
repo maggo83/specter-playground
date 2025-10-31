@@ -8,5 +8,10 @@ STATUS_BTN_WIDTH = const(40)
 SWITCH_HEIGHT = const(55)
 SWITCH_WIDTH = const(30)
 PAD_SIZE = const(5)
-TWO_LETTER_SYMBOLD_WIDTH = const(19)  # width allocated to 2-letter status symbols in the status bar
-THREE_LETTER_SYMBOLD_WIDTH = const(27)  # width allocated to 3-letter status symbols in the status bar
+ONE_LETTER_SYMBOL_WIDTH = const(11)  # width allocated to 1-letter status symbols in the status bar
+TWO_LETTER_SYMBOL_WIDTH = const(19)  # width allocated to 2-letter status symbols in the status bar
+THREE_LETTER_SYMBOL_WIDTH = const(27)  # width allocated to 3-letter status symbols in the status bar
+
+GREEN = const("#00D100")
+ORANGE = const("#FF9A00")
+RED = const("#F10000")

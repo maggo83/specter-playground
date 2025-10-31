@@ -27,7 +27,7 @@ class InterfacesMenu(lv.obj):
             self.back_btn = lv.button(self)
             self.back_btn.set_size(40, 28)
             self.back_lbl = lv.label(self.back_btn)
-            self.back_lbl.set_text("<")
+            self.back_lbl.set_text(lv.SYMBOL.LEFT)
             self.back_lbl.center()
             # wire back to navigation callback: wrap handler in a lambda so the
             # LVGL binding's argument passing doesn't mismatch the method signature.
@@ -53,9 +53,9 @@ class InterfacesMenu(lv.obj):
         if self.state.hasQR:
             rows.append(("QR Scanner", "enabledQR"))
         if self.state.hasUSB:
-            rows.append(("USB", "enabledUSB"))
+            rows.append((lv.SYMBOL.USB + " USB", "enabledUSB"))
         if self.state.hasSD:
-            rows.append(("SD Card", "enabledSD"))
+            rows.append((lv.SYMBOL.SD_CARD + " SD Card", "enabledSD"))
         if self.state.hasSmartCard:
             rows.append(("SmartCard", "enabledSmartCard"))
 

@@ -30,7 +30,7 @@ class GenericMenu(lv.obj):
             self.back_btn = lv.button(self)
             self.back_btn.set_size(40, 28)
             self.back_lbl = lv.label(self.back_btn)
-            self.back_lbl.set_text("<")
+            self.back_lbl.set_text(lv.SYMBOL.LEFT)
             self.back_lbl.center()
             # wire back to navigation callback: wrap handler in a lambda so the
             # LVGL binding's argument passing doesn't mismatch the method signature.
@@ -58,6 +58,7 @@ class GenericMenu(lv.obj):
         for text, target_menu_id in menu_items:
             if target_menu_id is None:
                 spacer = lv.label(self.container)
+                spacer.set_recolor(True)
                 spacer.set_text(text or "")
                 spacer.set_width(BTN_WIDTH)
                 spacer.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
@@ -66,6 +67,7 @@ class GenericMenu(lv.obj):
                 btn.set_width(BTN_WIDTH)
                 btn.set_height(BTN_HEIGHT)
                 lbl = lv.label(btn)
+                lbl.set_recolor(True)
                 lbl.set_text(text)
                 lbl.center()
                 btn.add_event_cb(self.make_callback(target_menu_id), lv.EVENT.CLICKED, None)

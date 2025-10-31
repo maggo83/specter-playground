@@ -1,5 +1,5 @@
 from ..basic import GenericMenu
-
+import lvgl as lv
 
 class StorageMenu(GenericMenu):
     """Menu to manage storage devices (SD / SmartCard).
@@ -18,6 +18,6 @@ class StorageMenu(GenericMenu):
             menu_items.append(("Manage SmartCard", "smartcard"))
 
         if state and state.hasSD and state.enabledSD and state.detectedSD:
-            menu_items.append(("Manage SD Card", "sdcard"))
+            menu_items.append((lv.SYMBOL.SD_CARD + " Manage SD Card", "sdcard"))
 
-        super().__init__("manage_storage", "Manage Storage", menu_items, parent, *args, **kwargs)
+        super().__init__("manage_storage", lv.SYMBOL.DRIVE + " Manage Storage", menu_items, parent, *args, **kwargs)
