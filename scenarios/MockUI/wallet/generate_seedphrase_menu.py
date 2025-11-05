@@ -11,7 +11,7 @@ class GenerateSeedMenu(GenericMenu):
     """
 
     def __init__(self, parent, *args, **kwargs):
-        super().__init__("generate_seedphrase", "Generate Seedphrase", [], parent, *args, **kwargs)
+        super().__init__("generate_seedphrase", lv.SYMBOL.LIST + " Generate New Seedphrase", [], parent, *args, **kwargs)
 
         self.parent = parent
         self.state = getattr(parent, "specter_state", None)

@@ -11,9 +11,9 @@ class BackupsMenu(GenericMenu):
         state = getattr(parent, "specter_state", None)
 
         menu_items = [
-            (lv.SYMBOL.DOWNLOAD + " Backup device to SD Card " + lv.SYMBOL.SD_CARD, "backup_to_sd"),
-            (lv.SYMBOL.UPLOAD + " Restore device from SD Card " + lv.SYMBOL.SD_CARD, "restore_from_sd"),
-            (lv.SYMBOL.TRASH + " Remove Backup from SD Card " + lv.SYMBOL.SD_CARD, "remove_backup_from_sd"),
+            (lv.SYMBOL.DOWNLOAD + "  " + lv.SYMBOL.SD_CARD, "Backup to SD Card ", "backup_to_sd"),
+            (lv.SYMBOL.UPLOAD + "  " + lv.SYMBOL.SD_CARD, "Restore from SD Card ", "restore_from_sd"),
+            (lv.SYMBOL.CLOSE + "   " + lv.SYMBOL.SD_CARD, "Remove from SD Card ", "remove_backup_from_sd"),
         ]
 
         title = lv.SYMBOL.COPY + " Manage Backups"

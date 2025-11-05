@@ -21,14 +21,7 @@ specter_state.detectedSD = True
 
 specter_state.hasSmartCard = True
 specter_state.enabledSmartCard = False
-specter_state.detectedSmartCard = True
-
-specter_state.enabledUSB = True
-
-specter_state.pin = "21"
-specter_state.language = "eng"
-
-specter_state.is_locked = True
+specter_state.detectedSmartCard = False
 
 #specter_state.registered_wallets.append(singlesig_wallet)
 #specter_state.registered_wallets.append(multisig_wallet)

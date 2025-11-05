@@ -6,7 +6,7 @@ class GenericMenu(lv.obj):
     """Reusable menu builder.
 
     title: string title shown at top
-    menu_items: list of (text, action) where action=None creates a label/spacer
+    menu_items: list of (icon, text, action) where action=None creates a label/spacer (then also icon is ignored)
     """
 
     def __init__(self, menu_id, title, menu_items, parent, *args, **kwargs):
@@ -55,7 +55,7 @@ class GenericMenu(lv.obj):
         self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, PAD_SIZE)
 
         # Build items
-        for text, target_menu_id in menu_items:
+        for icon, text, target_menu_id in menu_items:
             if target_menu_id is None:
                 spacer = lv.label(self.container)
                 spacer.set_recolor(True)
@@ -66,6 +66,10 @@ class GenericMenu(lv.obj):
                 btn = lv.button(self.container)
                 btn.set_width(BTN_WIDTH)
                 btn.set_height(BTN_HEIGHT)
+                ico = lv.label(btn)
+                ico.set_recolor(True)
+                ico.set_text(icon or "")
+                ico.align(lv.ALIGN.LEFT_MID, 8, 0)
                 lbl = lv.label(btn)
                 lbl.set_recolor(True)
                 lbl.set_text(text)

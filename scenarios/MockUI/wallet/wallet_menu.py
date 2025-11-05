@@ -7,26 +7,27 @@ def WalletMenu(parent, *args, **kwargs):
 
     menu_items = []
 
-    menu_items.append(("Explore", None))
-    menu_items.append((lv.SYMBOL.EYE_OPEN + " View Addresses", "view_addresses"))
+    menu_items.append((None, "Explore", None))
+    menu_items.append((lv.SYMBOL.EYE_OPEN, "View Addresses", "view_addresses"))
     if (state and not state.active_wallet is None and state.active_wallet.isMultiSig):
-        menu_items.append(("View Signers", "view_signers"))
+        menu_items.append((None, "View Signers", "view_signers"))
 
-    menu_items.append(("Manage", None))
+    menu_items.append((None, "Manage", None))
     if (state and not state.active_wallet is None and not state.active_wallet.isMultiSig):
-        menu_items.append(("Manage Derivation Path", "derivation_path"))
-        menu_items.append(("Manage Seedphrase", "manage_seedphrase"))
-        menu_items.append((lv.SYMBOL.NEW_LINE + " Enter/Set Passphrase", "set_passphrase"))
+        #Probably not needed as a fixed setting -> derivation path can be chosen in address explorer or when exporting public keys
+        #menu_items.append((None, "Manage Derivation Path", "derivation_path"))
+        menu_items.append((None, "Manage Seedphrase", "manage_seedphrase"))
+        menu_items.append((lv.SYMBOL.NEW_LINE, "Enter/Set Passphrase", "set_passphrase"))
     elif (state and not state.active_wallet is None and state.active_wallet.isMultiSig):
-        menu_items.append(("Manage Descriptor", "manage_wallet_descriptor"))
-    menu_items.append(("Change Network (Mainnet/Testnet/...)", "change_network"))
-    
+        menu_items.append((None, "Manage Descriptor", "manage_wallet_descriptor"))
+    menu_items.append((None, "Change Network (Mainnet/Testnet...)", "change_network"))
+
     menu_items += [
-        (lv.SYMBOL.EDIT + " Rename Wallet", "rename_wallet"),
-        (ORANGE + " " + lv.SYMBOL.TRASH + " Delete Wallet", "delete_wallet"),
-        ("Connect/Export", None),
-        (lv.SYMBOL.REFRESH + " Connect SW Wallet", "connect_sw_wallet"),
-        (lv.SYMBOL.UPLOAD + " Export Data", "export_wallet")
+        (lv.SYMBOL.EDIT, "Rename Wallet", "rename_wallet"),
+        (ORANGE + " " + lv.SYMBOL.TRASH, ORANGE + " Delete Wallet#", "delete_wallet"),
+        (None, "Connect/Export", None),
+        (lv.SYMBOL.REFRESH, "Connect SW Wallet", "connect_sw_wallet"),
+        (lv.SYMBOL.UPLOAD, "Export Data", "export_wallet")
     ]
 
     title = "Manage Wallet" + ("" if state is None or state.active_wallet is None else f": {state.active_wallet.name}")
