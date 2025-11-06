@@ -32,7 +32,7 @@ jobs:
         run: nix develop -c make unix
 
       - name: Build STM32F469 Discovery firmware
-        run: nix develop -c make disco
+        run: nix develop -c make playground
 
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
