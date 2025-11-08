@@ -10,10 +10,10 @@ class ConnectWalletsMenu(GenericMenu):
     def __init__(self, parent, *args, **kwargs):
         # the actual connection logic is out of scope here; provide menu entries
         menu_items = [
-            (None, "Sparrow", "connect_sparrow"),
-            (None, "Nunchuck", "connect_nunchuck"),
-            (None, "BlueWallet", "connect_bluewallet"),
-            (None, "Other...", "connect_other"),
+            (None, "Sparrow", "connect_sparrow", None),
+            (None, "Nunchuck", "connect_nunchuck", None),
+            (None, "BlueWallet", "connect_bluewallet", None),
+            (None, "Other...", "connect_other", None),
         ]
 
         title = lv.SYMBOL.REFRESH + " Connect SW Wallet"

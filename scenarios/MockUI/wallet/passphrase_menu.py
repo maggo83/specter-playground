@@ -45,6 +45,7 @@ class PassphraseMenu(GenericMenu):
         self._kb = lv.keyboard(self)
         self._kb.add_flag(lv.obj.FLAG.HIDDEN)
         self._kb.set_textarea(self.pa_ta)
+        self._kb.set_popovers(True)
         self.pa_ta.add_event_cb(self._open_keyboard, lv.EVENT.CLICKED, None)
 
         buttons_row = lv.obj(self.container)
@@ -80,6 +81,12 @@ class PassphraseMenu(GenericMenu):
 
         self._kb.set_textarea(self.pa_ta)
         self._kb.remove_flag(lv.obj.FLAG.HIDDEN)
+
+    def _close_keyboard(self, e):
+        if e.get_code() != lv.EVENT.CLICKED:
+            return
+
+        self._kb.add_flag(lv.obj.FLAG.HIDDEN)        
 
     def _on_set(self, e):
         if e.get_code() != lv.EVENT.CLICKED:

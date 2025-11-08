@@ -55,7 +55,7 @@ class GenericMenu(lv.obj):
         self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, PAD_SIZE)
 
         # Build items
-        for icon, text, target_menu_id in menu_items:
+        for icon, text, target_menu_id, color in menu_items:
             if target_menu_id is None:
                 spacer = lv.label(self.container)
                 spacer.set_recolor(True)
@@ -66,10 +66,13 @@ class GenericMenu(lv.obj):
                 btn = lv.button(self.container)
                 btn.set_width(BTN_WIDTH)
                 btn.set_height(BTN_HEIGHT)
-                ico = lv.label(btn)
-                ico.set_recolor(True)
-                ico.set_text(icon or "")
-                ico.align(lv.ALIGN.LEFT_MID, 8, 0)
+                if color:
+                    btn.set_style_bg_color(color, lv.PART.MAIN)
+                if icon:
+                    ico = lv.label(btn)
+                    ico.set_recolor(True)
+                    ico.set_text(icon or "")
+                    ico.align(lv.ALIGN.LEFT_MID, 8, 0)
                 lbl = lv.label(btn)
                 lbl.set_recolor(True)
                 lbl.set_text(text)

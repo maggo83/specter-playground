@@ -26,7 +26,7 @@ specter_state.detectedSmartCard = False
 #specter_state.registered_wallets.append(singlesig_wallet)
 #specter_state.registered_wallets.append(multisig_wallet)
 #specter_state.set_active_wallet(singlesig_wallet)
-specter_state.seed_loaded = True
+specter_state.seed_loaded = False
 specter_state.active_passphrase = "my_secret"
 
 display.init()

@@ -1,4 +1,4 @@
-from ..basic import GenericMenu
+from ..basic import ORANGE_HEX, GenericMenu
 import lvgl as lv
 
 class BackupsMenu(GenericMenu):
@@ -11,9 +11,9 @@ class BackupsMenu(GenericMenu):
         state = getattr(parent, "specter_state", None)
 
         menu_items = [
-            (lv.SYMBOL.DOWNLOAD + "  " + lv.SYMBOL.SD_CARD, "Backup to SD Card ", "backup_to_sd"),
-            (lv.SYMBOL.UPLOAD + "  " + lv.SYMBOL.SD_CARD, "Restore from SD Card ", "restore_from_sd"),
-            (lv.SYMBOL.CLOSE + "   " + lv.SYMBOL.SD_CARD, "Remove from SD Card ", "remove_backup_from_sd"),
+            (lv.SYMBOL.DOWNLOAD + "  " + lv.SYMBOL.SD_CARD, "Backup to SD Card ", "backup_to_sd", None),
+            (lv.SYMBOL.UPLOAD + "  " + lv.SYMBOL.SD_CARD, "Restore from SD Card ", "restore_from_sd", None),
+            (lv.SYMBOL.CLOSE + "   " + lv.SYMBOL.SD_CARD, "Remove from SD Card ", "remove_backup_from_sd", RED_HEX),
         ]
 
         title = lv.SYMBOL.COPY + " Manage Backups"

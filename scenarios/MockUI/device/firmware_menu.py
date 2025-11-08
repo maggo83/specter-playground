@@ -16,18 +16,18 @@ class FirmwareMenu(GenericMenu):
         fw_version = state.fw_version
 
         menu_items = [
-            (None, "Current version " + str(fw_version) + ". Update via", None),
+            (None, "Current version " + str(fw_version) + ". Update via", None, None),
         ]
 
         # conditional sources (guard against missing attributes)
         if state and getattr(state, 'hasSD', False) and getattr(state, 'enabledSD', False) and getattr(state, 'detectedSD', False):
-            menu_items.append((lv.SYMBOL.SD_CARD, "SD Card", "update_fw_sd"))
+            menu_items.append((lv.SYMBOL.SD_CARD, "SD Card", "update_fw_sd", None))
 
         if state and getattr(state, 'hasUSB', False) and getattr(state, 'enabledUSB', False):
-            menu_items.append((lv.SYMBOL.USB, "USB", "update_fw_usb"))
+            menu_items.append((lv.SYMBOL.USB, "USB", "update_fw_usb", None))
 
         if state and getattr(state, 'hasQR', False) and getattr(state, 'enabledQR', False):
-            menu_items.append((None, "QR", "update_fw_qr"))
+            menu_items.append((None, "QR", "update_fw_qr", None))
 
 
         title = "Manage Firmware"

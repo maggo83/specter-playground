@@ -1,6 +1,6 @@
 import lvgl as lv
 import urandom
-from ..basic import GenericMenu, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
+from ..basic import RED, ORANGE, GREEN, GenericMenu, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
 from ..helpers import Wallet
 
 
