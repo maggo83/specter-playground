@@ -1,7 +1,6 @@
 import lvgl as lv
 from ..basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH
 
-
 class InterfacesMenu(lv.obj):
     """Menu to enable/disable hardware interfaces.
 
@@ -103,6 +102,8 @@ class InterfacesMenu(lv.obj):
 
 
             sw.add_event_cb(lambda e, a=state_attr: _handler(e, a), lv.EVENT.VALUE_CHANGED, None)
+
+
 
     def on_back(self, e):
         if e.get_code() == lv.EVENT.CLICKED:

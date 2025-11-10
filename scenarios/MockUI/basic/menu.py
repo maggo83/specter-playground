@@ -1,5 +1,6 @@
 import lvgl as lv
 from .ui_consts import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE
+from .symbol_lib import Icon
 
 
 class GenericMenu(lv.obj):
@@ -68,15 +69,26 @@ class GenericMenu(lv.obj):
                 btn.set_height(BTN_HEIGHT)
                 if color:
                     btn.set_style_bg_color(color, lv.PART.MAIN)
+                
                 if icon:
-                    ico = lv.label(btn)
-                    ico.set_recolor(True)
-                    ico.set_text(icon or "")
-                    ico.align(lv.ALIGN.LEFT_MID, 8, 0)
+                    # Check if icon is an Icon (includes ColoredIcon subclass)
+                    if isinstance(icon, Icon):
+                        icon_img = lv.image(btn)
+                        icon.add_to_parent(icon_img)
+                        icon_img.align(lv.ALIGN.LEFT_MID, 8, 0)
+                    else:
+                        # Traditional string icon (lv.SYMBOL.*)
+                        ico = lv.label(btn)
+                        ico.set_recolor(True)
+                        ico.set_text(icon or "")
+                        ico.align(lv.ALIGN.LEFT_MID, 8, 0)
+  
+                # Add text label centered
                 lbl = lv.label(btn)
                 lbl.set_recolor(True)
                 lbl.set_text(text)
                 lbl.center()
+
                 btn.add_event_cb(self.make_callback(target_menu_id), lv.EVENT.CLICKED, None)
 
     def make_callback(self, target_menu_id):
