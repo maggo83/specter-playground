@@ -31,10 +31,11 @@ def color_to_rgb(color):
 
 def create_icon_from_bitmap(pattern, width, height, color):
     """
-    Convert a simple binary bitmap pattern to ARGB8888 format for LVGL.
+    Convert an alpha-channel bitmap pattern to ARGB8888 format for LVGL.
     
     Args:
-        pattern: List of 0s and 1s representing the bitmap (row by row)
+        pattern: bytes or list of alpha values (0-255) for each pixel, or
+                 list of 0s and 1s for legacy binary patterns
         width: Width of the icon in pixels
         height: Height of the icon in pixels
         color: lv.color_t object (e.g., from lv.color_hex(0xFF0000))
@@ -45,14 +46,23 @@ def create_icon_from_bitmap(pattern, width, height, color):
     # Extract RGB components from color
     r, g, b = color_to_rgb(color)
     
+    # Detect if pattern is legacy binary (only 0 and 1) or 8-bit alpha (0-255)
+    # Check the maximum value to determine format
+    max_value = max(pattern) if pattern else 0
+    is_binary = max_value <= 1
+    
     icon_data_argb = []
-    for pixel in pattern:
-        if pixel == 1:
-            # Colored pixel (BGRA byte order for ARGB8888)
-            icon_data_argb.extend([b, g, r, 0xFF])
+    for alpha in pattern:
+        # Handle both 8-bit alpha (0-255) and legacy binary (0/1) patterns
+        if is_binary:
+            # Legacy binary format: 0=transparent, 1=fully opaque
+            alpha_value = 0xFF if alpha == 1 else 0x00
         else:
-            # Transparent pixel
-            icon_data_argb.extend([0x00, 0x00, 0x00, 0x00])
+            # 8-bit alpha value (0-255)
+            alpha_value = int(alpha)
+        
+        # Apply user's color with the alpha from the pattern (BGRA byte order for ARGB8888)
+        icon_data_argb.extend([b, g, r, alpha_value])
     
     icon_data_bytes = bytes(icon_data_argb)
     
@@ -92,7 +102,8 @@ class Icon:
         Initialize an icon with a bitmap pattern.
         
         Args:
-            pattern: List of 0s and 1s representing the bitmap (row by row)
+            pattern: bytes or list of alpha values (0-255) for each pixel,
+                    or list of 0s and 1s for legacy binary patterns
             width: Width of the icon in pixels
             height: Height of the icon in pixels
             color: Optional lv.color_t object (defaults to WHITE_HEX)
