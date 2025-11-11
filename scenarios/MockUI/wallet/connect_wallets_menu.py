@@ -16,5 +16,5 @@ class ConnectWalletsMenu(GenericMenu):
             (None, "Other...", "connect_other", None),
         ]
 
-        title = lv.SYMBOL.REFRESH + " Connect SW Wallet"
+        title = "Connect SW Wallet"
         super().__init__("connect_sw_wallet", title, menu_items, parent, *args, **kwargs)

@@ -1,4 +1,5 @@
 from ..basic import GenericMenu
+from ..basic.symbol_lib import BTC_ICONS
 import lvgl as lv
 
 
@@ -21,13 +22,13 @@ class FirmwareMenu(GenericMenu):
 
         # conditional sources (guard against missing attributes)
         if state and getattr(state, 'hasSD', False) and getattr(state, 'enabledSD', False) and getattr(state, 'detectedSD', False):
-            menu_items.append((lv.SYMBOL.SD_CARD, "SD Card", "update_fw_sd", None))
+            menu_items.append((BTC_ICONS.SD_CARD, "SD Card", "update_fw_sd", None))
 
         if state and getattr(state, 'hasUSB', False) and getattr(state, 'enabledUSB', False):
-            menu_items.append((lv.SYMBOL.USB, "USB", "update_fw_usb", None))
+            menu_items.append((BTC_ICONS.USB, "USB", "update_fw_usb", None))
 
         if state and getattr(state, 'hasQR', False) and getattr(state, 'enabledQR', False):
-            menu_items.append((None, "QR", "update_fw_qr", None))
+            menu_items.append((BTC_ICONS.QR_CODE, "QR", "update_fw_qr", None))
 
 
         title = "Manage Firmware"

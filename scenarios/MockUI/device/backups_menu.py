@@ -1,5 +1,6 @@
-from ..basic import ORANGE_HEX, GenericMenu
+from ..basic import ORANGE_HEX, RED_HEX, GenericMenu
 import lvgl as lv
+from ..basic.symbol_lib import BTC_ICONS
 
 class BackupsMenu(GenericMenu):
     """Menu for managing backups on SD Card.
@@ -11,11 +12,11 @@ class BackupsMenu(GenericMenu):
         state = getattr(parent, "specter_state", None)
 
         menu_items = [
-            (lv.SYMBOL.DOWNLOAD + "  " + lv.SYMBOL.SD_CARD, "Backup to SD Card ", "backup_to_sd", None),
-            (lv.SYMBOL.UPLOAD + "  " + lv.SYMBOL.SD_CARD, "Restore from SD Card ", "restore_from_sd", None),
-            (lv.SYMBOL.CLOSE + "   " + lv.SYMBOL.SD_CARD, "Remove from SD Card ", "remove_backup_from_sd", RED_HEX),
+            (BTC_ICONS.RECEIVE, "Backup to SD Card ", "backup_to_sd", None),
+            (BTC_ICONS.SEND, "Restore from SD Card ", "restore_from_sd", None),
+            (BTC_ICONS.CROSS, "Remove from SD Card ", "remove_backup_from_sd", RED_HEX),
         ]
 
-        title = lv.SYMBOL.COPY + " Manage Backups"
+        title = "Manage Backups"
 
         super().__init__("manage_backups", title, menu_items, parent, *args, **kwargs)

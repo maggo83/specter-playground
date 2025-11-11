@@ -20,14 +20,15 @@ specter_state.enabledSD = False
 specter_state.detectedSD = True
 
 specter_state.hasSmartCard = True
-specter_state.enabledSmartCard = False
-specter_state.detectedSmartCard = False
+specter_state.enabledSmartCard = True
+specter_state.detectedSmartCard = True
 
 #specter_state.registered_wallets.append(singlesig_wallet)
 #specter_state.registered_wallets.append(multisig_wallet)
 #specter_state.set_active_wallet(singlesig_wallet)
 specter_state.seed_loaded = False
-specter_state.active_passphrase = "my_secret"
+specter_state.active_passphrase = ""
+specter_state.pin = "21"
 
 display.init()
 
