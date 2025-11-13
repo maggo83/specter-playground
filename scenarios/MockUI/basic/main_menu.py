@@ -29,16 +29,18 @@ def MainMenu(parent, *args, **kwargs):
         if (state and state.active_wallet is None and state.hasSmartCard and state.enabledSmartCard and state.detectedSmartCard):
             menu_items.append((BTC_ICONS.SEND, "Import Seed From SmartCard", "import_from_smartcard", None))
 
+    menu_items.append((None, "Choose Wallet", None, None))
+    if state.registered_wallets and len(state.registered_wallets) > 0:
+        menu_items.append((BTC_ICONS.WALLET, "Change/Add Wallet", "change_wallet", None))
+    else:
+        menu_items.append((BTC_ICONS.PLUS, "Add Wallet", "add_wallet", None))
+
     menu_items.append((None, "Manage Settings", None, None))
     if (state and not state.active_wallet is None):
         menu_items.append((BTC_ICONS.WALLET, "Manage Wallet", "manage_wallet", None))
 
     menu_items.append((BTC_ICONS.GEAR, "Manage Device", "manage_device", None))
     menu_items.append((lv.SYMBOL.DRIVE, "Manage Storage", "manage_storage", None))
-    if state.registered_wallets and len(state.registered_wallets) > 0:
-        menu_items.append((BTC_ICONS.WALLET, "Change/Add Wallet", "change_wallet", None))
-    else:
-        menu_items.append((BTC_ICONS.PLUS, "Add Wallet", "add_wallet", None))
 
 
     return GenericMenu("main", "What do you want to do?", menu_items, parent, *args, **kwargs)

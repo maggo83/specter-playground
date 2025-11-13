@@ -1,5 +1,6 @@
 import lvgl as lv
 from ..basic import GenericMenu, BTN_HEIGHT, BTN_WIDTH
+from ..basic.symbol_lib import BTC_ICONS
 
 
 class ChangeWalletMenu(GenericMenu):
@@ -48,7 +49,15 @@ class ChangeWalletMenu(GenericMenu):
         add_btn = lv.button(self.container)
         add_btn.set_width(BTN_WIDTH)
         add_btn.set_height(BTN_HEIGHT)
+        
+        # Icon on the left
+        add_ico = lv.image(add_btn)
+        BTC_ICONS.PLUS.add_to_parent(add_ico)
+        add_ico.align(lv.ALIGN.LEFT_MID, 8, 0)
+        
+        # Text centered
         add_lbl = lv.label(add_btn)
-        add_lbl.set_text(lv.SYMBOL.PLUS + " Add Wallet")
+        add_lbl.set_text("Add Wallet")
         add_lbl.center()
+        
         add_btn.add_event_cb(lambda e: self.on_navigate("add_wallet") if e.get_code() == lv.EVENT.CLICKED else None, lv.EVENT.CLICKED, None)

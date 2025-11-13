@@ -34,4 +34,4 @@ class AddWalletMenu(GenericMenu):
             (lv.SYMBOL.KEYBOARD, "Keyboard", "import_from_keyboard", None),
         ]
 
-        super().__init__("add_wallet", lv.SYMBOL.PLUS + " Add Wallet", menu_items, parent, *args, **kwargs)
+        super().__init__("add_wallet", "Add Wallet", menu_items, parent, *args, **kwargs)

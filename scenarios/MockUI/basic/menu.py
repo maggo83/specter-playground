@@ -30,9 +30,6 @@ class GenericMenu(lv.obj):
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
             self.back_btn = lv.button(self)
             self.back_btn.set_size(40, 28)
-            #self.back_lbl = lv.label(self.back_btn)
-            #self.back_lbl.set_text(lv.SYMBOL.LEFT)
-            #self.back_lbl.center()
             self.back_ico = lv.image(self.back_btn)
             BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
             self.back_ico.center()
