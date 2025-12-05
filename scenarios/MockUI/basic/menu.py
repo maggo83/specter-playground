@@ -25,6 +25,10 @@ class GenericMenu(lv.obj):
         # Fill parent
         self.set_width(lv.pct(100))
         self.set_height(lv.pct(100))
+        # Remove padding from base menu object to allow full-width content
+        self.set_style_pad_all(0, 0)
+        # Remove border
+        self.set_style_border_width(0, 0)
 
         # If ui_state has history, show back button to the left of the title
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
@@ -52,6 +56,7 @@ class GenericMenu(lv.obj):
         self.container.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self.container.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         self.container.set_style_pad_all(PAD_SIZE, 0)
+        self.container.set_style_border_width(0, 0)
         # smaller gap between title and container
         self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, PAD_SIZE)
 
@@ -61,11 +66,11 @@ class GenericMenu(lv.obj):
                 spacer = lv.label(self.container)
                 spacer.set_recolor(True)
                 spacer.set_text(text or "")
-                spacer.set_width(BTN_WIDTH)
+                spacer.set_width(lv.pct(BTN_WIDTH))
                 spacer.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
             else:
                 btn = lv.button(self.container)
-                btn.set_width(BTN_WIDTH)
+                btn.set_width(lv.pct(BTN_WIDTH))
                 btn.set_height(BTN_HEIGHT)
                 if color:
                     btn.set_style_bg_color(color, lv.PART.MAIN)

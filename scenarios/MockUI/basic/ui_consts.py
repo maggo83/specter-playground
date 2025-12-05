@@ -2,7 +2,7 @@ from micropython import const
 import lvgl as lv
 
 BTN_HEIGHT = const(50)
-BTN_WIDTH = const(350)
+BTN_WIDTH = const(100)  # Percentage of container width
 MENU_PCT = const(93)
 STATUS_BTN_HEIGHT = const(30)
 STATUS_BTN_WIDTH = const(40)

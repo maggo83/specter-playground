@@ -34,7 +34,7 @@ class ChangeWalletMenu(GenericMenu):
         # Create a button for each registered wallet
         for w in wallets:
             btn = lv.button(self.container)
-            btn.set_width(BTN_WIDTH)
+            btn.set_width(lv.pct(BTN_WIDTH))
             btn.set_height(BTN_HEIGHT)
             lbl = lv.label(btn)
             lbl.set_text(w.name)
@@ -47,7 +47,7 @@ class ChangeWalletMenu(GenericMenu):
 
         # Add Wallet button navigates to add_wallet
         add_btn = lv.button(self.container)
-        add_btn.set_width(BTN_WIDTH)
+        add_btn.set_width(lv.pct(BTN_WIDTH))
         add_btn.set_height(BTN_HEIGHT)
         
         # Icon on the left

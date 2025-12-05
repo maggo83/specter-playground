@@ -16,7 +16,7 @@ class WalletMenu(GenericMenu):
         menu_items.append((None, "Explore", None, None))
         menu_items.append((BTC_ICONS.MENU, "View Addresses", "view_addresses", None))
         if (state and not state.active_wallet is None and state.active_wallet.isMultiSig):
-            menu_items.append((BTC_ICONS.CONTACTS, "View Signers", "view_signers", None))
+            menu_items.append((BTC_ICONS.ADDRESS_BOOK, "View Signers", "view_signers", None))
 
         menu_items.append((None, "Manage", None, None))
         if (state and not state.active_wallet is None and not state.active_wallet.isMultiSig):

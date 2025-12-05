@@ -61,7 +61,7 @@ class PassphraseMenu(GenericMenu):
 
         # Clear button
         self.clear_btn = lv.button(buttons_row)
-        self.clear_btn.set_width(BTN_WIDTH)
+        self.clear_btn.set_width(lv.pct(BTN_WIDTH))
         self.clear_btn.set_height(BTN_HEIGHT)
         self.clear_lbl = lv.label(self.clear_btn)
         self.clear_lbl.set_text(lv.SYMBOL.CLOSE + " Clear")

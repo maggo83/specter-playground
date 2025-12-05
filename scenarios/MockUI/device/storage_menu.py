@@ -22,4 +22,4 @@ class StorageMenu(GenericMenu):
         if state and state.hasSD and state.enabledSD and state.detectedSD:
             menu_items.append((BTC_ICONS.SD_CARD, "Manage SD Card", "sdcard", None))
 
-        super().__init__("manage_storage", lv.SYMBOL.DRIVE + " Manage Storage", menu_items, parent, *args, **kwargs)
+        super().__init__("manage_storage", "Manage Storage", menu_items, parent, *args, **kwargs)

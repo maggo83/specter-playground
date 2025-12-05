@@ -44,7 +44,7 @@ class ActionScreen(lv.obj):
 
         # Back button
         self.back_btn = lv.button(self)
-        self.back_btn.set_width(BTN_WIDTH)
+        self.back_btn.set_width(lv.pct(BTN_WIDTH))
         self.back_btn.set_height(BTN_HEIGHT)
         back_lbl = lv.label(self.back_btn)
         back_lbl.set_text("Back")

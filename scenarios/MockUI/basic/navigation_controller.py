@@ -52,6 +52,7 @@ class NavigationController(lv.obj):
         self.content.set_height(lv.pct(95))
         self.content.set_layout(lv.LAYOUT.FLEX)
         self.content.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+        self.content.set_style_pad_all(0, 0)  # Remove padding to allow full-width content
         self.content.align_to(self.status_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 0)
 
         # initially show the main menu

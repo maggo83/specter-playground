@@ -110,7 +110,7 @@ class GenerateSeedMenu(GenericMenu):
         create_row.set_style_border_width(0, 0)
 
         self.create_btn = lv.button(create_row)
-        self.create_btn.set_width(BTN_WIDTH)
+        self.create_btn.set_width(lv.pct(BTN_WIDTH))
         self.create_btn.set_height(BTN_HEIGHT)
         self.create_lbl = lv.label(self.create_btn)
         self.create_lbl.set_text("Create")
