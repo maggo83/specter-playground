@@ -1,8 +1,7 @@
 import lvgl as lv
 import urandom
-from .menu import GenericMenu
-from .wallet import Wallet
-from .ui_consts import SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
+from ..basic import RED, ORANGE, GREEN, GenericMenu, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
+from ..helpers import Wallet
 
 
 class GenerateSeedMenu(GenericMenu):
@@ -12,7 +11,7 @@ class GenerateSeedMenu(GenericMenu):
     """
 
     def __init__(self, parent, *args, **kwargs):
-        super().__init__("generate_seedphrase", "Generate Seedphrase", [], parent, *args, **kwargs)
+        super().__init__("generate_seedphrase", lv.SYMBOL.LIST + " Generate New Seedphrase", [], parent, *args, **kwargs)
 
         self.parent = parent
         self.state = getattr(parent, "specter_state", None)
@@ -111,7 +110,7 @@ class GenerateSeedMenu(GenericMenu):
         create_row.set_style_border_width(0, 0)
 
         self.create_btn = lv.button(create_row)
-        self.create_btn.set_width(BTN_WIDTH)
+        self.create_btn.set_width(lv.pct(BTN_WIDTH))
         self.create_btn.set_height(BTN_HEIGHT)
         self.create_lbl = lv.label(self.create_btn)
         self.create_lbl.set_text("Create")

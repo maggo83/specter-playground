@@ -1,47 +1,56 @@
 # MockUI/__init__.py
-from .wallet import Wallet
-from .device_state import SpecterState
-from .ui_consts import BTN_HEIGHT, BTN_WIDTH
-from .ui_state import UIState
-from .status_bar import StatusBar
-from .action_screen import ActionScreen
-from .main_menu import MainMenu
-from .wallet_menu import WalletMenu
-from .device_menu import DeviceMenu
-from .seedphrase_menu import SeedPhraseMenu
-from .security_menu import SecurityMenu
-from .interfaces_menu import InterfacesMenu
-from .backups_menu import BackupsMenu
-from .firmware_menu import FirmwareMenu
-from .connect_wallets_menu import ConnectWalletsMenu
-from .change_wallet_menu import ChangeWalletMenu
-from .add_wallet_menu import AddWalletMenu
-from .locked_menu import LockedMenu
-from .generate_seedphrase_menu import GenerateSeedMenu
-from .storage_menu import StorageMenu
-from .passphrase_menu import PassphraseMenu
+from .basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH, ONE_LETTER_SYMBOL_WIDTH, TWO_LETTER_SYMBOL_WIDTH, THREE_LETTER_SYMBOL_WIDTH, GREEN, ORANGE, RED
+from .basic import MainMenu, LockedMenu, StatusBar, ActionScreen, GenericMenu
+from .basic import NavigationController
+
+from .helpers import UIState, SpecterState, Wallet
+
+from .wallet import (
+    WalletMenu,
+    AddWalletMenu,
+    ChangeWalletMenu,
+    ConnectWalletsMenu,
+    SeedPhraseMenu,
+    GenerateSeedMenu,
+    PassphraseMenu,
+)
+
+from .device import (
+    DeviceMenu,
+    FirmwareMenu,
+    InterfacesMenu,
+    BackupsMenu,
+    SecurityMenu,
+    StorageMenu,
+)
 
 __all__ = [
-            "BTN_HEIGHT",
-            "BTN_WIDTH",
-            "MainMenu",
-            "WalletMenu",
-            "DeviceMenu",
-            "SpecterState",
-            "Wallet",
-            "ActionScreen",
-            "UIState",
-            "StatusBar",
-            "SeedPhraseMenu",
-            "SecurityMenu",
-            "InterfacesMenu",
-            "BackupsMenu",
-            "FirmwareMenu",
-            "ConnectWalletsMenu",
-            "ChangeWalletMenu",
-            "AddWalletMenu",
-            "LockedMenu",
-            "GenerateSeedMenu",
-            "StorageMenu"
-            ,"PassphraseMenu"
-        ]
+    "BTN_HEIGHT", "BTN_WIDTH",
+    "MENU_PCT",
+    "PAD_SIZE",
+    "SWITCH_HEIGHT", "SWITCH_WIDTH",
+    "STATUS_BTN_HEIGHT", "STATUS_BTN_WIDTH",
+    "ONE_LETTER_SYMBOL_WIDTH", "TWO_LETTER_SYMBOL_WIDTH", "THREE_LETTER_SYMBOL_WIDTH",
+    "GREEN", "ORANGE", "RED",
+    "MainMenu",
+    "WalletMenu",
+    "DeviceMenu",
+    "SpecterState",
+    "Wallet",
+    "ActionScreen",
+    "UIState",
+    "StatusBar",
+    "SeedPhraseMenu",
+    "SecurityMenu",
+    "InterfacesMenu",
+    "BackupsMenu",
+    "FirmwareMenu",
+    "ConnectWalletsMenu",
+    "ChangeWalletMenu",
+    "AddWalletMenu",
+    "LockedMenu",
+    "GenerateSeedMenu",
+    "StorageMenu",
+    "PassphraseMenu",
+    "NavigationController",
+]

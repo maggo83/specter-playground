@@ -1,5 +1,5 @@
 import lvgl as lv
-from .menu import GenericMenu
+from .menu import BTC_ICONS, GenericMenu
 
 
 class LockedMenu(GenericMenu):
@@ -56,15 +56,21 @@ class LockedMenu(GenericMenu):
                 b = lv.button(row_cont)
                 b.set_width(60)
                 b.set_height(36)
-                lb = lv.label(b)
-                lb.set_text(k)
-                lb.center()
                 if k == "Del":
+                    im = lv.image(b)
+                    BTC_ICONS.CLEAR_CHARACTER.add_to_parent(im)
+                    im.center()
                     b.add_event_cb(lambda e: self._on_del(e), lv.EVENT.CLICKED, None)
                 elif k == "OK":
+                    im = lv.image(b)
+                    BTC_ICONS.CHECK.add_to_parent(im)
+                    im.center()
                     b.add_event_cb(lambda e: self._on_ok(e), lv.EVENT.CLICKED, None)
                 else:
                     # capture digit in default arg
+                    lb = lv.label(b)
+                    lb.center()
+                    lb.set_text(k)
                     b.add_event_cb(lambda e, d=k: self._on_digit(e, d), lv.EVENT.CLICKED, None)
 
     def _update_mask(self):

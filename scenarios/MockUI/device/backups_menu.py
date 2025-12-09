@@ -1,5 +1,6 @@
-from .menu import GenericMenu
-
+from ..basic import ORANGE_HEX, RED_HEX, GenericMenu
+import lvgl as lv
+from ..basic.symbol_lib import BTC_ICONS
 
 class BackupsMenu(GenericMenu):
     """Menu for managing backups on SD Card.
@@ -11,9 +12,9 @@ class BackupsMenu(GenericMenu):
         state = getattr(parent, "specter_state", None)
 
         menu_items = [
-            ("Backup device to SD Card", "backup_to_sd"),
-            ("Restore device from SD Card", "restore_from_sd"),
-            ("Remove Backup from SD Card", "remove_backup_from_sd"),
+            (BTC_ICONS.RECEIVE, "Backup to SD Card ", "backup_to_sd", None),
+            (BTC_ICONS.SEND, "Restore from SD Card ", "restore_from_sd", None),
+            (BTC_ICONS.CROSS, "Remove from SD Card ", "remove_backup_from_sd", RED_HEX),
         ]
 
         title = "Manage Backups"

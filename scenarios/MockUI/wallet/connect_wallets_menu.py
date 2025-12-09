@@ -1,5 +1,5 @@
-from .menu import GenericMenu
-
+from ..basic import GenericMenu
+import lvgl as lv
 
 class ConnectWalletsMenu(GenericMenu):
     """Menu to connect or export to software wallets.
@@ -10,11 +10,11 @@ class ConnectWalletsMenu(GenericMenu):
     def __init__(self, parent, *args, **kwargs):
         # the actual connection logic is out of scope here; provide menu entries
         menu_items = [
-            ("Sparrow", "connect_sparrow"),
-            ("Nunchuck", "connect_nunchuck"),
-            ("BlueWallet", "connect_bluewallet"),
-            ("Other...", "connect_other"),
+            (None, "Sparrow", "connect_sparrow", None),
+            (None, "Nunchuck", "connect_nunchuck", None),
+            (None, "BlueWallet", "connect_bluewallet", None),
+            (None, "Other...", "connect_other", None),
         ]
 
-        title = "Connect/Export"
+        title = "Connect SW Wallet"
         super().__init__("connect_sw_wallet", title, menu_items, parent, *args, **kwargs)

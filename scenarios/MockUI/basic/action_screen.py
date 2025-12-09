@@ -1,6 +1,6 @@
 import lvgl as lv
 from .ui_consts import BTN_HEIGHT, BTN_WIDTH
-
+from .symbol_lib import BTC_ICONS
 
 class ActionScreen(lv.obj):
     """Generic action screen for menu items"""
@@ -20,9 +20,9 @@ class ActionScreen(lv.obj):
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
             self.back_btn = lv.button(self)
             self.back_btn.set_size(40, 28)
-            self.back_lbl = lv.label(self.back_btn)
-            self.back_lbl.set_text("<")
-            self.back_lbl.center()
+            self.back_ico = lv.image(self.back_btn)
+            BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
+            self.back_ico.center()
             # wire back to navigation callback: wrap handler in a lambda so the
             # LVGL binding's argument passing doesn't mismatch the method signature.
             self.back_btn.add_event_cb(lambda e: self.on_back(e), lv.EVENT.CLICKED, None)
@@ -44,7 +44,7 @@ class ActionScreen(lv.obj):
 
         # Back button
         self.back_btn = lv.button(self)
-        self.back_btn.set_width(BTN_WIDTH)
+        self.back_btn.set_width(lv.pct(BTN_WIDTH))
         self.back_btn.set_height(BTN_HEIGHT)
         back_lbl = lv.label(self.back_btn)
         back_lbl.set_text("Back")
