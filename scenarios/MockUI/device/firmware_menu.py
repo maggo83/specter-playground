@@ -34,5 +34,5 @@ class FirmwareMenu(GenericMenu):
             menu_items.append((BTC_ICONS.QR_CODE, t("HARDWARE_QR_CODE"), "update_fw_qr", None))
 
 
-        title = t("FIRMWARE_MENU_TITLE")
+        title = t("MENU_MANAGE_FIRMWARE")
         super().__init__("manage_firmware", title, menu_items, parent, *args, **kwargs)

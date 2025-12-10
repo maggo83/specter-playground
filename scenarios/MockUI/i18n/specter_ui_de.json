@@ -7,7 +7,7 @@
   },
   "translations": {
     "MAIN_MENU_TITLE": {
-      "text": "Was möchten Sie tun?",
+      "text": "Was möchtest du tun?",
       "ref_en": "What do you want to do?"
     },
     "MAIN_MENU_PROCESS_INPUT": {
@@ -15,7 +15,7 @@
       "ref_en": "Process input"
     },
     "MAIN_MENU_SCAN_QR": {
-      "text": "QR scannen",
+      "text": "QR-Code scannen",
       "ref_en": "Scan QR"
     },
     "MAIN_MENU_LOAD_SD": {
@@ -72,8 +72,8 @@
       "ref_en": "Change Network"
     },
     "WALLET_MENU_DELETE_WALLET": {
-      "text": "Wallet löschen#",
-      "ref_en": "Delete Wallet#"
+      "text": "Wallet löschen",
+      "ref_en": "Delete Wallet"
     },
     "WALLET_MENU_CONNECT_EXPORT": {
       "text": "Verbinden/Exportieren",
@@ -162,11 +162,11 @@
     },
     
     "DEVICE_MENU_DISPLAY": {
-      "text": "Display verwalten",
+      "text": "Display konfigurieren",
       "ref_en": "Manage Display"
     },
     "DEVICE_MENU_SOUNDS": {
-      "text": "Töne verwalten",
+      "text": "Töne konfigurieren",
       "ref_en": "Manage Sounds"
     },
     "DEVICE_MENU_ADVANCED": {
@@ -178,14 +178,10 @@
       "ref_en": "Dangerzone"
     },
     "DEVICE_MENU_WIPE": {
-      "text": "Gerät löschen",
+      "text": "Gerät zurücksetzen",
       "ref_en": "Wipe Device"
     },
     
-    "FIRMWARE_MENU_TITLE": {
-      "text": "Firmware verwalten",
-      "ref_en": "Manage Firmware"
-    },
     "FIRMWARE_MENU_CURRENT_VERSION": {
       "text": "Aktuelle Version ",
       "ref_en": "Current version "
@@ -193,11 +189,6 @@
     "FIRMWARE_MENU_UPDATE_VIA": {
       "text": ". Aktualisieren via",
       "ref_en": ". Update via"
-    },
-    
-    "INTERFACES_MENU_QR_SCANNER": {
-      "text": "QR-Scanner",
-      "ref_en": "QR Scanner"
     },
     
     "BACKUPS_MENU_BACKUP_TO_SD": {
@@ -250,6 +241,11 @@
       "text": "SD-Karte verwalten",
       "ref_en": "Manage SD Card"
     },
+
+    "MENU_LOAD_NEW_LANGUAGE": {
+      "text": "Neue Sprache laden",
+      "ref_en": "Load New Language"
+    },
     
     "LOCKED_MENU_TITLE": {
       "text": "Gerät gesperrt, Firmware-Version ",
@@ -274,7 +270,7 @@
       "ref_en": "Wallet"
     },
     "COMMON_SINGLESIG": {
-      "text": "EinzelSig",
+      "text": "SingleSig",
       "ref_en": "SingleSig"
     },
     "COMMON_MULTISIG": {
@@ -282,11 +278,11 @@
       "ref_en": "MultiSig"
     },
     "COMMON_MAINNET": {
-      "text": "Hauptnetz",
+      "text": "MainNet",
       "ref_en": "mainnet"
     },
     "COMMON_TESTNET": {
-      "text": "Testnetz",
+      "text": "TestNet",
       "ref_en": "testnet"
     },
     "MENU_MANAGE_WALLET": {
@@ -336,6 +332,10 @@
     "MENU_MANAGE_DEVICE": {
       "text": "Gerät verwalten",
       "ref_en": "Manage Device"
+    },
+    "MENU_LANGUAGE": {
+      "text": "Sprache auswählen",
+      "ref_en": "Select Language"
     },
     "HARDWARE_SMARTCARD": {
       "text": "SmartCard",

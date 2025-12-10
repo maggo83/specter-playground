@@ -23,7 +23,7 @@
     "WALLET_MENU_MANAGE": "Manage",
     "WALLET_MENU_MANAGE_DESCRIPTOR": "Manage Descriptor",
     "WALLET_MENU_CHANGE_NETWORK": "Change Network",
-    "WALLET_MENU_DELETE_WALLET": "Delete Wallet#",
+    "WALLET_MENU_DELETE_WALLET": "Delete Wallet",
     "WALLET_MENU_CONNECT_EXPORT": "Connect/Export",
     "WALLET_MENU_EXPORT_DATA": "Export Data",
     
@@ -56,11 +56,8 @@
     "DEVICE_MENU_DANGERZONE": "Dangerzone",
     "DEVICE_MENU_WIPE": "Wipe Device",
     
-    "FIRMWARE_MENU_TITLE": "Manage Firmware",
     "FIRMWARE_MENU_CURRENT_VERSION": "Current version ",
     "FIRMWARE_MENU_UPDATE_VIA": ". Update via",
-    
-    "INTERFACES_MENU_QR_SCANNER": "QR Scanner",
     
     "BACKUPS_MENU_BACKUP_TO_SD": "Backup to SD Card",
     "BACKUPS_MENU_RESTORE_FROM_SD": "Restore from SD Card",
@@ -77,6 +74,8 @@
     "STORAGE_MENU_SMARTCARD": "Manage SmartCard",
     "STORAGE_MENU_SD_CARD": "Manage SD Card",
     
+    "MENU_LOAD_NEW_LANGUAGE": "Load New Language",
+
     "LOCKED_MENU_TITLE": "Device Locked, Firmware version ",
     "LOCKED_MENU_ENTER_PIN": "Enter PIN to unlock:",
     
@@ -101,6 +100,7 @@
     "MENU_MANAGE_STORAGE": "Manage Storage",
     "MENU_GENERATE_NEW_SEEDPHRASE": "Generate New Seedphrase",
     "MENU_MANAGE_DEVICE": "Manage Device",
+    "MENU_LANGUAGE": "Select Language",
     
     "HARDWARE_SMARTCARD": "SmartCard",
     "HARDWARE_SD_CARD": "SD Card",

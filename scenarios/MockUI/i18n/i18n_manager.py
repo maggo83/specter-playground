@@ -43,14 +43,10 @@ class I18nManager:
         
         self.current_language = None
         self.translations = {}
-        self.default_translations = {}  # Default language (English) for fallback
         self.available_languages = []
         
         # Load available languages
         self._scan_available_languages()
-        
-        # Load default language (English) as reference (always needed for fallback)
-        self._load_default_reference()
         
         # Load last selected language or default
         selected_lang = self._load_language_preference()
@@ -113,66 +109,61 @@ class I18nManager:
         except Exception as e:
             print(f"Warning: Could not save language preference: {e}")
     
-    def _load_default_reference(self):
-        """Load default language translations as reference (for fallback)."""
-        lang_file = self.i18n_dir + '/' + f"{self.LANGUAGE_FILE_PREFIX}{self.DEFAULT_LANGUAGE}{self.LANGUAGE_FILE_SUFFIX}"
-        
-        try:
-            with open(lang_file, 'r') as f:
-                data = json.load(f)
-                
-            # Extract translations
-            translations = data.get('translations', {})
-            
-            # For default language (English), translations are simple strings
-            self.default_translations = {}
-            for key, value in translations.items():
-                if isinstance(value, str):
-                    self.default_translations[key] = value
-                elif isinstance(value, dict):
-                    # If it's a dict (shouldn't be for default language, but handle it)
-                    self.default_translations[key] = value.get('text', value.get('ref_en', key))
-                else:
-                    self.default_translations[key] = str(value)
-                    
-        except OSError:
-            print(f"Warning: Default language reference file not found at {lang_file}")
-            self.default_translations = {}
-        except Exception as e:
-            print(f"Warning: Could not load default language reference: {e}")
-            self.default_translations = {}
-    
     def _load_language_file(self, lang_code):
         """
         Load a language file and validate it.
+        Temporarily loads default language to fill missing keys, then frees it.
         
         Args:
             lang_code: ISO 639-1 language code (e.g., 'en', 'de')
             
         Returns:
-            dict: Translations dictionary with missing keys filled from English
+            dict: Translations dictionary with missing keys filled from default language
         """
+        # Step 1: Load default language (English) for reference
+        default_file = self.i18n_dir + '/' + f"{self.LANGUAGE_FILE_PREFIX}{self.DEFAULT_LANGUAGE}{self.LANGUAGE_FILE_SUFFIX}"
+        default_translations = {}
+        
+        try:
+            with open(default_file, 'r') as f:
+                default_data = json.load(f)
+            
+            # Extract default translations
+            default_raw = default_data.get('translations', {})
+            for key, value in default_raw.items():
+                if isinstance(value, str):
+                    default_translations[key] = value
+                elif isinstance(value, dict):
+                    default_translations[key] = value.get('text', value.get('ref_en', key))
+                else:
+                    default_translations[key] = str(value)
+        except OSError:
+            print(f"Warning: Default language file not found at {default_file}")
+        except Exception as e:
+            print(f"Warning: Could not load default language: {e}")
+        
+        # Step 2: Load selected language file
         lang_file = self.i18n_dir + '/' + f"{self.LANGUAGE_FILE_PREFIX}{lang_code}{self.LANGUAGE_FILE_SUFFIX}"
         
         try:
             with open(lang_file, 'r') as f:
                 data = json.load(f)
         except OSError:
-            print(f"Warning: Language file not found: {lang_file}")
-            return self.default_translations.copy()
+            print(f"Warning: Language file not found: {lang_file}, using default language")
+            return default_translations
         except (ValueError, KeyError) as e:
             print(f"Error: Invalid JSON in language file {lang_file}: {e}")
-            return self.default_translations.copy()
+            return default_translations
         except Exception as e:
             print(f"Error: Could not load language file {lang_file}: {e}")
-            return self.default_translations.copy()
+            return default_translations
         
         # Validate metadata
         metadata = data.get('_metadata', {})
         if metadata.get('language_code') != lang_code:
             print(f"Warning: Language code mismatch in {lang_file}")
         
-        # Extract translations
+        # Step 3: Extract translations from selected language
         raw_translations = data.get('translations', {})
         translations = {}
         
@@ -188,17 +179,20 @@ class I18nManager:
                 print(f"Warning: Invalid translation format for key '{key}' in {lang_file}")
                 translations[key] = str(value)
         
-        # Check for missing keys and fill with default language fallback
+        # Step 4: Fill missing keys from default language
         missing_keys = []
-        for key in self.default_translations.keys():
+        for key in default_translations.keys():
             if key not in translations:
                 missing_keys.append(key)
-                translations[key] = self.default_translations[key]
+                translations[key] = default_translations[key]
         
-        # Warn about missing translations at the end of loading
-        if missing_keys:
+        # Warn about missing translations
+        if missing_keys and lang_code != self.DEFAULT_LANGUAGE:
             print(f"Warning: Language '{lang_code}' is missing {len(missing_keys)} translation(s). "
                   f"Default language fallback will be used for missing keys.")
+        
+        # Step 5: Free default language memory (Python will garbage collect)
+        default_translations = None
         
         return translations
     

@@ -73,10 +73,15 @@ class StatusBar(lv.obj):
         self.smartcard_img = lv.image(self)
         self.smartcard_img.set_width(BTC_ICON_WIDTH)
 
-        # Language indicator (TODO: make a selector)
+        # Language indicator (clickable selector)
         self.lang_lbl = lv.label(self)
         self.lang_lbl.set_text("")
-        self.lang_lbl.set_width(THREE_LETTER_SYMBOL_WIDTH)        
+        self.lang_lbl.set_width(THREE_LETTER_SYMBOL_WIDTH)
+        self.lang_lbl.add_flag(lv.obj.FLAG.CLICKABLE)
+        self.lang_lbl.add_event_cb(self.lang_clicked, lv.EVENT.CLICKED, None)
+        
+        # Language dropdown (created on demand)
+        self.lang_dropdown = None
 
         # Apply a smaller font to all labels in the status bar
         self.font = lv.font_montserrat_12
@@ -160,6 +165,12 @@ class StatusBar(lv.obj):
         if e.get_code() == lv.EVENT.CLICKED:
             if self.parent.ui_state.current_menu_id != "interfaces":
                 self.parent.show_menu("interfaces")
+    
+    def lang_clicked(self, e):
+        """Navigate to language selection menu when language label is clicked."""
+        if e.get_code() == lv.EVENT.CLICKED:
+            if self.parent.ui_state.current_menu_id != "select_language":
+                self.parent.show_menu("select_language")
 
     def refresh(self, state):
         """Update visual elements from a SpecterState-like object."""
