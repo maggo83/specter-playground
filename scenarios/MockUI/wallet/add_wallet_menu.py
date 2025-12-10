@@ -15,7 +15,8 @@ class AddWalletMenu(GenericMenu):
         state = getattr(parent, "specter_state", None)
 
         menu_items = [
-            (BTC_ICONS.MNEMONIC, "Generate New Seedphrase", "generate_seedphrase", None),
+            (None, "Generate Seedphrase", None, None),
+            (BTC_ICONS.MNEMONIC, "New", "generate_seedphrase", None),
             (None, "Import Seedphrase from", None, None),
         ]
 

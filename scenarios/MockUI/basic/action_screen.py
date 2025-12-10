@@ -1,5 +1,5 @@
 import lvgl as lv
-from .ui_consts import BTN_HEIGHT, BTN_WIDTH
+from .ui_consts import BTN_HEIGHT, BTN_WIDTH, BACK_BTN_WIDTH, BACK_BTN_HEIGHT
 from .symbol_lib import BTC_ICONS
 
 class ActionScreen(lv.obj):
@@ -15,11 +15,15 @@ class ActionScreen(lv.obj):
         # Fill parent
         self.set_width(lv.pct(100))
         self.set_height(lv.pct(100))
+        # Remove padding from base object to allow full-width content
+        self.set_style_pad_all(0, 0)
+        # Remove border
+        self.set_style_border_width(0, 0)
 
         # If ui_state has history, show back button to the left of the title
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
             self.back_btn = lv.button(self)
-            self.back_btn.set_size(40, 28)
+            self.back_btn.set_size(BACK_BTN_HEIGHT, BACK_BTN_WIDTH)
             self.back_ico = lv.image(self.back_btn)
             BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
             self.back_ico.center()

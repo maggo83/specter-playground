@@ -3,7 +3,10 @@ import lvgl as lv
 
 BTN_HEIGHT = const(50)
 BTN_WIDTH = const(100)  # Percentage of container width
+BACK_BTN_HEIGHT = const(50)
+BACK_BTN_WIDTH = const(32)
 MENU_PCT = const(93)
+TITLE_PADDING = const(30)
 STATUS_BTN_HEIGHT = const(30)
 STATUS_BTN_WIDTH = const(40)
 SWITCH_HEIGHT = const(55)
