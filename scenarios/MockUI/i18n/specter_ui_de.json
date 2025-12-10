@@ -1,0 +1,361 @@
+{
+  "_metadata": {
+    "language_code": "de",
+    "language_name": "Deutsch",
+    "version": "1.0",
+    "description": "German language file for Specter UI"
+  },
+  "translations": {
+    "MAIN_MENU_TITLE": {
+      "text": "Was möchten Sie tun?",
+      "ref_en": "What do you want to do?"
+    },
+    "MAIN_MENU_PROCESS_INPUT": {
+      "text": "Eingabe verarbeiten",
+      "ref_en": "Process input"
+    },
+    "MAIN_MENU_SCAN_QR": {
+      "text": "QR scannen",
+      "ref_en": "Scan QR"
+    },
+    "MAIN_MENU_LOAD_SD": {
+      "text": "Datei von SD laden",
+      "ref_en": "Load File from SD"
+    },
+    "MAIN_MENU_SIGN_MESSAGE": {
+      "text": "Nachricht signieren",
+      "ref_en": "Sign Message"
+    },
+    "MAIN_MENU_IMPORT_SMARTCARD": {
+      "text": "Seed von SmartCard importieren",
+      "ref_en": "Import Seed From SmartCard"
+    },
+    "MAIN_MENU_CHOOSE_WALLET": {
+      "text": "Wallet auswählen",
+      "ref_en": "Choose Wallet"
+    },
+    "MAIN_MENU_CHANGE_ADD_WALLET": {
+      "text": "Wallet wechseln/hinzufügen",
+      "ref_en": "Change/Add Wallet"
+    },
+    "MAIN_MENU_MANAGE_SETTINGS": {
+      "text": "Einstellungen verwalten",
+      "ref_en": "Manage Settings"
+    },
+    
+    "WALLET_MENU_LABEL": {
+      "text": "Wallet: ",
+      "ref_en": "Wallet: "
+    },
+    "WALLET_MENU_EXPLORE": {
+      "text": "Erkunden",
+      "ref_en": "Explore"
+    },
+    "WALLET_MENU_VIEW_ADDRESSES": {
+      "text": "Adressen anzeigen",
+      "ref_en": "View Addresses"
+    },
+    "WALLET_MENU_VIEW_SIGNERS": {
+      "text": "Signierer anzeigen",
+      "ref_en": "View Signers"
+    },
+    "WALLET_MENU_MANAGE": {
+      "text": "Verwalten",
+      "ref_en": "Manage"
+    },
+    "WALLET_MENU_MANAGE_DESCRIPTOR": {
+      "text": "Descriptor verwalten",
+      "ref_en": "Manage Descriptor"
+    },
+    "WALLET_MENU_CHANGE_NETWORK": {
+      "text": "Netzwerk wechseln",
+      "ref_en": "Change Network"
+    },
+    "WALLET_MENU_DELETE_WALLET": {
+      "text": "Wallet löschen#",
+      "ref_en": "Delete Wallet#"
+    },
+    "WALLET_MENU_CONNECT_EXPORT": {
+      "text": "Verbinden/Exportieren",
+      "ref_en": "Connect/Export"
+    },
+    "WALLET_MENU_EXPORT_DATA": {
+      "text": "Daten exportieren",
+      "ref_en": "Export Data"
+    },
+    
+    "ADD_WALLET_TITLE": {
+      "text": "Wallet hinzufügen",
+      "ref_en": "Add Wallet"
+    },
+    "ADD_WALLET_IMPORT_FROM": {
+      "text": "Seedphrase importieren von",
+      "ref_en": "Import Seedphrase from"
+    },
+    "ADD_WALLET_KEYBOARD": {
+      "text": "Tastatur",
+      "ref_en": "Keyboard"
+    },
+    
+    "GENERATE_SEED_WALLET_NAME": {
+      "text": "Wallet-Name:",
+      "ref_en": "Wallet name:"
+    },
+    "GENERATE_SEED_XPUB": {
+      "text": "xPub: ",
+      "ref_en": "xPub: "
+    },
+    "GENERATE_SEED_CREATE": {
+      "text": "Erstellen",
+      "ref_en": "Create"
+    },
+    
+    "PASSPHRASE_MENU_LABEL": {
+      "text": "Passphrase:",
+      "ref_en": "Passphrase:"
+    },
+    "PASSPHRASE_MENU_CLEAR": {
+      "text": "Löschen",
+      "ref_en": "Clear"
+    },
+    
+    "SEEDPHRASE_MENU_SHOW": {
+      "text": "Seedphrase anzeigen",
+      "ref_en": "Show Seedphrase"
+    },
+    "SEEDPHRASE_MENU_STORE_TO": {
+      "text": "Speichern auf",
+      "ref_en": "Store to"
+    },
+    "SEEDPHRASE_MENU_CLEAR_FROM": {
+      "text": "Löschen von",
+      "ref_en": "Clear from"
+    },
+    "SEEDPHRASE_MENU_CLEAR_ALL": {
+      "text": "von allen angeschlossenen Speichern",
+      "ref_en": "all attached storage"
+    },
+    "SEEDPHRASE_MENU_ADVANCED": {
+      "text": "Erweiterte Funktionen",
+      "ref_en": "Advanced Features"
+    },
+    "SEEDPHRASE_MENU_BIP85": {
+      "text": "Neue via BIP-85 ableiten",
+      "ref_en": "Derive new via BIP-85"
+    },
+    
+    "CONNECT_WALLETS_SPARROW": {
+      "text": "Sparrow",
+      "ref_en": "Sparrow"
+    },
+    "CONNECT_WALLETS_NUNCHUCK": {
+      "text": "Nunchuck",
+      "ref_en": "Nunchuck"
+    },
+    "CONNECT_WALLETS_BLUEWALLET": {
+      "text": "BlueWallet",
+      "ref_en": "BlueWallet"
+    },
+    "CONNECT_WALLETS_OTHER": {
+      "text": "Andere...",
+      "ref_en": "Other..."
+    },
+    
+    "DEVICE_MENU_DISPLAY": {
+      "text": "Display verwalten",
+      "ref_en": "Manage Display"
+    },
+    "DEVICE_MENU_SOUNDS": {
+      "text": "Töne verwalten",
+      "ref_en": "Manage Sounds"
+    },
+    "DEVICE_MENU_ADVANCED": {
+      "text": "Erweiterte Funktionen",
+      "ref_en": "Advanced Features"
+    },
+    "DEVICE_MENU_DANGERZONE": {
+      "text": "Gefahrenzone",
+      "ref_en": "Dangerzone"
+    },
+    "DEVICE_MENU_WIPE": {
+      "text": "Gerät löschen",
+      "ref_en": "Wipe Device"
+    },
+    
+    "FIRMWARE_MENU_TITLE": {
+      "text": "Firmware verwalten",
+      "ref_en": "Manage Firmware"
+    },
+    "FIRMWARE_MENU_CURRENT_VERSION": {
+      "text": "Aktuelle Version ",
+      "ref_en": "Current version "
+    },
+    "FIRMWARE_MENU_UPDATE_VIA": {
+      "text": ". Aktualisieren via",
+      "ref_en": ". Update via"
+    },
+    
+    "INTERFACES_MENU_QR_SCANNER": {
+      "text": "QR-Scanner",
+      "ref_en": "QR Scanner"
+    },
+    
+    "BACKUPS_MENU_BACKUP_TO_SD": {
+      "text": "Backup auf SD-Karte",
+      "ref_en": "Backup to SD Card"
+    },
+    "BACKUPS_MENU_RESTORE_FROM_SD": {
+      "text": "Von SD-Karte wiederherstellen",
+      "ref_en": "Restore from SD Card"
+    },
+    "BACKUPS_MENU_REMOVE_FROM_SD": {
+      "text": "Von SD-Karte entfernen",
+      "ref_en": "Remove from SD Card"
+    },
+    
+    "SECURITY_MENU_CHANGE_PIN": {
+      "text": "PIN ändern",
+      "ref_en": "Change PIN"
+    },
+    "SECURITY_MENU_SELF_TEST": {
+      "text": "Selbsttest ausführen",
+      "ref_en": "Run Self-Test"
+    },
+    "SECURITY_MENU_PIN_RETRIES": {
+      "text": "Erlaubte PIN-Versuche festlegen",
+      "ref_en": "Set allowed PIN retries"
+    },
+    "SECURITY_MENU_PIN_ACTION": {
+      "text": "Aktion bei überschrittenen PIN-Versuchen festlegen",
+      "ref_en": "Set exceeded PIN retries action"
+    },
+    "SECURITY_MENU_DURESS_PIN": {
+      "text": "Zwangs-PIN festlegen",
+      "ref_en": "Set duress PIN"
+    },
+    "SECURITY_MENU_DURESS_ACTION": {
+      "text": "Zwangs-PIN-Aktion festlegen",
+      "ref_en": "Set duress PIN action"
+    },
+    
+    "STORAGE_MENU_INTERNAL_FLASH": {
+      "text": "Internen Speicher verwalten",
+      "ref_en": "Manage internal flash"
+    },
+    "STORAGE_MENU_SMARTCARD": {
+      "text": "SmartCard verwalten",
+      "ref_en": "Manage SmartCard"
+    },
+    "STORAGE_MENU_SD_CARD": {
+      "text": "SD-Karte verwalten",
+      "ref_en": "Manage SD Card"
+    },
+    
+    "LOCKED_MENU_TITLE": {
+      "text": "Gerät gesperrt, Firmware-Version ",
+      "ref_en": "Device Locked, Firmware version "
+    },
+    "LOCKED_MENU_ENTER_PIN": {
+      "text": "PIN eingeben zum Entsperren:",
+      "ref_en": "Enter PIN to unlock:"
+    },
+    
+    "ACTION_SCREEN_PREFIX": {
+      "text": "Aktion: ",
+      "ref_en": "Action: "
+    },
+    "ACTION_SCREEN_BACK": {
+      "text": "Zurück",
+      "ref_en": "Back"
+    },
+    
+    "COMMON_WALLET": {
+      "text": "Wallet",
+      "ref_en": "Wallet"
+    },
+    "COMMON_SINGLESIG": {
+      "text": "EinzelSig",
+      "ref_en": "SingleSig"
+    },
+    "COMMON_MULTISIG": {
+      "text": "MultiSig",
+      "ref_en": "MultiSig"
+    },
+    "COMMON_MAINNET": {
+      "text": "Hauptnetz",
+      "ref_en": "mainnet"
+    },
+    "COMMON_TESTNET": {
+      "text": "Testnetz",
+      "ref_en": "testnet"
+    },
+    "MENU_MANAGE_WALLET": {
+      "text": "Wallet verwalten",
+      "ref_en": "Manage Wallet"
+    },
+    "MENU_MANAGE_SEEDPHRASE": {
+      "text": "Seedphrase verwalten",
+      "ref_en": "Manage Seedphrase"
+    },
+    "MENU_SET_PASSPHRASE": {
+      "text": "Passphrase eingeben/setzen",
+      "ref_en": "Enter/Set Passphrase"
+    },
+    "MENU_CONNECT_SW_WALLET": {
+      "text": "SW-Wallet verbinden",
+      "ref_en": "Connect SW Wallet"
+    },
+    "MENU_ADD_WALLET": {
+      "text": "Wallet hinzufügen",
+      "ref_en": "Add Wallet"
+    },
+    "MENU_MANAGE_BACKUPS": {
+      "text": "Backup(s) verwalten",
+      "ref_en": "Manage Backup(s)"
+    },
+    "MENU_MANAGE_FIRMWARE": {
+      "text": "Firmware verwalten",
+      "ref_en": "Manage Firmware"
+    },
+    "MENU_MANAGE_SECURITY": {
+      "text": "Sicherheitsfunktionen verwalten",
+      "ref_en": "Manage Security Features"
+    },
+    "MENU_ENABLE_DISABLE_INTERFACES": {
+      "text": "Schnittstellen aktivieren/deaktivieren",
+      "ref_en": "Enable/Disable Interfaces"
+    },
+    "MENU_MANAGE_STORAGE": {
+      "text": "Speicher verwalten",
+      "ref_en": "Manage Storage"
+    },
+    "MENU_GENERATE_NEW_SEEDPHRASE": {
+      "text": "Neue Seedphrase generieren",
+      "ref_en": "Generate New Seedphrase"
+    },
+    "MENU_MANAGE_DEVICE": {
+      "text": "Gerät verwalten",
+      "ref_en": "Manage Device"
+    },
+    "HARDWARE_SMARTCARD": {
+      "text": "SmartCard",
+      "ref_en": "SmartCard"
+    },
+    "HARDWARE_SD_CARD": {
+      "text": "SD-Karte",
+      "ref_en": "SD Card"
+    },
+    "HARDWARE_INTERNAL_FLASH": {
+      "text": "interner Flash",
+      "ref_en": "internal Flash"
+    },
+    "HARDWARE_USB": {
+      "text": "USB",
+      "ref_en": "USB"
+    },
+    "HARDWARE_QR_CODE": {
+      "text": "QR-Code",
+      "ref_en": "QR Code"
+    }
+  }
+}

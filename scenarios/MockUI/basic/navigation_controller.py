@@ -22,6 +22,7 @@ from ..device import (
     StorageMenu,
     SecurityMenu,
 )
+from ..i18n import I18nManager
 
 
 class NavigationController(lv.obj):
@@ -29,6 +30,9 @@ class NavigationController(lv.obj):
         super().__init__(*args, **kwargs)
 
         self.on_navigate = self.show_menu
+        
+        # Initialize i18n manager
+        self.i18n = I18nManager()
 
         if specter_state:
             self.specter_state = specter_state

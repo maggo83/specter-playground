@@ -6,8 +6,11 @@ class LockedMenu(GenericMenu):
     """Simple lock screen that accepts a numeric PIN to unlock the device."""
 
     def __init__(self, parent, *args, **kwargs):
+        # Get translation function from i18n manager (always available via NavigationController)
+        t = parent.i18n.t
+        
         # parent is the NavigationController
-        title = "Device Locked, Firmware version " + str(parent.specter_state.fw_version)
+        title = t("LOCKED_MENU_TITLE") + str(parent.specter_state.fw_version)
         super().__init__("locked", title, [], parent, *args, **kwargs)
 
         self.parent = parent
@@ -20,7 +23,7 @@ class LockedMenu(GenericMenu):
 
         # Instruction label
         instr = lv.label(self.container)
-        instr.set_text("Enter PIN to unlock:")
+        instr.set_text(t("LOCKED_MENU_ENTER_PIN"))
         instr.set_width(200)
         instr.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
 

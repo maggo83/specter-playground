@@ -9,7 +9,10 @@ class PassphraseMenu(GenericMenu):
     """
 
     def __init__(self, parent, *args, **kwargs):
-        super().__init__("set_passphrase", "Set Passphrase", [], parent, *args, **kwargs)
+        # Get translation function from i18n manager (always available via NavigationController)
+        t = parent.i18n.t
+        
+        super().__init__("set_passphrase", t("MENU_SET_PASSPHRASE"), [], parent, *args, **kwargs)
 
         self.parent = parent
         self.state = parent.specter_state
@@ -28,7 +31,7 @@ class PassphraseMenu(GenericMenu):
         pa_row.set_style_border_width(0, 0)
 
         pa_lbl = lv.label(pa_row)
-        pa_lbl.set_text("Passphrase:")
+        pa_lbl.set_text(t("PASSPHRASE_MENU_LABEL"))
         pa_lbl.set_width(lv.pct(30))
         pa_lbl.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
 
@@ -64,7 +67,7 @@ class PassphraseMenu(GenericMenu):
         self.clear_btn.set_width(lv.pct(BTN_WIDTH))
         self.clear_btn.set_height(BTN_HEIGHT)
         self.clear_lbl = lv.label(self.clear_btn)
-        self.clear_lbl.set_text(lv.SYMBOL.CLOSE + " Clear")
+        self.clear_lbl.set_text(lv.SYMBOL.CLOSE + " " + t("PASSPHRASE_MENU_CLEAR"))
         self.clear_lbl.center()
         self.clear_btn.add_event_cb(self._on_clear, lv.EVENT.CLICKED, None)
 
