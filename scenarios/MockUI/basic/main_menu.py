@@ -20,7 +20,12 @@ def MainMenu(parent, *args, **kwargs):
     #relevant input possibilities are QR Scanner, SD Card, or (to sign messages) a registered wallet
     if (state and ((state.hasQR and state.enabledQR) 
                    or (state.hasSD and state.enabledSD and state.detectedSD) 
-                   or (state.active_wallet and not state.active_wallet.isMultiSig)
+                   or (state and state.active_wallet and not state.active_wallet.isMultiSig and 
+                        (
+                            (state.hasQR and state.enabledQR) 
+                            or (state.hasSD and state.enabledSD and state.detectedSD)
+                            or (state.hasUSB and state.enabledUSB)
+                        ))
                    or (state.active_wallet is None and state.hasSmartCard and state.enabledSmartCard and state.detectedSmartCard)
                    )):
         menu_items.append((None, t("MAIN_MENU_PROCESS_INPUT"), None, None))
@@ -28,7 +33,12 @@ def MainMenu(parent, *args, **kwargs):
             menu_items.append((BTC_ICONS.SCAN, t("MAIN_MENU_SCAN_QR"), "scan_qr", None))
         if (state.hasSD and state.enabledSD and state.detectedSD):
             menu_items.append((BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_SD"), "load_sd", None))
-        if (state and state.active_wallet and not state.active_wallet.isMultiSig):
+        if (state and state.active_wallet and not state.active_wallet.isMultiSig and 
+            (
+                   (state.hasQR and state.enabledQR) 
+                or (state.hasSD and state.enabledSD and state.detectedSD)
+                or (state.hasUSB and state.enabledUSB)
+            )):
             menu_items.append((BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message", None))
         if (state and state.active_wallet is None and state.hasSmartCard and state.enabledSmartCard and state.detectedSmartCard):
             menu_items.append((BTC_ICONS.SEND, t("MAIN_MENU_IMPORT_SMARTCARD"), "import_from_smartcard", None))
