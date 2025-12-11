@@ -22,7 +22,7 @@ def DeviceMenu(parent, *args, **kwargs):
         (BTC_ICONS.FLIP_HORIZONTAL, t("MENU_ENABLE_DISABLE_INTERFACES"), "interfaces", None),
         (BTC_ICONS.PHOTO, t("DEVICE_MENU_DISPLAY"), "display_settings", None),
         (lv.SYMBOL.VOLUME_MAX, t("DEVICE_MENU_SOUNDS"), "sound_settings", None),
-        (lv.SYMBOL.LIST, t("MENU_LANGUAGE"), "select_language", None)
+        (BTC_ICONS.MESSAGE, t("MENU_LANGUAGE"), "select_language", None)
     ]
 
     menu_items += [
