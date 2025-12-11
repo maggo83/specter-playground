@@ -14,7 +14,7 @@ class GenerateSeedMenu(GenericMenu):
         # Get translation function from i18n manager (always available via NavigationController)
         t = parent.i18n.t
         
-        super().__init__("generate_seedphrase", [], parent, *args, **kwargs)
+        super().__init__("generate_seedphrase", t("MENU_GENERATE_SEEDPHRASE"), [], parent, *args, **kwargs)
 
         self.parent = parent
         self.state = getattr(parent, "specter_state", None)

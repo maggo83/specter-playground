@@ -1,5 +1,5 @@
 import lvgl as lv
-from ..basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH, TITLE_PADDING
+from ..basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH, TITLE_PADDING, BACK_BTN_HEIGHT, BACK_BTN_WIDTH
 from ..basic.symbol_lib import BTC_ICONS
 
 class InterfacesMenu(lv.obj):
@@ -32,7 +32,7 @@ class InterfacesMenu(lv.obj):
         # If ui_state has history, show back button to the left of the title
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
             self.back_btn = lv.button(self)
-            self.back_btn.set_size(40, 28)
+            self.back_btn.set_size(BACK_BTN_HEIGHT, BACK_BTN_WIDTH)
             self.back_ico = lv.image(self.back_btn)
             BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
             self.back_ico.center()

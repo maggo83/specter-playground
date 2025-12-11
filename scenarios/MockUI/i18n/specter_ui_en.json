@@ -27,7 +27,7 @@
     "WALLET_MENU_CONNECT_EXPORT": "Connect/Export",
     "WALLET_MENU_EXPORT_DATA": "Export Data",
     
-    "ADD_WALLET_TITLE": "Add Wallet",
+    "ADD_WALLET_NEW_SEEDPHRASE": "New Seedphrase",
     "ADD_WALLET_IMPORT_FROM": "Import Seedphrase from",
     "ADD_WALLET_KEYBOARD": "Keyboard",
     
@@ -98,7 +98,7 @@
     "MENU_MANAGE_SECURITY": "Manage Security Features",
     "MENU_ENABLE_DISABLE_INTERFACES": "Enable/Disable Interfaces",
     "MENU_MANAGE_STORAGE": "Manage Storage",
-    "MENU_GENERATE_NEW_SEEDPHRASE": "Generate New Seedphrase",
+    "MENU_GENERATE_SEEDPHRASE": "Generate Seedphrase",
     "MENU_MANAGE_DEVICE": "Manage Device",
     "MENU_LANGUAGE": "Select Language",
     

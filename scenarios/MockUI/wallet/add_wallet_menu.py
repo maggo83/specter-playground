@@ -18,8 +18,8 @@ class AddWalletMenu(GenericMenu):
         state = getattr(parent, "specter_state", None)
 
         menu_items = [
-            (None, t("MENU_GENERATE_NEW_SEEDPHRASE"), None, None),
-            (BTC_ICONS.MNEMONIC, t("MENU_GENERATE_NEW_SEEDPHRASE"), "generate_seedphrase", None),
+            (None, t("ADD_WALLET_NEW_SEEDPHRASE"), None, None),
+            (BTC_ICONS.MNEMONIC, t("MENU_GENERATE_SEEDPHRASE"), "generate_seedphrase", None),
             (None, t("ADD_WALLET_IMPORT_FROM"), None, None),
         ]
 
@@ -38,4 +38,4 @@ class AddWalletMenu(GenericMenu):
             (lv.SYMBOL.KEYBOARD, t("ADD_WALLET_KEYBOARD"), "import_from_keyboard", None),
         ]
 
-        super().__init__("add_wallet", t("ADD_WALLET_TITLE"), menu_items, parent, *args, **kwargs)
+        super().__init__("add_wallet", t("MENU_ADD_WALLET"), menu_items, parent, *args, **kwargs)
