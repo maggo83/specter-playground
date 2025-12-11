@@ -9,6 +9,10 @@ class ActionScreen(lv.obj):
         # attach to parent's `content` container when available so the status bar stays visible
         lv_parent = getattr(parent, "content", parent)
         super().__init__(lv_parent, *args, **kwargs)
+        
+        # Get i18n manager from parent (always available via NavigationController)
+        self.t = parent.i18n.t
+        
         # discover navigation callback and shared state from parent
         self.on_navigate = getattr(parent, "on_navigate", None)
 
@@ -41,7 +45,7 @@ class ActionScreen(lv.obj):
 
         # Message
         self.msg = lv.label(self)
-        self.msg.set_text("Action: " + title)
+        self.msg.set_text(self.t("ACTION_SCREEN_PREFIX") + title)
         self.msg.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
         # smaller gap between title and message
         self.msg.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, 12)
@@ -51,7 +55,7 @@ class ActionScreen(lv.obj):
         self.back_btn.set_width(lv.pct(BTN_WIDTH))
         self.back_btn.set_height(BTN_HEIGHT)
         back_lbl = lv.label(self.back_btn)
-        back_lbl.set_text("Back")
+        back_lbl.set_text(self.t("ACTION_SCREEN_BACK"))
         back_lbl.center()
         self.back_btn.align_to(self.msg, lv.ALIGN.OUT_BOTTOM_MID, 0, 40)
         self.back_btn.add_event_cb(self.on_back, lv.EVENT.CLICKED, None)

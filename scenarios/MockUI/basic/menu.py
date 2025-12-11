@@ -7,7 +7,11 @@ class GenericMenu(lv.obj):
     """Reusable menu builder.
 
     title: string title shown at top
-    menu_items: list of (icon, text, action) where action=None creates a label/spacer (then also icon is ignored)
+    menu_items: list of (icon, text, target_behavior, color) where:
+        - icon: Icon object or lv.SYMBOL string
+        - text: Display text for the menu item
+        - target_behavior: None (creates label/spacer), string (menu_id to navigate to), or callable (custom callback)
+        - color: Optional color for the button
     """
 
     def __init__(self, menu_id, title, menu_items, parent, *args, **kwargs):
@@ -61,8 +65,8 @@ class GenericMenu(lv.obj):
         self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, TITLE_PADDING)
 
         # Build items
-        for icon, text, target_menu_id, color in menu_items:
-            if target_menu_id is None:
+        for icon, text, target_behavior, color in menu_items:
+            if target_behavior is None:
                 spacer = lv.label(self.container)
                 spacer.set_recolor(True)
                 spacer.set_text(text or "")
@@ -94,17 +98,23 @@ class GenericMenu(lv.obj):
                 lbl.set_text(text)
                 lbl.center()
 
-                btn.add_event_cb(self.make_callback(target_menu_id), lv.EVENT.CLICKED, None)
+                btn.add_event_cb(self.make_callback(target_behavior), lv.EVENT.CLICKED, None)
 
-    def make_callback(self, target_menu_id):
+    def make_callback(self, target_behavior):
+        """Create callback for button - handles both string menu_ids and custom callables."""
+        # If it's already a callable, return it directly
+        if callable(target_behavior):
+            return target_behavior
+        
+        # Otherwise, it's a string menu_id - create navigation callback
         def callback(e):
             if e.get_code() == lv.EVENT.CLICKED:
                 if not self.on_navigate:
                     return
-                if target_menu_id == "back":
+                if target_behavior == "back":
                     self.on_navigate(None)
                 else:
-                    self.on_navigate(target_menu_id)
+                    self.on_navigate(target_behavior)
         return callback
 
     def on_back(self, e):

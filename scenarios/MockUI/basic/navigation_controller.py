@@ -21,7 +21,9 @@ from ..device import (
     InterfacesMenu,
     StorageMenu,
     SecurityMenu,
+    LanguageMenu,
 )
+from ..i18n import I18nManager
 
 
 class NavigationController(lv.obj):
@@ -29,6 +31,9 @@ class NavigationController(lv.obj):
         super().__init__(*args, **kwargs)
 
         self.on_navigate = self.show_menu
+        
+        # Initialize i18n manager
+        self.i18n = I18nManager()
 
         if specter_state:
             self.specter_state = specter_state
@@ -64,7 +69,18 @@ class NavigationController(lv.obj):
 
         lv.timer_create(_tick, 30_000, None)
 
+    def change_language(self, lang_code):
+        """
+        Change the active language.
+        
+        Args:
+            lang_code: ISO 639-1 language code (e.g., 'en', 'de')
+        """
+        # Switch language in i18n manager
+        self.i18n.set_language(lang_code)
+
     def show_menu(self, target_menu_id=None):
+        
         # Delete current screen (free memory)
         if self.current_screen:
             self.current_screen.delete()
@@ -115,6 +131,8 @@ class NavigationController(lv.obj):
             self.current_screen = PassphraseMenu(self)
         elif current == "manage_storage":
             self.current_screen = StorageMenu(self)
+        elif current == "select_language":
+            self.current_screen = LanguageMenu(self)
         else:
             # For all other actions, show a generic action screen
             title = (target_menu_id or "").replace("_", " ")

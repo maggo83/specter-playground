@@ -11,7 +11,10 @@ class GenerateSeedMenu(GenericMenu):
     """
 
     def __init__(self, parent, *args, **kwargs):
-        super().__init__("generate_seedphrase", "Generate New Seedphrase", [], parent, *args, **kwargs)
+        # Get translation function from i18n manager (always available via NavigationController)
+        t = parent.i18n.t
+        
+        super().__init__("generate_seedphrase", [], parent, *args, **kwargs)
 
         self.parent = parent
         self.state = getattr(parent, "specter_state", None)
@@ -27,13 +30,13 @@ class GenerateSeedMenu(GenericMenu):
         name_row.set_style_pad_all(0, 0)
 
         name_lbl = lv.label(name_row)
-        name_lbl.set_text("Wallet name:")
+        name_lbl.set_text(t("GENERATE_SEED_WALLET_NAME"))
         name_lbl.set_width(lv.pct(30))
         name_lbl.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
 
         # editable text area
         self.name_ta = lv.textarea(name_row)
-        self.name_ta.set_text("Wallet" + str(urandom.randint(1, 10)) )
+        self.name_ta.set_text(t("COMMON_WALLET") + str(urandom.randint(1, 10)) )
         self.name_ta.set_width(lv.pct(60))
         self.name_ta.set_height(40)
         # Make the textarea clickable and attach an on-screen keyboard so it
@@ -61,7 +64,7 @@ class GenerateSeedMenu(GenericMenu):
         ms_row.set_style_pad_all(0, 0)
 
         ms_left = lv.label(ms_row)
-        ms_left.set_text("SingleSig")
+        ms_left.set_text(t("COMMON_SINGLESIG"))
         ms_left.set_width(lv.pct(35))
 
         self.ms_switch = lv.switch(ms_row)
@@ -70,7 +73,7 @@ class GenerateSeedMenu(GenericMenu):
         self.ms_switch.remove_state(lv.STATE.CHECKED)
 
         ms_right = lv.label(ms_row)
-        ms_right.set_text("MultiSig")
+        ms_right.set_text(t("COMMON_MULTISIG"))
         ms_right.set_width(lv.pct(35))
 
         # Network row: [mainnet] [switch] [testnet]
@@ -84,7 +87,7 @@ class GenerateSeedMenu(GenericMenu):
         net_row.set_style_pad_all(0, 0)
 
         net_left = lv.label(net_row)
-        net_left.set_text("mainnet")
+        net_left.set_text(t("COMMON_MAINNET"))
         net_left.set_width(lv.pct(35))
 
         self.net_switch = lv.switch(net_row)
@@ -93,13 +96,13 @@ class GenerateSeedMenu(GenericMenu):
         self.net_switch.remove_state(lv.STATE.CHECKED)
 
         net_right = lv.label(net_row)
-        net_right.set_text("testnet")
+        net_right.set_text(t("COMMON_TESTNET"))
         net_right.set_width(lv.pct(35))
 
         # generate and show xPub above Create
         self.generated_xpub = self._generate_dummy_xpub()
         xp_lbl = lv.label(self.container)
-        xp_lbl.set_text("xPub: " + self.generated_xpub)
+        xp_lbl.set_text(t("GENERATE_SEED_XPUB") + self.generated_xpub)
         xp_lbl.set_width(lv.pct(100))
         xp_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
 
@@ -117,7 +120,7 @@ class GenerateSeedMenu(GenericMenu):
         self.create_btn.set_width(lv.pct(BTN_WIDTH))
         self.create_btn.set_height(BTN_HEIGHT)
         self.create_lbl = lv.label(self.create_btn)
-        self.create_lbl.set_text("Create")
+        self.create_lbl.set_text(t("GENERATE_SEED_CREATE"))
         self.create_lbl.center()
         self.create_btn.add_event_cb(lambda e: self._on_create(e), lv.EVENT.CLICKED, None)
 

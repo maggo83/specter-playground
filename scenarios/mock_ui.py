@@ -5,6 +5,9 @@ import utime as time
 
 from MockUI import BTN_HEIGHT, BTN_WIDTH, WalletMenu, DeviceMenu, MainMenu, SpecterState, Wallet, ActionScreen, UIState, StatusBar, SeedPhraseMenu, SecurityMenu, InterfacesMenu, BackupsMenu, FirmwareMenu, ConnectWalletsMenu, ChangeWalletMenu, AddWalletMenu, LockedMenu, GenerateSeedMenu, StorageMenu, PassphraseMenu, NavigationController
 
+# Load German umlaut fonts for simulator (using lv.binfont_create)
+from MockUI.fonts import font_loader_de
+
 singlesig_wallet = Wallet("MyWallet", xpub="xpub6CUGRUon", isMultiSig=False)
 multisig_wallet = Wallet("MyMultiSig", xpub="xpub6DUGRUon", isMultiSig=True)
 
@@ -37,18 +40,16 @@ scr = NavigationController(specter_state)
 
 # Needed for LVGL task handling when loaded as main script
 def main():
-    # Set up the default theme:
-    # - disp: pointer to display (None uses the default display)
-    # - color_primary: primary color of the theme (blue grey here)
-    # - color_secondary: secondary color of the theme (red here)
-    # - dark: True for dark mode, False for light mode (dark mode here)
-    # - font: font to use (Montserrat 16 here)
+    # Set up the default theme with German umlaut fonts
+    # Use loaded German font, fallback to default Montserrat if loading failed
+    theme_font = font_loader_de.get_font(16) if font_loader_de.get_font(16) else lv.font_montserrat_16
+    
     lv.theme_default_init(
         None,
         lv.palette_main(lv.PALETTE.BLUE_GREY),
         lv.palette_main(lv.PALETTE.RED),
         True,
-        lv.font_montserrat_16,
+        theme_font,
     )
 
     lv.screen_load(scr)
