@@ -25,3 +25,4 @@ Feel free to contribute! I'll probably merge your PRs without (much) review.
 ## Developer Tools
 
 - [RAG Code Scanner](rag-setup.md) - Local semantic search over the codebase with Claude Code MCP integration
+- [LVGL Simulator MCP](lvgl-sim-mcp.md) - Control simulator for automated UI testing via Claude Code
