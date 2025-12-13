@@ -1,9 +1,13 @@
+import sys
 import display
 import lvgl as lv
 import utime as time
 
 
 from MockUI import BTN_HEIGHT, BTN_WIDTH, WalletMenu, DeviceMenu, MainMenu, SpecterState, Wallet, ActionScreen, UIState, StatusBar, SeedPhraseMenu, SecurityMenu, InterfacesMenu, BackupsMenu, FirmwareMenu, ConnectWalletsMenu, ChangeWalletMenu, AddWalletMenu, LockedMenu, GenerateSeedMenu, StorageMenu, PassphraseMenu, NavigationController
+
+# Check for control mode
+CONTROL_MODE = "--control" in sys.argv
 
 singlesig_wallet = Wallet("MyWallet", xpub="xpub6CUGRUon", isMultiSig=False)
 multisig_wallet = Wallet("MyMultiSig", xpub="xpub6DUGRUon", isMultiSig=True)
@@ -33,6 +37,11 @@ specter_state.pin = "21"
 display.init()
 
 scr = NavigationController(specter_state)
+
+# Start control server if in control mode
+if CONTROL_MODE:
+    from sim_control import ControlServer
+    ctrl_server = ControlServer(scr)
 
 
 # Needed for LVGL task handling when loaded as main script
