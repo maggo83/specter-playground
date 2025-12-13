@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "code-rag": {
+      "command": "/Users/kim/pubsrc/specter-playground/.rag/.venv/bin/python",
+      "args": ["/Users/kim/pubsrc/specter-playground/.rag/mcp_server.py"]
+    }
+  }
+}
