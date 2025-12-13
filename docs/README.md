@@ -21,3 +21,7 @@ nix develop -c make simulate SCRIPT=udisplay_demo.py
 ```
 
 Feel free to contribute! I'll probably merge your PRs without (much) review.
+
+## Developer Tools
+
+- [RAG Code Scanner](rag-setup.md) - Local semantic search over the codebase with Claude Code MCP integration

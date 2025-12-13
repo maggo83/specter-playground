@@ -104,4 +104,14 @@ clean:
 		USER_C_MODULES=$(USER_C_MODULES) \
 		FROZEN_MANIFEST=$(FROZEN_MANIFEST_DISCO) clean
 
-.PHONY: all clean
+# RAG code scanner
+rag-setup:
+	cd .rag && python -m venv .venv && .venv/bin/pip install -r requirements.txt
+
+rag-index:
+	cd .rag && .venv/bin/python indexer.py --rebuild
+
+rag-search:
+	cd .rag && .venv/bin/python search.py "$(QUERY)"
+
+.PHONY: all clean rag-setup rag-index rag-search
