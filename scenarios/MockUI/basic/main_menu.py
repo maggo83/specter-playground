@@ -3,7 +3,6 @@ import lvgl as lv
 
 from .symbol_lib import BTC_ICONS
 from .ui_consts import GREEN_HEX, RED_HEX, WHITE_HEX
-from ..i18n import I18nManager
 
 
 def MainMenu(parent, *args, **kwargs):
