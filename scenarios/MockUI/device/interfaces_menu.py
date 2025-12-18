@@ -1,5 +1,5 @@
 import lvgl as lv
-from ..basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH
+from ..basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH, TITLE_PADDING, BACK_BTN_HEIGHT, BACK_BTN_WIDTH
 from ..basic.symbol_lib import BTC_ICONS
 
 class InterfacesMenu(lv.obj):
@@ -24,11 +24,15 @@ class InterfacesMenu(lv.obj):
         # layout
         self.set_width(lv.pct(100))
         self.set_height(lv.pct(100))
+        # Remove padding from base menu object to allow full-width content
+        self.set_style_pad_all(0, 0)
+        # Remove border
+        self.set_style_border_width(0, 0)
 
         # If ui_state has history, show back button to the left of the title
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
             self.back_btn = lv.button(self)
-            self.back_btn.set_size(40, 28)
+            self.back_btn.set_size(BACK_BTN_HEIGHT, BACK_BTN_WIDTH)
             self.back_ico = lv.image(self.back_btn)
             BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
             self.back_ico.center()
@@ -39,7 +43,7 @@ class InterfacesMenu(lv.obj):
         self.title = lv.label(self)
         self.title.set_text(self.t("MENU_ENABLE_DISABLE_INTERFACES"))
         self.title.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        self.title.align(lv.ALIGN.TOP_MID, 0, 6)
+        self.title.align(lv.ALIGN.TOP_MID, 0, 18)
 
         # Container for rows
         self.container = lv.obj(self)
@@ -48,8 +52,9 @@ class InterfacesMenu(lv.obj):
         self.container.set_layout(lv.LAYOUT.FLEX)
         self.container.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self.container.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        self.container.set_style_pad_all(PAD_SIZE, 0)
-        self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, PAD_SIZE)
+        self.container.set_style_pad_all(0, 0)
+        self.container.set_style_border_width(0, 0)
+        self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, TITLE_PADDING)
 
         # Build interface rows: list of tuples (icon, label_text, state_attr)
         rows = []

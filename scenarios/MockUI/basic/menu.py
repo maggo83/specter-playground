@@ -1,5 +1,5 @@
 import lvgl as lv
-from .ui_consts import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE
+from .ui_consts import BACK_BTN_HEIGHT, BACK_BTN_WIDTH, BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, TITLE_PADDING
 from .symbol_lib import Icon, BTC_ICONS
 
 
@@ -7,11 +7,12 @@ class GenericMenu(lv.obj):
     """Reusable menu builder.
 
     title: string title shown at top
-    menu_items: list of (icon, text, target_behavior, color) where:
+    menu_items: list of (icon, text, target_behavior, color, size) where:
         - icon: Icon object or lv.SYMBOL string
         - text: Display text for the menu item
         - target_behavior: None (creates label/spacer), string (menu_id to navigate to), or callable (custom callback)
         - color: Optional color for the button
+        - size: Optional size multiplier for button height (default=1, minimum=1). E.g., size=1.5 increases height by 50%
     """
 
     def __init__(self, menu_id, title, menu_items, parent, *args, **kwargs):
@@ -37,7 +38,7 @@ class GenericMenu(lv.obj):
         # If ui_state has history, show back button to the left of the title
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
             self.back_btn = lv.button(self)
-            self.back_btn.set_size(40, 28)
+            self.back_btn.set_size(BACK_BTN_HEIGHT, BACK_BTN_WIDTH)
             self.back_ico = lv.image(self.back_btn)
             BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
             self.back_ico.center()
@@ -50,7 +51,7 @@ class GenericMenu(lv.obj):
         self.title.set_text(title)
         self.title.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
         # reduce vertical space used by the title; center remains but offset horizontally
-        self.title.align(lv.ALIGN.TOP_MID, 0, 6)
+        self.title.align(lv.ALIGN.TOP_MID, 0, 18)
 
         # Container for buttons
         self.container = lv.obj(self)
@@ -59,13 +60,24 @@ class GenericMenu(lv.obj):
         self.container.set_layout(lv.LAYOUT.FLEX)
         self.container.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self.container.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        self.container.set_style_pad_all(PAD_SIZE, 0)
+        self.container.set_style_pad_all(0, 0)
         self.container.set_style_border_width(0, 0)
         # smaller gap between title and container
-        self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, PAD_SIZE)
+        self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, TITLE_PADDING)
 
         # Build items
-        for icon, text, target_behavior, color in menu_items:
+        for item in menu_items:
+            # Support both 4-tuple and 5-tuple formats (backward compatible)
+            if len(item) == 4:
+                icon, text, target_behavior, color = item
+                size = None
+            elif len(item) == 5:
+                icon, text, target_behavior, color, size = item
+            
+            # Normalize size: default to 1, ensure minimum of 1
+            if size is None or size < 1:
+                size = 1
+            
             if target_behavior is None:
                 spacer = lv.label(self.container)
                 spacer.set_recolor(True)
@@ -75,7 +87,9 @@ class GenericMenu(lv.obj):
             else:
                 btn = lv.button(self.container)
                 btn.set_width(lv.pct(BTN_WIDTH))
-                btn.set_height(BTN_HEIGHT)
+                # Apply size scaling to button height
+                scaled_height = int(BTN_HEIGHT * size)
+                btn.set_height(scaled_height)
                 if color:
                     btn.set_style_bg_color(color, lv.PART.MAIN)
                 

@@ -1,5 +1,6 @@
 import lvgl as lv
 from ..basic import GenericMenu
+from ..basic.symbol_lib import BTC_ICONS
 
 
 class LanguageMenu(GenericMenu):
@@ -19,7 +20,7 @@ class LanguageMenu(GenericMenu):
             label = parent.i18n.get_language_name(lang_code)
             # Add checkmark for currently selected language
             if lang_code == current_lang:
-                symbol = lv.SYMBOL.OK
+                symbol = BTC_ICONS.CHECK
             else:
                 symbol = None
 

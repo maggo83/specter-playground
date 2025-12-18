@@ -84,9 +84,9 @@
       "ref_en": "Export Data"
     },
     
-    "ADD_WALLET_TITLE": {
-      "text": "Wallet hinzufügen",
-      "ref_en": "Add Wallet"
+    "ADD_WALLET_NEW_SEEDPHRASE": {
+      "text": "Neue Seedphrase",
+      "ref_en": "New Seedphrase"
     },
     "ADD_WALLET_IMPORT_FROM": {
       "text": "Seedphrase importieren von",
@@ -325,9 +325,9 @@
       "text": "Speicher verwalten",
       "ref_en": "Manage Storage"
     },
-    "MENU_GENERATE_NEW_SEEDPHRASE": {
-      "text": "Neue Seedphrase generieren",
-      "ref_en": "Generate New Seedphrase"
+    "MENU_GENERATE_SEEDPHRASE": {
+      "text": "Seedphrase generieren",
+      "ref_en": "Generate Seedphrase"
     },
     "MENU_MANAGE_DEVICE": {
       "text": "Gerät verwalten",

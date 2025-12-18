@@ -120,6 +120,8 @@ class PassphraseMenu(GenericMenu):
                 if self.keyboard:
                     self.keyboard.delete()
                     self.keyboard = None
+                # Navigate back to previous menu
+                self.on_navigate(None)
         
         # Add event handler for when Cancel button is pressed
         def on_keyboard_cancel(e):
