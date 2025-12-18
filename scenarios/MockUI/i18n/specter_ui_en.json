@@ -12,9 +12,9 @@
     "MAIN_MENU_LOAD_SD": "Load File from SD",
     "MAIN_MENU_SIGN_MESSAGE": "Sign Message",
     "MAIN_MENU_IMPORT_SMARTCARD": "Import Seed From SmartCard",
-    "MAIN_MENU_CHOOSE_WALLET": "Choose Wallet",
+    "MAIN_MENU_CHOOSE_WALLET": "Wallet",
     "MAIN_MENU_CHANGE_ADD_WALLET": "Change/Add Wallet",
-    "MAIN_MENU_MANAGE_SETTINGS": "Manage Settings",
+    "MAIN_MENU_MANAGE_SETTINGS": "Device",
     
     "WALLET_MENU_LABEL": "Wallet: ",
     "WALLET_MENU_EXPLORE": "Explore",
@@ -100,6 +100,7 @@
     "MENU_MANAGE_STORAGE": "Manage Storage",
     "MENU_GENERATE_SEEDPHRASE": "Generate Seedphrase",
     "MENU_MANAGE_DEVICE": "Manage Device",
+    "MENU_MANAGE_SETTINGS": "Manage Settings",
     "MENU_LANGUAGE": "Select Language",
     
     "HARDWARE_SMARTCARD": "SmartCard",

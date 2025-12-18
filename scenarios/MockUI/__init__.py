@@ -1,6 +1,6 @@
 # MockUI/__init__.py
 from .basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH, ONE_LETTER_SYMBOL_WIDTH, TWO_LETTER_SYMBOL_WIDTH, THREE_LETTER_SYMBOL_WIDTH, GREEN, ORANGE, RED
-from .basic import MainMenu, LockedMenu, StatusBar, ActionScreen, GenericMenu
+from .basic import MainMenu, LockedMenu, DeviceBar, WalletBar, ActionScreen, GenericMenu
 from .basic import NavigationController
 
 from .helpers import UIState, SpecterState, Wallet
@@ -22,6 +22,7 @@ from .device import (
     BackupsMenu,
     SecurityMenu,
     StorageMenu,
+    SettingsMenu,
 )
 
 __all__ = [
@@ -39,7 +40,8 @@ __all__ = [
     "Wallet",
     "ActionScreen",
     "UIState",
-    "StatusBar",
+    "DeviceBar",
+    "WalletBar",
     "SeedPhraseMenu",
     "SecurityMenu",
     "InterfacesMenu",
@@ -51,6 +53,7 @@ __all__ = [
     "LockedMenu",
     "GenerateSeedMenu",
     "StorageMenu",
+    "SettingsMenu",
     "PassphraseMenu",
     "NavigationController",
 ]

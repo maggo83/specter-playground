@@ -126,7 +126,7 @@ class WalletMenu(GenericMenu):
                 new_name = self.name_textarea.get_text()
                 if self.state and self.state.active_wallet:
                     self.state.active_wallet.name = new_name
-                    self.parent.status_bar.refresh(self.state)
+                    self.parent.refresh_ui()
                 # Remove focus from text area
                 self.name_textarea.remove_state(lv.STATE.FOCUSED)
                 # Delete keyboard
