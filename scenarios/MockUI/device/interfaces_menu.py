@@ -13,6 +13,9 @@ class InterfacesMenu(lv.obj):
         lv_parent = getattr(parent, "content", parent)
         super().__init__(lv_parent, *args, **kwargs)
 
+        # Get translation function from i18n manager (always available via NavigationController)
+        self.t = parent.i18n.t
+
         self.on_navigate = getattr(parent, "on_navigate", None)
         self.state = getattr(parent, "specter_state", None)
         self.parent = parent
@@ -34,7 +37,7 @@ class InterfacesMenu(lv.obj):
             self.back_btn.add_event_cb(lambda e: self.on_back(e), lv.EVENT.CLICKED, None)
         # Title
         self.title = lv.label(self)
-        self.title.set_text("Enable/Disable Interfaces")
+        self.title.set_text(self.t("MENU_ENABLE_DISABLE_INTERFACES"))
         self.title.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
         self.title.align(lv.ALIGN.TOP_MID, 0, 6)
 
@@ -51,13 +54,13 @@ class InterfacesMenu(lv.obj):
         # Build interface rows: list of tuples (icon, label_text, state_attr)
         rows = []
         if self.state.hasQR:
-            rows.append((BTC_ICONS.QR_CODE, "QR Scanner", "enabledQR"))
+            rows.append((BTC_ICONS.QR_CODE, self.t("HARDWARE_QR_CODE"), "enabledQR"))
         if self.state.hasUSB:
-            rows.append((BTC_ICONS.USB, "USB", "enabledUSB"))
+            rows.append((BTC_ICONS.USB, self.t("HARDWARE_USB"), "enabledUSB"))
         if self.state.hasSD:
-            rows.append((BTC_ICONS.SD_CARD, "SD Card", "enabledSD"))
+            rows.append((BTC_ICONS.SD_CARD, self.t("HARDWARE_SD_CARD"), "enabledSD"))
         if self.state.hasSmartCard:
-            rows.append((BTC_ICONS.SMARTCARD, "SmartCard", "enabledSmartCard"))
+            rows.append((BTC_ICONS.SMARTCARD, self.t("HARDWARE_SMARTCARD"), "enabledSmartCard"))
 
         for icon, text, state_attr in rows:
             row = lv.obj(self.container)

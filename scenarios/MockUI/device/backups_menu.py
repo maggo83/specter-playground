@@ -9,14 +9,17 @@ class BackupsMenu(GenericMenu):
     """
 
     def __init__(self, parent, *args, **kwargs):
+        # Get translation function from i18n manager (always available via NavigationController)
+        t = parent.i18n.t
+        
         state = getattr(parent, "specter_state", None)
 
         menu_items = [
-            (BTC_ICONS.RECEIVE, "Backup to SD Card ", "backup_to_sd", None),
-            (BTC_ICONS.SEND, "Restore from SD Card ", "restore_from_sd", None),
-            (BTC_ICONS.CROSS, "Remove from SD Card ", "remove_backup_from_sd", RED_HEX),
+            (BTC_ICONS.RECEIVE, t("BACKUPS_MENU_BACKUP_TO_SD"), "backup_to_sd", None),
+            (BTC_ICONS.SEND, t("BACKUPS_MENU_RESTORE_FROM_SD"), "restore_from_sd", None),
+            (BTC_ICONS.CROSS, t("BACKUPS_MENU_REMOVE_FROM_SD"), "remove_backup_from_sd", RED_HEX),
         ]
 
-        title = "Manage Backups"
+        title = t("MENU_MANAGE_BACKUPS")
 
         super().__init__("manage_backups", title, menu_items, parent, *args, **kwargs)

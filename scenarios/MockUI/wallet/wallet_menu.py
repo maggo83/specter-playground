@@ -9,34 +9,37 @@ class WalletMenu(GenericMenu):
     def __init__(self, parent, *args, **kwargs):
         state = getattr(parent, "specter_state", None)
         self.parent = parent
+        
+        # Get translation function from i18n manager (always available via NavigationController)
+        t = parent.i18n.t
 
         # Build menu items
         menu_items = []
 
-        menu_items.append((None, "Explore", None, None))
-        menu_items.append((BTC_ICONS.MENU, "View Addresses", "view_addresses", None))
+        menu_items.append((None, t("WALLET_MENU_EXPLORE"), None, None))
+        menu_items.append((BTC_ICONS.MENU, t("WALLET_MENU_VIEW_ADDRESSES"), "view_addresses", None))
         if (state and not state.active_wallet is None and state.active_wallet.isMultiSig):
-            menu_items.append((BTC_ICONS.ADDRESS_BOOK, "View Signers", "view_signers", None))
+            menu_items.append((BTC_ICONS.ADDRESS_BOOK, t("WALLET_MENU_VIEW_SIGNERS"), "view_signers", None))
 
-        menu_items.append((None, "Manage", None, None))
+        menu_items.append((None, t("WALLET_MENU_MANAGE"), None, None))
         if (state and not state.active_wallet is None and not state.active_wallet.isMultiSig):
             #Probably not needed as a fixed setting -> derivation path can be chosen in address explorer or when exporting public keys
             #menu_items.append((None, "Manage Derivation Path", "derivation_path", None))
-            menu_items.append((BTC_ICONS.MNEMONIC, "Manage Seedphrase", "manage_seedphrase", None))
-            menu_items.append((BTC_ICONS.PASSWORD, "Enter/Set Passphrase", "set_passphrase", None))
+            menu_items.append((BTC_ICONS.MNEMONIC, t("MENU_MANAGE_SEEDPHRASE"), "manage_seedphrase", None))
+            menu_items.append((BTC_ICONS.PASSWORD, t("MENU_SET_PASSPHRASE"), "set_passphrase", None))
         elif (state and not state.active_wallet is None and state.active_wallet.isMultiSig):
-            menu_items.append((BTC_ICONS.CONSOLE, "Manage Descriptor", "manage_wallet_descriptor", None))
-        menu_items.append((BTC_ICONS.BITCOIN, "Change Network", "change_network", None))
+            menu_items.append((BTC_ICONS.CONSOLE, t("WALLET_MENU_MANAGE_DESCRIPTOR"), "manage_wallet_descriptor", None))
+        menu_items.append((BTC_ICONS.BITCOIN, t("WALLET_MENU_CHANGE_NETWORK"), "change_network", None))
 
         menu_items += [
-            (BTC_ICONS.TRASH, "Delete Wallet#", "delete_wallet", RED_HEX),
-            (None, "Connect/Export", None, None),
-            (BTC_ICONS.LINK, "Connect SW Wallet", "connect_sw_wallet", None),
-            (BTC_ICONS.EXPORT, "Export Data", "export_wallet", None)
+            (BTC_ICONS.TRASH, t("WALLET_MENU_DELETE_WALLET"), "delete_wallet", RED_HEX),
+            (None, t("WALLET_MENU_CONNECT_EXPORT"), None, None),
+            (BTC_ICONS.LINK, t("MENU_CONNECT_SW_WALLET"), "connect_sw_wallet", None),
+            (BTC_ICONS.EXPORT, t("WALLET_MENU_EXPORT_DATA"), "export_wallet", None)
         ]
 
         # Initialize GenericMenu with basic title (we'll customize it below)
-        title = "Manage Wallet"
+        title = t("MENU_MANAGE_WALLET")
         super().__init__("manage_wallet", title, menu_items, parent, *args, **kwargs)
 
         # Remove the default title label and replace with editable text area + edit button
@@ -51,7 +54,7 @@ class WalletMenu(GenericMenu):
 
         # "Wallet: " label - position at same height as title in other menus
         self.wallet_label = lv.label(self)
-        self.wallet_label.set_text("Wallet: ")
+        self.wallet_label.set_text(t("WALLET_MENU_LABEL"))
         self.wallet_label.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
         self.wallet_label.align(lv.ALIGN.TOP_LEFT, 50, 6)  # Same Y offset as title
 

@@ -46,12 +46,7 @@ if CONTROL_MODE:
 
 # Needed for LVGL task handling when loaded as main script
 def main():
-    # Set up the default theme:
-    # - disp: pointer to display (None uses the default display)
-    # - color_primary: primary color of the theme (blue grey here)
-    # - color_secondary: secondary color of the theme (red here)
-    # - dark: True for dark mode, False for light mode (dark mode here)
-    # - font: font to use (Montserrat 16 here)
+    
     lv.theme_default_init(
         None,
         lv.palette_main(lv.PALETTE.BLUE_GREY),

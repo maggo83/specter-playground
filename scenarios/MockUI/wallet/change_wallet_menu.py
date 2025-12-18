@@ -19,8 +19,11 @@ class ChangeWalletMenu(GenericMenu):
         self.parent = parent
         wallets = getattr(parent.specter_state, "registered_wallets", [])
 
+        # Get translation function from i18n manager (always available via NavigationController)
+        t = parent.i18n.t
+
         # Initialize base GenericMenu with no auto-built items
-        super().__init__("change_wallet", "Change Wallet", [], parent, *args, **kwargs)
+        super().__init__("change_wallet", t("MAIN_MENU_CHANGE_ADD_WALLET"), [], parent, *args, **kwargs)
 
         # Helper to set active wallet and navigate back
         def _make_select_callback(wallet):
@@ -57,7 +60,7 @@ class ChangeWalletMenu(GenericMenu):
         
         # Text centered
         add_lbl = lv.label(add_btn)
-        add_lbl.set_text("Add Wallet")
+        add_lbl.set_text(t("MENU_ADD_WALLET"))
         add_lbl.center()
         
         add_btn.add_event_cb(lambda e: self.on_navigate("add_wallet") if e.get_code() == lv.EVENT.CLICKED else None, lv.EVENT.CLICKED, None)
