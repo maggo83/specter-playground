@@ -9,3 +9,8 @@ release
 .vscode
 .DS_Store
 .direnv
+
+# RAG code scanner
+.rag/.venv/
+.rag/chroma_db/
+specter-diy-src
