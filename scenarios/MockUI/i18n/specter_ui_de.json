@@ -32,15 +32,15 @@
     },
     "MAIN_MENU_CHOOSE_WALLET": {
       "text": "Wallet auswählen",
-      "ref_en": "Choose Wallet"
+      "ref_en": "Wallet"
     },
     "MAIN_MENU_CHANGE_ADD_WALLET": {
       "text": "Wallet wechseln/hinzufügen",
       "ref_en": "Change/Add Wallet"
     },
     "MAIN_MENU_MANAGE_SETTINGS": {
-      "text": "Einstellungen verwalten",
-      "ref_en": "Manage Settings"
+      "text": "Gerät",
+      "ref_en": "Device"
     },
     
     "WALLET_MENU_LABEL": {
@@ -332,6 +332,10 @@
     "MENU_MANAGE_DEVICE": {
       "text": "Gerät verwalten",
       "ref_en": "Manage Device"
+    },
+    "MENU_MANAGE_SETTINGS": {
+      "text": "Einstellungen verwalten",
+      "ref_en": "Manage Settings"
     },
     "MENU_LANGUAGE": {
       "text": "Sprache auswählen",

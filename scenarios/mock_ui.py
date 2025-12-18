@@ -4,7 +4,7 @@ import lvgl as lv
 import utime as time
 
 
-from MockUI import BTN_HEIGHT, BTN_WIDTH, WalletMenu, DeviceMenu, MainMenu, SpecterState, Wallet, ActionScreen, UIState, StatusBar, SeedPhraseMenu, SecurityMenu, InterfacesMenu, BackupsMenu, FirmwareMenu, ConnectWalletsMenu, ChangeWalletMenu, AddWalletMenu, LockedMenu, GenerateSeedMenu, StorageMenu, PassphraseMenu, NavigationController
+from MockUI import BTN_HEIGHT, BTN_WIDTH, WalletMenu, DeviceMenu, MainMenu, SpecterState, Wallet, ActionScreen, UIState, DeviceBar, WalletBar, SeedPhraseMenu, SecurityMenu, InterfacesMenu, BackupsMenu, FirmwareMenu, ConnectWalletsMenu, ChangeWalletMenu, AddWalletMenu, LockedMenu, GenerateSeedMenu, StorageMenu, SettingsMenu, PassphraseMenu, NavigationController
 
 # Check for control mode
 CONTROL_MODE = "--control" in sys.argv

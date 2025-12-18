@@ -52,8 +52,7 @@ def MainMenu(parent, *args, **kwargs):
     if (state and not state.active_wallet is None):
         menu_items.append((BTC_ICONS.WALLET, t("MENU_MANAGE_WALLET"), "manage_wallet", None))
 
-    menu_items.append((BTC_ICONS.GEAR, t("MENU_MANAGE_DEVICE"), "manage_device", None))
-    menu_items.append((lv.SYMBOL.DRIVE, t("MENU_MANAGE_STORAGE"), "manage_storage", None))
+    menu_items.append((BTC_ICONS.GEAR, t("MENU_MANAGE_SETTINGS"), "manage_settings", None))
 
 
     return GenericMenu("main", t("MAIN_MENU_TITLE"), menu_items, parent, *args, **kwargs)

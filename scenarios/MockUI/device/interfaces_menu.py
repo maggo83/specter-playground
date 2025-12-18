@@ -112,8 +112,8 @@ class InterfacesMenu(lv.obj):
                 setattr(self.state, attr, is_on)
                 setattr(self.parent.specter_state, attr, is_on)
 
-                # refresh status bar
-                self.parent.status_bar.refresh(self.parent.specter_state)
+                # refresh UI
+                self.parent.refresh_ui()
 
 
             sw.add_event_cb(lambda e, a=state_attr: _handler(e, a), lv.EVENT.VALUE_CHANGED, None)
