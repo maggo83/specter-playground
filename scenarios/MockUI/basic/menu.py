@@ -7,11 +7,12 @@ class GenericMenu(lv.obj):
     """Reusable menu builder.
 
     title: string title shown at top
-    menu_items: list of (icon, text, target_behavior, color) where:
+    menu_items: list of (icon, text, target_behavior, color, size) where:
         - icon: Icon object or lv.SYMBOL string
         - text: Display text for the menu item
         - target_behavior: None (creates label/spacer), string (menu_id to navigate to), or callable (custom callback)
         - color: Optional color for the button
+        - size: Optional size multiplier for button height (default=1, minimum=1). E.g., size=1.5 increases height by 50%
     """
 
     def __init__(self, menu_id, title, menu_items, parent, *args, **kwargs):
@@ -65,7 +66,18 @@ class GenericMenu(lv.obj):
         self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, TITLE_PADDING)
 
         # Build items
-        for icon, text, target_behavior, color in menu_items:
+        for item in menu_items:
+            # Support both 4-tuple and 5-tuple formats (backward compatible)
+            if len(item) == 4:
+                icon, text, target_behavior, color = item
+                size = None
+            elif len(item) == 5:
+                icon, text, target_behavior, color, size = item
+            
+            # Normalize size: default to 1, ensure minimum of 1
+            if size is None or size < 1:
+                size = 1
+            
             if target_behavior is None:
                 spacer = lv.label(self.container)
                 spacer.set_recolor(True)
@@ -75,7 +87,9 @@ class GenericMenu(lv.obj):
             else:
                 btn = lv.button(self.container)
                 btn.set_width(lv.pct(BTN_WIDTH))
-                btn.set_height(BTN_HEIGHT)
+                # Apply size scaling to button height
+                scaled_height = int(BTN_HEIGHT * size)
+                btn.set_height(scaled_height)
                 if color:
                     btn.set_style_bg_color(color, lv.PART.MAIN)
                 
