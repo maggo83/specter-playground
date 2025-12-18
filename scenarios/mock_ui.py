@@ -1,3 +1,4 @@
+import sys
 import display
 import lvgl as lv
 import utime as time
@@ -5,8 +6,8 @@ import utime as time
 
 from MockUI import BTN_HEIGHT, BTN_WIDTH, WalletMenu, DeviceMenu, MainMenu, SpecterState, Wallet, ActionScreen, UIState, StatusBar, SeedPhraseMenu, SecurityMenu, InterfacesMenu, BackupsMenu, FirmwareMenu, ConnectWalletsMenu, ChangeWalletMenu, AddWalletMenu, LockedMenu, GenerateSeedMenu, StorageMenu, PassphraseMenu, NavigationController
 
-# Load German umlaut fonts for simulator (using lv.binfont_create)
-from MockUI.fonts import font_loader_de
+# Check for control mode
+CONTROL_MODE = "--control" in sys.argv
 
 singlesig_wallet = Wallet("MyWallet", xpub="xpub6CUGRUon", isMultiSig=False)
 multisig_wallet = Wallet("MyMultiSig", xpub="xpub6DUGRUon", isMultiSig=True)
@@ -37,19 +38,21 @@ display.init()
 
 scr = NavigationController(specter_state)
 
+# Start control server if in control mode
+if CONTROL_MODE:
+    from sim_control import ControlServer
+    ctrl_server = ControlServer(scr)
+
 
 # Needed for LVGL task handling when loaded as main script
 def main():
-    # Set up the default theme with German umlaut fonts
-    # Use loaded German font, fallback to default Montserrat if loading failed
-    theme_font = font_loader_de.get_font(16) if font_loader_de.get_font(16) else lv.font_montserrat_16
     
     lv.theme_default_init(
         None,
         lv.palette_main(lv.PALETTE.BLUE_GREY),
         lv.palette_main(lv.PALETTE.RED),
         True,
-        theme_font,
+        lv.font_montserrat_16,
     )
 
     lv.screen_load(scr)

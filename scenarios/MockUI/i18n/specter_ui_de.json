@@ -306,8 +306,8 @@
       "ref_en": "Add Wallet"
     },
     "MENU_MANAGE_BACKUPS": {
-      "text": "Backup(s) verwalten",
-      "ref_en": "Manage Backup(s)"
+      "text": "Backups verwalten",
+      "ref_en": "Manage Backups"
     },
     "MENU_MANAGE_FIRMWARE": {
       "text": "Firmware verwalten",
