@@ -21,6 +21,8 @@ class DeviceBar(lv.obj):
             lv.FLEX_ALIGN.SPACE_BETWEEN, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER
         )
         self.set_style_pad_all(0, 0)
+        self.set_style_radius(0, 0)
+        self.set_style_border_width(0, 0)
 
         # LEFT SECTION: Lock button
         self.left_container = lv.obj(self)
@@ -31,6 +33,7 @@ class DeviceBar(lv.obj):
         self.left_container.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         self.left_container.set_style_pad_all(0, 0)
         self.left_container.set_style_border_width(0, 0)
+        self.left_container.set_style_radius(0, 0)
 
         self.lock_btn = lv.button(self.left_container)
         self.lock_btn.set_size(STATUS_BTN_WIDTH, STATUS_BTN_HEIGHT)
@@ -48,6 +51,7 @@ class DeviceBar(lv.obj):
         self.center_container.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         self.center_container.set_style_pad_all(0, 0)
         self.center_container.set_style_border_width(0, 0)
+        self.center_container.set_style_radius(0, 0)
 
         # Peripheral indicators (only visible when unlocked)
         self.qr_img = lv.image(self.center_container)
@@ -82,6 +86,7 @@ class DeviceBar(lv.obj):
         self.right_container.set_flex_align(lv.FLEX_ALIGN.END, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         self.right_container.set_style_pad_all(0, 0)
         self.right_container.set_style_border_width(0, 0)
+        self.right_container.set_style_radius(0, 0)
 
         # Battery icon
         self.batt_icon = Battery(self.right_container)

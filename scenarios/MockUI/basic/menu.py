@@ -34,6 +34,8 @@ class GenericMenu(lv.obj):
         self.set_style_pad_all(0, 0)
         # Remove border
         self.set_style_border_width(0, 0)
+        # Remove rounded corners
+        self.set_style_radius(0, 0)
 
         # If ui_state has history, show back button to the left of the title
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
@@ -90,6 +92,8 @@ class GenericMenu(lv.obj):
                 # Apply size scaling to button height
                 scaled_height = int(BTN_HEIGHT * size)
                 btn.set_height(scaled_height)
+                # Remove rounded corners from menu item buttons
+                btn.set_style_radius(0, 0)
                 if color:
                     btn.set_style_bg_color(color, lv.PART.MAIN)
                 
