@@ -46,6 +46,8 @@ def MainMenu(parent, *args, **kwargs):
             menu_items.append((BTC_ICONS.SEND, t("MAIN_MENU_IMPORT_SMARTCARD"), "import_from_smartcard", None, 3))
 
     menu_items.append((None, t("MAIN_MENU_CHOOSE_WALLET"), None, None))
+    if (state and not state.active_wallet is None):
+        menu_items.append((BTC_ICONS.WALLET, t("MENU_MANAGE_WALLET"), "manage_wallet", None))
     if state.registered_wallets and len(state.registered_wallets) > 1:
         menu_items.append((BTC_ICONS.REFRESH, t("MAIN_MENU_CHANGE_ADD_WALLET"), "change_wallet", None))
     else:
@@ -53,8 +55,7 @@ def MainMenu(parent, *args, **kwargs):
         if (state.registered_wallets and len(state.registered_wallets) > 0):
                 add_size = 1
         menu_items.append((BTC_ICONS.PLUS, t("MENU_ADD_WALLET"), "add_wallet", None, add_size))
-    if (state and not state.active_wallet is None):
-        menu_items.append((BTC_ICONS.WALLET, t("MENU_MANAGE_WALLET"), "manage_wallet", None))
+
 
     menu_items.append((None, t("MAIN_MENU_MANAGE_SETTINGS"), None, None))
 
