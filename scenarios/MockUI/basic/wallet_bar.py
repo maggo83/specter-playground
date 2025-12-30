@@ -24,7 +24,7 @@ class WalletBar(lv.obj):
         # Wallet name label
         self.wallet_name_lbl = lv.label(self)
         self.wallet_name_lbl.set_text("")
-        self.wallet_name_lbl.set_width(60)
+        self.wallet_name_lbl.set_width(100)
 
         # Wallet type indicator (single/multi-sig)
         self.wallet_type_img = lv.image(self)
@@ -37,7 +37,7 @@ class WalletBar(lv.obj):
         # Network label
         self.net_lbl = lv.label(self)
         self.net_lbl.set_text("")
-        self.net_lbl.set_width(35)
+        self.net_lbl.set_width(70)
 
         # Apply smaller font
         self.font = lv.font_montserrat_12
@@ -93,7 +93,7 @@ class WalletBar(lv.obj):
             if state.active_wallet is not None:
                 w = state.active_wallet
                 name = getattr(w, "name", "") or ""
-                self.wallet_name_lbl.set_text(self._truncate(name, 8))
+                self.wallet_name_lbl.set_text(self._truncate(name, 14))
                 
                 # Wallet type icon
                 ico = BTC_ICONS.TWO_KEYS if w.isMultiSig else BTC_ICONS.KEY
@@ -106,7 +106,7 @@ class WalletBar(lv.obj):
                     self.pp_img.set_src(None)
                 
                 # Network
-                self.net_lbl.set_text(self._truncate(w.net or "", 4))
+                self.net_lbl.set_text(self._truncate(w.net or "", 8))
             else:
                 # No wallet loaded
                 self.wallet_name_lbl.set_text("No wallet")
