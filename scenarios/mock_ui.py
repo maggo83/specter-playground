@@ -55,6 +55,9 @@ def main():
         lv.font_montserrat_16,
     )
 
+    # Set font on layer_top so modal msgboxes (created with parent=None) inherit the correct font
+    lv.display_get_default().get_layer_top().set_style_text_font(lv.font_montserrat_16, 0)
+
     lv.screen_load(scr)
     while True:
         time.sleep_ms(30)

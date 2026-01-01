@@ -81,9 +81,13 @@ def MyMenu(parent, *args, **kwargs):
     t = parent.i18n.t
     
     # Use t() function to translate strings
+    # menu_items format: (icon, text, target_behavior, color, size, help_key)
+    # - size: Button height multiplier (1 = default, 2 = double height, etc.), use None for default
+    # - help_key: i18n key for help text (shows ? icon), use None for no help
     menu_items = [
-        (icon, t("MENU_ITEM_KEY"), "action", None),
-        (None, t("SECTION_HEADER"), None, None),
+        (icon, t("MENU_ITEM_KEY"), "action", None, None, None),  # Basic item
+        (icon, t("MENU_ITEM_WITH_HELP"), "action", None, None, "HELP_MENU_ITEM"),  # With help
+        (None, t("SECTION_HEADER"), None, None, None, None),  # Section header
     ]
     
     return GenericMenu("menu_id", t("MENU_TITLE"), menu_items, parent, *args, **kwargs)
@@ -100,6 +104,16 @@ Examples:
 - `WALLET_MENU_VIEW_ADDRESSES` - Wallet menu item
 - `BUTTON_BACK` - Generic back button
 - `COMMON_WALLET` - Common term used in multiple places
+
+#### Help Text Keys
+
+Menu items can have optional help text that is shown when the user clicks a help icon (question mark).
+Help text keys use the `HELP_` prefix followed by an identifier that matches the related menu item:
+
+- `HELP_SCAN_QR` - Help text for the "Scan QR" menu item
+- `HELP_WIPE_DEVICE` - Help text for the "Wipe Device" menu item
+
+Help keys should be placed near their related menu item key in the translation files for easy maintenance.
 
 ## Adding a New Language
 

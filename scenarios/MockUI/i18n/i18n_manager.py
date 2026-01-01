@@ -190,6 +190,8 @@ class I18nManager:
         if missing_keys and lang_code != self.DEFAULT_LANGUAGE:
             print(f"Warning: Language '{lang_code}' is missing {len(missing_keys)} translation(s). "
                   f"Default language fallback will be used for missing keys.")
+            for mk in missing_keys:
+                print(f"  Missing key: {mk}")   
         
         # Step 5: Free default language memory (Python will garbage collect)
         default_translations = None

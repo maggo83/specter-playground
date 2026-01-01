@@ -13,10 +13,10 @@ class ConnectWalletsMenu(GenericMenu):
         
         # the actual connection logic is out of scope here; provide menu entries
         menu_items = [
-            (None, t("CONNECT_WALLETS_SPARROW"), "connect_sparrow", None),
-            (None, t("CONNECT_WALLETS_NUNCHUCK"), "connect_nunchuck", None),
-            (None, t("CONNECT_WALLETS_BLUEWALLET"), "connect_bluewallet", None),
-            (None, t("CONNECT_WALLETS_OTHER"), "connect_other", None),
+            (None, t("CONNECT_WALLETS_SPARROW"), "connect_sparrow", None, None, None),
+            (None, t("CONNECT_WALLETS_NUNCHUCK"), "connect_nunchuck", None, None, None),
+            (None, t("CONNECT_WALLETS_BLUEWALLET"), "connect_bluewallet", None, None, None),
+            (None, t("CONNECT_WALLETS_OTHER"), "connect_other", None, None, None),
         ]
 
         super().__init__("connect_sw_wallet", t("MENU_CONNECT_SW_WALLET"), menu_items, parent, *args, **kwargs)

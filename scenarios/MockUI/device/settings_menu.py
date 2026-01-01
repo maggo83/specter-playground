@@ -15,9 +15,9 @@ def SettingsMenu(parent, *args, **kwargs):
     menu_items = []
 
     # Device management
-    menu_items.append((BTC_ICONS.GEAR, t("MENU_MANAGE_DEVICE"), "manage_device", None))
+    menu_items.append((BTC_ICONS.GEAR, t("MENU_MANAGE_DEVICE"), "manage_device", None, None, None))
     
     # Storage management
-    menu_items.append((lv.SYMBOL.DRIVE, t("MENU_MANAGE_STORAGE"), "manage_storage", None))
+    menu_items.append((lv.SYMBOL.DRIVE, t("MENU_MANAGE_STORAGE"), "manage_storage", None, None, None))
 
     return GenericMenu("manage_settings", t("MENU_MANAGE_SETTINGS"), menu_items, parent, *args, **kwargs)

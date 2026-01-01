@@ -16,13 +16,13 @@ class StorageMenu(GenericMenu):
         on_navigate = getattr(parent, "on_navigate", None)
         state = getattr(parent, "specter_state", None)
 
-        menu_items = [(None, t("MENU_MANAGE_STORAGE"), None, None)]
-        menu_items.append((BTC_ICONS.FILE, t("STORAGE_MENU_INTERNAL_FLASH"), "internal_flash", None))
+        menu_items = [(None, t("MENU_MANAGE_STORAGE"), None, None, None, None)]
+        menu_items.append((BTC_ICONS.FILE, t("STORAGE_MENU_INTERNAL_FLASH"), "internal_flash", None, None, None))
 
         if state and state.hasSmartCard and state.enabledSmartCard and state.detectedSmartCard:
-            menu_items.append((BTC_ICONS.SMARTCARD, t("STORAGE_MENU_SMARTCARD"), "smartcard", None))
+            menu_items.append((BTC_ICONS.SMARTCARD, t("STORAGE_MENU_SMARTCARD"), "smartcard", None, None, None))
 
         if state and state.hasSD and state.enabledSD and state.detectedSD:
-            menu_items.append((BTC_ICONS.SD_CARD, t("STORAGE_MENU_SD_CARD"), "sdcard", None))
+            menu_items.append((BTC_ICONS.SD_CARD, t("STORAGE_MENU_SD_CARD"), "sdcard", None, None, None))
 
         super().__init__("manage_storage", t("MENU_MANAGE_STORAGE"), menu_items, parent, *args, **kwargs)

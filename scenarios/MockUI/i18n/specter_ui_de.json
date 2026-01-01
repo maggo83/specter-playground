@@ -18,6 +18,10 @@
       "text": "QR-Code scannen",
       "ref_en": "Scan QR"
     },
+    "HELP_SCAN_QR": {
+      "text": "Verwende die Kamera um einen QR-Code zu scannen. Dies kann verwendet werden um Transaktionen zu empfangen, Wallet-Deskriptoren zu importieren oder PSBTs (Partially Signed Bitcoin Transactions) zum Signieren zu verarbeiten.",
+      "ref_en": "Use the camera to scan a QR code. This can be used to receive transactions, import wallet descriptors, or process PSBTs (Partially Signed Bitcoin Transactions) for signing."
+    },
     "MAIN_MENU_LOAD_SD": {
       "text": "Datei von SD laden",
       "ref_en": "Load File from SD"
@@ -180,6 +184,10 @@
     "DEVICE_MENU_WIPE": {
       "text": "Gerät zurücksetzen",
       "ref_en": "Wipe Device"
+    },
+    "HELP_DEVICE_MENU_WIPE": {
+      "text": "WARNUNG: Dies löscht ALLE Daten auf dem Gerät permanent, einschließlich deiner Seedphrase, Wallet-Konfigurationen und Einstellungen.\nDiese Aktion kann nicht rückgängig gemacht werden.\nStelle sicher, dass du ein Backup deiner Seedphrase hast bevor du fortfährst!",
+      "ref_en": "WARNING: This will permanently erase ALL data on the device including your seedphrase, wallet configurations, and settings.\nThis action cannot be undone.\nMake sure you have a backup of your seedphrase before proceeding!"
     },
     
     "FIRMWARE_MENU_CURRENT_VERSION": {

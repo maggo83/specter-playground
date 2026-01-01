@@ -1,5 +1,5 @@
 import lvgl as lv
-from .ui_consts import BACK_BTN_HEIGHT, BACK_BTN_WIDTH, BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, TITLE_PADDING
+from .ui_consts import BACK_BTN_HEIGHT, BACK_BTN_WIDTH, BTN_HEIGHT, BTN_WIDTH, MENU_PCT, MODAL_HEIGHT_PCT, MODAL_WIDTH_PCT, PAD_SIZE, TITLE_PADDING
 from .symbol_lib import Icon, BTC_ICONS
 
 
@@ -7,12 +7,14 @@ class GenericMenu(lv.obj):
     """Reusable menu builder.
 
     title: string title shown at top
-    menu_items: list of (icon, text, target_behavior, color, size) where:
+    menu_items: list of (icon, text, target_behavior, color, size, help_key) where:
         - icon: Icon object or lv.SYMBOL string
         - text: Display text for the menu item
         - target_behavior: None (creates label/spacer), string (menu_id to navigate to), or callable (custom callback)
         - color: Optional color for the button
-        - size: Optional size multiplier for button height (default=1, minimum=1). E.g., size=1.5 increases height by 50%
+        - size: Size multiplier for button height (default=1, minimum=1). E.g., size=1.5 increases height by 50%
+        - help_key: Optional i18n key for help text. If provided, a help icon appears on the right side of the button.
+                   Clicking it shows a popup with the translated help text.
     """
 
     def __init__(self, menu_id, title, menu_items, parent, *args, **kwargs):
@@ -26,6 +28,8 @@ class GenericMenu(lv.obj):
         self.state = parent.specter_state
         # identifier for this menu (used e.g. as a return target)
         self.menu_id = menu_id
+        # store i18n manager for help text translation
+        self.i18n = parent.i18n
 
         # Fill parent
         self.set_width(lv.pct(100))
@@ -67,12 +71,8 @@ class GenericMenu(lv.obj):
 
         # Build items
         for item in menu_items:
-            # Support both 4-tuple and 5-tuple formats (backward compatible)
-            if len(item) == 4:
-                icon, text, target_behavior, color = item
-                size = None
-            elif len(item) == 5:
-                icon, text, target_behavior, color, size = item
+            # Extract tuple elements - now expecting 6 elements: (icon, text, target_behavior, color, size, help_key)
+            icon, text, target_behavior, color, size, help_key = item
             
             # Normalize size: default to 1, ensure minimum of 1
             if size is None or size < 1:
@@ -112,6 +112,23 @@ class GenericMenu(lv.obj):
                 lbl.set_text(text)
                 lbl.center()
 
+                # Add help icon on right side if help_key is provided
+                if help_key:
+                    help_btn = lv.button(btn)
+                    help_btn.set_size(28, 28)
+                    # Make the help button transparent (no background)
+                    help_btn.set_style_bg_opa(lv.OPA.TRANSP, 0)
+                    help_btn.set_style_shadow_width(0, 0)
+                    help_btn.set_style_border_width(0, 0)
+                    help_btn.align(lv.ALIGN.RIGHT_MID, -4, 0)
+                    
+                    help_icon_img = lv.image(help_btn)
+                    BTC_ICONS.QUESTION_CIRCLE.add_to_parent(help_icon_img)
+                    help_icon_img.center()
+                    
+                    # Create help popup callback
+                    help_btn.add_event_cb(self.make_help_callback(text, help_key), lv.EVENT.CLICKED, None)
+
                 btn.add_event_cb(self.make_callback(target_behavior), lv.EVENT.CLICKED, None)
 
     def make_callback(self, target_behavior):
@@ -129,6 +146,33 @@ class GenericMenu(lv.obj):
                     self.on_navigate(None)
                 else:
                     self.on_navigate(target_behavior)
+        return callback
+
+    def make_help_callback(self, title_text, help_key):
+        """Create callback for help button - shows a msgbox with help text."""
+        def callback(e):
+            if e.get_code() == lv.EVENT.CLICKED:
+                # Translate the help text
+                help_text = self.i18n.t(help_key)
+                
+                # Create msgbox. Giving "None" as parent makes it a modal on the top layer.
+                msgbox = lv.msgbox(None)
+                msgbox.add_title(title_text)
+                text_label = msgbox.add_text(help_text)
+                msgbox.add_close_button()
+                
+                # Center the text both horizontally and vertically
+                content = msgbox.get_content()
+                content.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+                text_label.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+                
+                # Set modal size from ui_consts
+                msgbox.set_width(lv.pct(MODAL_WIDTH_PCT))
+                msgbox.set_height(lv.pct(MODAL_HEIGHT_PCT))
+                msgbox.center()
+                
+                # Stop event propagation so the main button doesn't also trigger
+                e.stop_bubbling = 1
         return callback
 
     def on_back(self, e):
