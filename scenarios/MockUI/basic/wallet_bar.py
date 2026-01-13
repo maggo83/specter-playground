@@ -25,6 +25,7 @@ class WalletBar(lv.obj):
         self.wallet_name_lbl = lv.label(self)
         self.wallet_name_lbl.set_text("")
         self.wallet_name_lbl.set_width(100)
+        self.wallet_name_lbl.set_style_text_align(lv.TEXT_ALIGN.RIGHT, 0)
 
         # Wallet type indicator (single/multi-sig)
         self.wallet_type_img = lv.image(self)
