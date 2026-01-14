@@ -14,3 +14,4 @@ release
 .rag/.venv/
 .rag/chroma_db/
 specter-diy-src
+ui_state_config.json
