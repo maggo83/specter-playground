@@ -18,6 +18,12 @@ ONE_LETTER_SYMBOL_WIDTH = const(11)  # width allocated to 1-letter status symbol
 # Modal/popup dimensions (percentage of screen)
 MODAL_WIDTH_PCT = const(75)
 MODAL_HEIGHT_PCT = const(75)
+
+# UIExplainer dimensions and style
+EXPLAINER_WIDTH_PCT = const(65)   # Width of explainer text box (percentage of screen)
+EXPLAINER_HEIGHT_PCT = const(40)  # Height of explainer text box (percentage of screen)
+EXPLAINER_OVERLAY_OPA = const(200)  # Opacity of dim overlay (0-255, ~80% = 200)
+
 TWO_LETTER_SYMBOL_WIDTH = const(19)  # width allocated to 2-letter status symbols in the status bar
 THREE_LETTER_SYMBOL_WIDTH = const(27)  # width allocated to 3-letter status symbols in the status bar
 

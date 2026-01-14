@@ -368,6 +368,38 @@
     "HARDWARE_QR_CODE": {
       "text": "QR-Code",
       "ref_en": "QR Code"
+    },
+    "TOUR_INTRO": {
+      "text": "Willkommen bei Specter! Diese kurze Tour zeigt dir die wichtigsten Funktionen deiner Hardware-Wallet.",
+      "ref_en": "Welcome to Specter! This quick tour will show you the main features of your hardware wallet."
+    },
+    "TOUR_LANGUAGE": {
+      "text": "Tippe hier, um die Anzeigesprache zu ändern.",
+      "ref_en": "Tap here to change the display language."
+    },
+    "TOUR_LOCK": {
+      "text": "Sperre dein Gerät, wenn du es nicht benutzt. Zum Entsperren brauchst du deine PIN.",
+      "ref_en": "Lock your device when not in use. You'll need your PIN to unlock."
+    },
+    "TOUR_INTERFACES": {
+      "text": "Diese Symbole zeigen verfügbare Schnittstellen: QR-Scanner, USB, SD-Karte und SmartCard.",
+      "ref_en": "These icons show available interfaces: QR scanner, USB, SD card, and SmartCard."
+    },
+    "TOUR_BATTERY": {
+      "text": "Der Batteriestatus wird hier angezeigt, wenn das Gerät mit Batterie läuft.",
+      "ref_en": "Battery status is shown here when running on battery power."
+    },
+    "TOUR_POWER": {
+      "text": "Tippe hier, um die Batteriesimulation ein-/auszuschalten (nur Demo).",
+      "ref_en": "Tap here to toggle battery simulation on/off (demo only)."
+    },
+    "TOUR_WALLET_BAR": {
+      "text": "Deine aktive Wallet-Info erscheint hier. Sie ist leer, bis du eine Wallet erstellst oder importierst.",
+      "ref_en": "Your active wallet info appears here. It's empty until you create or import a wallet."
+    },
+    "TOUR_HELP_ICON": {
+      "text": "Achte auf diese Hilfe-Symbole in der App. Tippe sie an für mehr Details zu jeder Funktion.",
+      "ref_en": "Look for these help icons throughout the app. Tap them for more details about each feature."
     }
   }
 }

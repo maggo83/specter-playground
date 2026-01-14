@@ -109,6 +109,15 @@
     "HARDWARE_SD_CARD": "SD Card",
     "HARDWARE_INTERNAL_FLASH": "internal Flash",
     "HARDWARE_USB": "USB",
-    "HARDWARE_QR_CODE": "QR Code"
+    "HARDWARE_QR_CODE": "QR Code",
+    
+    "TOUR_INTRO": "Welcome to Specter! This quick tour will show you the main features of your hardware wallet.",
+    "TOUR_LANGUAGE": "Tap here to change the display language.",
+    "TOUR_LOCK": "Lock your device when not in use. You'll need your PIN to unlock.",
+    "TOUR_INTERFACES": "These icons show available interfaces: QR scanner, USB, SD card, and SmartCard.",
+    "TOUR_BATTERY": "Battery status is shown here when running on battery power.",
+    "TOUR_POWER": "Tap here to toggle battery simulation on/off (demo only).",
+    "TOUR_WALLET_BAR": "Your active wallet info appears here. It's empty until you create or import a wallet.",
+    "TOUR_HELP_ICON": "Look for these help icons throughout the app. Tap them for more details about each feature."
   }
 }

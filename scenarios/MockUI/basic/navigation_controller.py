@@ -26,6 +26,7 @@ from ..device import (
     SettingsMenu,
 )
 from ..i18n import I18nManager
+from ..tour import GuidedTour
 
 
 class NavigationController(lv.obj):
@@ -73,6 +74,10 @@ class NavigationController(lv.obj):
 
         # initially show the main menu
         self.show_menu(None)
+        
+        # Start guided tour on first startup (after UI is fully constructed)
+        if self.ui_state.run_tour_on_startup:
+            GuidedTour(self).start()
 
         # periodic refresh of both bars every 30 seconds
         def _tick(timer):

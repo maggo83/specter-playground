@@ -2,6 +2,7 @@
 from .basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH, ONE_LETTER_SYMBOL_WIDTH, TWO_LETTER_SYMBOL_WIDTH, THREE_LETTER_SYMBOL_WIDTH, GREEN, ORANGE, RED
 from .basic import MainMenu, LockedMenu, DeviceBar, WalletBar, ActionScreen, GenericMenu
 from .basic import NavigationController
+from .tour import UIExplainer, GuidedTour
 
 from .helpers import UIState, SpecterState, Wallet
 
@@ -24,6 +25,8 @@ from .device import (
     StorageMenu,
     SettingsMenu,
 )
+
+from .tour import GuidedTour
 
 __all__ = [
     "BTN_HEIGHT", "BTN_WIDTH",
@@ -56,4 +59,6 @@ __all__ = [
     "SettingsMenu",
     "PassphraseMenu",
     "NavigationController",
+    "UIExplainer",
+    "GuidedTour",
 ]
