@@ -20,6 +20,8 @@ class WalletBar(lv.obj):
             lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER
         )
         self.set_style_pad_all(0, 0)
+        self.set_style_radius(0, 0)
+        self.set_style_border_width(0, 0)
 
         # Wallet name label
         self.wallet_name_lbl = lv.label(self)

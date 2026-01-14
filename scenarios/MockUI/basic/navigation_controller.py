@@ -65,6 +65,8 @@ class NavigationController(lv.obj):
         self.content.set_layout(lv.LAYOUT.FLEX)
         self.content.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self.content.set_style_pad_all(0, 0)
+        self.content.set_style_radius(0, 0)
+        self.content.set_style_border_width(0, 0)
         self.content.align_to(self.device_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 0)
         # Enable scrolling for content area
         self.content.set_scroll_dir(lv.DIR.VER)
