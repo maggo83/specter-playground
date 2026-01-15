@@ -47,7 +47,7 @@ class GuidedTour:
             (db.power_btn, t("TOUR_POWER"), "below"),
             (self.nav.wallet_bar, t("TOUR_WALLET_BAR"), "above"),
             # Help icon: manual coordinates - approximate position for first help icon
-            ((280, 120, 28, 28), t("TOUR_HELP_ICON"), "left"),
+            ((435, 143, 28, 28), t("TOUR_HELP_ICON"), "left"),
         ]
         
         self.current_index = 0
