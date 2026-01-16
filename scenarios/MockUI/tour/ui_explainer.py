@@ -225,7 +225,7 @@ class UIExplainer:
             BTC_ICONS.CHECK.add_to_parent(skip_icon)
             skip_icon.center()
         else:
-            skip_btn.set_size(80, 35)
+            skip_btn.set_size(90, 35)
             skip_label = lv.label(skip_btn)
             skip_label.set_text("Skip Tour")
             skip_label.center()
