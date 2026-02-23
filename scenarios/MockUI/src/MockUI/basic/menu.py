@@ -1,6 +1,7 @@
 import lvgl as lv
 from .ui_consts import BACK_BTN_HEIGHT, BACK_BTN_WIDTH, BTN_HEIGHT, BTN_WIDTH, MENU_PCT, MODAL_HEIGHT_PCT, MODAL_WIDTH_PCT, PAD_SIZE, TITLE_PADDING
 from .symbol_lib import Icon, BTC_ICONS
+from .modal_overlay import ModalOverlay
 
 
 class GenericMenu(lv.obj):
@@ -149,29 +150,58 @@ class GenericMenu(lv.obj):
         return callback
 
     def make_help_callback(self, title_text, help_key):
-        """Create callback for help button - shows a msgbox with help text."""
+        """Create callback for help button - shows a modal overlay with help text."""
         def callback(e):
             if e.get_code() == lv.EVENT.CLICKED:
-                # Translate the help text
                 help_text = self.i18n.t(help_key)
-                
-                # Create msgbox. Giving "None" as parent makes it a modal on the top layer.
-                msgbox = lv.msgbox(None)
-                msgbox.add_title(title_text)
-                text_label = msgbox.add_text(help_text)
-                msgbox.add_close_button()
-                
-                # Center the text both horizontally and vertically
-                content = msgbox.get_content()
-                content.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-                text_label.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-                
-                # Set modal size from ui_consts
-                msgbox.set_width(lv.pct(MODAL_WIDTH_PCT))
-                msgbox.set_height(lv.pct(MODAL_HEIGHT_PCT))
-                msgbox.center()
-                
-                # Stop event propagation so the main button doesn't also trigger
+
+                modal = ModalOverlay(bg_opa=180)
+                sw = modal.screen_width
+                sh = modal.screen_height
+
+                # --- dialog card ---
+                dw = sw * MODAL_WIDTH_PCT // 100
+                dh = sh * MODAL_HEIGHT_PCT // 100
+                dx = (sw - dw) // 2
+                dy = (sh - dh) // 2
+
+                dialog = lv.obj(modal.overlay)
+                dialog.set_size(dw, dh)
+                dialog.set_pos(dx, dy)
+                dialog.set_style_radius(8, 0)
+                dialog.set_style_border_width(0, 0)
+                dialog.set_style_pad_all(12, 0)
+                dialog.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
+                dialog.set_layout(lv.LAYOUT.FLEX)
+                dialog.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+                dialog.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+
+                # title
+                title_lbl = lv.label(dialog)
+                title_lbl.set_text(title_text)
+                title_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+                title_lbl.set_width(lv.pct(100))
+
+                # body text
+                text_lbl = lv.label(dialog)
+                text_lbl.set_text(help_text)
+                text_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+                text_lbl.set_width(lv.pct(100))
+                text_lbl.set_long_mode(lv.label.LONG_MODE.WRAP)
+
+                # close button
+                close_btn = lv.button(dialog)
+                close_lbl = lv.label(close_btn)
+                close_lbl.set_text("Close")
+                close_lbl.center()
+
+                def _close(ev):
+                    if ev.get_code() == lv.EVENT.CLICKED:
+                        modal.close()
+
+                close_btn.add_event_cb(_close, lv.EVENT.CLICKED, None)
+
+                # stop the underlying button from firing too
                 e.stop_bubbling = 1
         return callback
 

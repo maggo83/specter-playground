@@ -5,6 +5,7 @@ from .device_bar import DeviceBar
 from .wallet_bar import WalletBar
 from .action_screen import ActionScreen
 from .menu import GenericMenu
+from .modal_overlay import ModalOverlay
 from .navigation_controller import NavigationController
 from .symbol_lib import BTC_ICONS
 
@@ -20,6 +21,6 @@ __all__ = ["BTN_HEIGHT", "BTN_WIDTH", "BACK_BTN_HEIGHT", "BACK_BTN_WIDTH",
            "ONE_LETTER_SYMBOL_WIDTH", "TWO_LETTER_SYMBOL_WIDTH", "THREE_LETTER_SYMBOL_WIDTH", 
            "GREEN", "ORANGE", "RED",
            "GREEN_HEX", "ORANGE_HEX", "RED_HEX", "WHITE_HEX", "BLACK_HEX",
-           "MainMenu", "LockedMenu", "DeviceBar", "WalletBar", "ActionScreen", "GenericMenu", "NavigationController",
+           "MainMenu", "LockedMenu", "DeviceBar", "WalletBar", "ActionScreen", "GenericMenu", "ModalOverlay", "NavigationController",
            "BTC_ICONS"
         ]

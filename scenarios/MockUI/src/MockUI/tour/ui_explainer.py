@@ -12,6 +12,7 @@ from ..basic.ui_consts import (
     BLACK_HEX,
 )
 from ..basic.symbol_lib import BTC_ICONS
+from ..basic.modal_overlay import ModalOverlay
 
 
 class UIExplainer:
@@ -35,33 +36,24 @@ class UIExplainer:
         self.text_position = text_position
         
         # LVGL objects (created on show())
-        self._overlay = None
+        self._modal = None
+        self._overlay = None  # alias for self._modal.overlay, used internally
         self._dim_strips = []
         self._text_box = None
     
     def show(self):
         """Create and display the explainer overlay."""
         cutout = self._get_cutout_area()
-        self._create_overlay()
+        self._modal = ModalOverlay(bg_opa=lv.OPA.TRANSP)
+        self._overlay = self._modal.overlay
         self._create_dim_strips(cutout)
         self._create_text_box(*self._calculate_text_box_position(cutout))
     
-    def _create_overlay(self):
-        """Create the transparent overlay container that captures all clicks."""
-        disp = lv.display_get_default()
-        self._overlay = lv.obj(disp.get_layer_top())
-        self._overlay.set_size(disp.get_horizontal_resolution(), disp.get_vertical_resolution())
-        self._overlay.set_pos(0, 0)
-        self._overlay.set_style_bg_opa(lv.OPA.TRANSP, 0)
-        self._overlay.set_style_border_width(0, 0)
-        self._overlay.set_style_pad_all(0, 0)
-        self._overlay.set_style_radius(0, 0)
-        self._overlay.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
-    
     def hide(self):
         """Remove and destroy all LVGL objects."""
-        if self._overlay is not None:
-            self._overlay.delete()
+        if self._modal is not None:
+            self._modal.close()
+            self._modal = None
             self._overlay = None
         self._dim_strips = []
         self._text_box = None
