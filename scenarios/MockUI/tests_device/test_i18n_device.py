@@ -20,7 +20,24 @@ import time
 
 import pytest
 
-from conftest import disco_run, find_labels, go_back, ensure_main_menu, soft_reset
+from conftest import (
+    disco_run, find_labels, go_back, ensure_main_menu, soft_reset,
+    navigate_to_language_menu, click_button, _load_label, _load_metadata,
+)
+
+# Sentinel strings returned by I18nManager — must match i18n_manager.py.
+STR_MISSING = "[MISSING]"
+STR_UNKNOWN_KEY = "[UNKNOWN_KEY]"
+
+# Language codes used throughout these tests.
+LANG_EN = "en"
+LANG_DE = "de"
+
+# Labels loaded from language files — used in assertions.
+_MAIN_MENU_TITLE_EN = _load_label("MAIN_MENU_TITLE", LANG_EN)[0]
+_MAIN_MENU_TITLE_DE = _load_label("MAIN_MENU_TITLE", LANG_DE)[0]
+_DEUTSCH = _load_metadata("language_name", LANG_DE)[0]
+_ENGLISH = _load_metadata("language_name", LANG_EN)[0]
 
 
 class TestI18nInfrastructure:
@@ -60,8 +77,8 @@ class TestI18nInfrastructure:
             "from MockUI.i18n import I18nManager; "
             "mgr = I18nManager(); print(repr(mgr.t('MAIN_MENU_TITLE')))",
         )
-        assert "[MISSING]" not in output, f"[2] Translation missing: {output}"
-        assert "[UNKNOWN_KEY]" not in output, f"[2] Unknown key: {output}"
+        assert STR_MISSING not in output, f"[2] Translation missing: {output}"
+        assert STR_UNKNOWN_KEY not in output, f"[2] Unknown key: {output}"
         assert len(output.strip()) > 2, f"[2] Empty translation: {output}"
 
         # --- 3. Translate integer key ---
@@ -71,8 +88,8 @@ class TestI18nInfrastructure:
             "from MockUI.i18n.translation_keys import Keys; "
             "mgr = I18nManager(); print(repr(mgr.t(Keys.MAIN_MENU_TITLE)))",
         )
-        assert "[MISSING]" not in output, f"[3] Missing with integer key: {output}"
-        assert "[UNKNOWN_KEY]" not in output, f"[3] Unknown integer key: {output}"
+        assert STR_MISSING not in output, f"[3] Missing with integer key: {output}"
+        assert STR_UNKNOWN_KEY not in output, f"[3] Unknown integer key: {output}"
 
         # --- 4. Available languages include English ---
         output = disco_run(
@@ -88,7 +105,7 @@ class TestI18nInfrastructure:
             "from MockUI.i18n import I18nManager; "
             "mgr = I18nManager(); print(mgr.get_language_name('en'))",
         )
-        assert "English" in output, f"[5] Expected 'English', got: {output}"
+        assert _ENGLISH in output, f"[5] Expected {_ENGLISH}, got: {output}"
 
         # --- 6. Unknown string key → [UNKNOWN_KEY] ---
         output = disco_run(
@@ -96,7 +113,7 @@ class TestI18nInfrastructure:
             "from MockUI.i18n import I18nManager; "
             "mgr = I18nManager(); print(mgr.t('NONEXISTENT_KEY_12345'))",
         )
-        assert "[UNKNOWN_KEY]" in output, f"[6] Expected [UNKNOWN_KEY]: {output}"
+        assert STR_UNKNOWN_KEY in output, f"[6] Expected [UNKNOWN_KEY]: {output}"
 
         # --- 7. Out-of-range integer key → [MISSING] ---
         output = disco_run(
@@ -104,7 +121,7 @@ class TestI18nInfrastructure:
             "from MockUI.i18n import I18nManager; "
             "mgr = I18nManager(); print(mgr.t(99999))",
         )
-        assert "[MISSING]" in output, f"[7] Expected [MISSING]: {output}"
+        assert STR_MISSING in output, f"[7] Expected [MISSING]: {output}"
 
         # --- 8. t(None) doesn't crash ---
         output = disco_run(
@@ -154,7 +171,7 @@ class TestI18nFunctional:
     """Functional test — UI navigation, language switch, persistence.
 
     This is a single scenario that walks through the full workflow:
-    main menu → device menu → language menu → switch to German →
+    main menu → settings → device menu → language menu → switch to German →
     verify → soft-reset → verify persistence → switch back to English.
     """
 
@@ -162,59 +179,40 @@ class TestI18nFunctional:
         """Full round-trip: navigate, switch to non-default language,
         verify persistence across soft reset, restore English.
 
+        Navigation path: Main → Manage Settings → Manage Device → Select Language
+        (handled by navigate_to_language_menu() in conftest.py)
+
         Sub-checks:
-          1. Main menu shows English title and 'Manage Device'
-          2. Device menu shows 'Select Language'
-          3. Language menu shows 'English' and 'Deutsch'
-          4. Switching to German updates the UI title
-          5. German language survives a soft reset (Ctrl-D reboot)
-          6. Switching back to English restores the UI
+          1. Language menu shows 'English' and 'Deutsch'
+          2. Switching to German updates the main menu title
+          3. German language survives a soft reset (Ctrl-D reboot)
+          4. Switching back to English restores the UI
         """
-        # --- 1. Main menu (English) ---
+        # --- 1. Language menu ---
+        navigate_to_language_menu(LANG_EN)
+        labels = find_labels()
+        assert _ENGLISH in labels, (
+            f"[1] '{_ENGLISH}' not in language menu. Labels: {labels}"
+        )
+        assert _DEUTSCH in labels, (
+            f"[1] '{_DEUTSCH}' not in language menu. Labels: {labels}"
+        )
+
+        # --- 2. Switch to German (non-default!) ---
+        click_button(_DEUTSCH)
+        time.sleep(2)
         ensure_main_menu()
         labels = find_labels()
-        assert "What do you want to do?" in labels, (
-            f"[1] English main menu title missing. Labels: {labels}"
-        )
-        assert "Manage Device" in labels, (
-            f"[1] 'Manage Device' missing from main menu. Labels: {labels}"
+        assert _MAIN_MENU_TITLE_DE in labels, (
+            f"[2] German title missing after switch. Labels: {labels}"
         )
 
-        # --- 2. Device menu ---
-        disco_run("ui", "click", "Manage Device")
-        time.sleep(1)
-        labels = find_labels()
-        assert "Select Language" in labels, (
-            f"[2] 'Select Language' not in device menu. Labels: {labels}"
-        )
-
-        # --- 3. Language menu ---
-        disco_run("ui", "click", "Select Language")
-        time.sleep(1)
-        labels = find_labels()
-        assert "English" in labels, (
-            f"[3] 'English' not in language menu. Labels: {labels}"
-        )
-        assert "Deutsch" in labels, (
-            f"[3] 'Deutsch' not in language menu. Labels: {labels}"
-        )
-
-        # --- 4. Switch to German (non-default!) ---
-        disco_run("ui", "click", "Deutsch")
-        time.sleep(2)
-        # After switch, UI rebuilds on device menu. Go back to main.
-        go_back()
-        labels = find_labels()
-        assert "Was möchtest du tun?" in labels, (
-            f"[4] German title missing after switch. Labels: {labels}"
-        )
-
-        # --- 5. Persistence: German survives soft reset ---
+        # --- 3. Persistence: German survives soft reset ---
         soft_reset(wait=15)
         ensure_main_menu()
         labels = find_labels()
-        assert "Was möchtest du tun?" in labels, (
-            f"[5] German title not restored after soft reset. Labels: {labels}"
+        assert _MAIN_MENU_TITLE_DE in labels, (
+            f"[3] German title not restored after soft reset. Labels: {labels}"
         )
         # Also verify via config file on flash
         output = disco_run(
@@ -223,32 +221,22 @@ class TestI18nFunctional:
             "d=json.load(f); f.close(); print(d['selected_language'])",
         )
         lang = output.strip().split("\n")[-1].strip()
-        assert lang == "de", (
-            f"[5] Config should be 'de' after reset, got: {lang!r}"
+        assert lang == LANG_DE, (
+            f"[3] Config should be {LANG_DE} after reset, got: {lang!r}"
         )
 
-        # --- 6. Switch back to English ---
-        labels = find_labels()
-        manage_label = next(
-            (l for l in labels if "Gerät" in l), None,
-        )
-        assert manage_label, f"[6] Cannot find German 'Manage Device'. Labels: {labels}"
-        disco_run("ui", "click", manage_label)
-        time.sleep(1)
-
-        labels = find_labels()
-        lang_label = next(
-            (l for l in labels if "Sprache" in l), None,
-        )
-        assert lang_label, f"[6] Cannot find German 'Select Language'. Labels: {labels}"
-        disco_run("ui", "click", lang_label)
-        time.sleep(1)
-
-        disco_run("ui", "click", "English")
+        # --- 4. Switch back to English ---
+        # Force a GC cycle to reclaim heap accumulated from repeated find_labels()
+        # JSON parsing. The navigation path is now 3 levels deep (vs 1 before),
+        # so significantly more garbage builds up. A soft reset would also work
+        # but gc.collect() is much faster.
+        disco_run("repl", "exec", "import gc; gc.collect()")
+        navigate_to_language_menu(LANG_DE)
+        click_button(_ENGLISH)
         time.sleep(2)
-        go_back()  # device menu -> main
+        ensure_main_menu()
 
         labels = find_labels()
-        assert "What do you want to do?" in labels, (
-            f"[6] English title missing after switching back. Labels: {labels}"
+        assert _MAIN_MENU_TITLE_EN in labels, (
+            f"[4] English title missing after switching back. Labels: {labels}"
         )

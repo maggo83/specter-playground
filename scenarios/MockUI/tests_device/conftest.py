@@ -5,8 +5,11 @@ when it is merged into the main branch.
 
 Requirements:
   - STM32F469 Discovery board connected via USB
-  - MockUI firmware flashed (``nix develop -c make mockui`` + flash)
   - disco tool dependencies installed in the active venv (mpremote, click, pyserial)
+
+By default these tests build the MockUI firmware with German included
+(ADD_LANG=de) and flash it before running.  Pass --no-build-flash to skip
+this step if you have already flashed a suitable binary yourself.
 """
 import json
 import os
@@ -25,8 +28,82 @@ DISCO_SCRIPT = os.environ.get(
     "/home/marco/DATA/01_Texte/BitCoin/Specter/f469-disco_disco_tool/scripts/disco",
 )
 
+# Firmware output path produced by ``make mockui``.
+_FIRMWARE = os.path.join(
+    os.path.dirname(__file__), "..", "..", "..", "bin", "mockui.bin"
+)
+# Repo root (three levels up from tests_device/)
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+
 # Run through sys.executable so the test venv (with mpremote etc.) is used.
 _CMD = [sys.executable, DISCO_SCRIPT]
+
+# =========================================================================
+# Language label loading — single source of truth from the JSON files.
+# =========================================================================
+_LANG_DIR = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), "..", "..", "..",
+    "scenarios", "MockUI", "src", "MockUI", "i18n", "languages",
+))
+
+def _supported_lang_codes() -> list[str]:
+    """Return all language codes found in the language JSON directory."""
+    codes = []
+    for name in sorted(os.listdir(_LANG_DIR)):
+        if name.startswith("specter_ui_") and name.endswith(".json"):
+            codes.append(name[len("specter_ui_"):-len(".json")])
+    return codes
+
+
+def _load_metadata(key: str, *lang_codes: str) -> tuple[str, ...]:
+    """Return the *_metadata* value for *key* from each requested language file."""
+    results = []
+    for lang in lang_codes:
+        path = os.path.join(_LANG_DIR, f"specter_ui_{lang}.json")
+        try:
+            with open(path) as f:
+                data = json.load(f)
+            v = data.get("_metadata", {}).get(key)
+            if v:
+                results.append(v)
+        except (FileNotFoundError, KeyError, json.JSONDecodeError):
+            pass
+    return tuple(results)
+
+
+def _load_label(key: str, *lang_codes: str) -> tuple[str, ...]:
+    """Return the translated text for *key* from each requested language file.
+
+    Unknown keys or missing files are silently skipped so the tuple always
+    contains only real strings.
+    """
+    results = []
+    for lang in lang_codes:
+        path = os.path.join(_LANG_DIR, f"specter_ui_{lang}.json")
+        try:
+            with open(path) as f:
+                data = json.load(f)
+            v = data.get("translations", {}).get(key)
+            if v is not None:
+                text = v.get("text", v) if isinstance(v, dict) else v
+                if text:
+                    results.append(text)
+        except (FileNotFoundError, KeyError, json.JSONDecodeError):
+            pass
+    return tuple(results)
+
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--no-build-flash",
+        action="store_true",
+        default=False,
+        help=(
+            "Skip the build + flash step. Use only if you have already flashed "
+            "a MockUI binary that includes the German language pack (ADD_LANG=de)."
+        ),
+    )
 
 
 def disco_run(*args: str, timeout: int = 15, retries: int = 2) -> str:
@@ -119,15 +196,13 @@ def soft_reset(wait: float = 12.0, poll_interval: float = 2.0):
     )
 
 
-_MAIN_MENU_MARKERS = ("What do you want to do?", "Was möchtest du tun?")
-
-
 def ensure_main_menu(max_depth: int = 5):
     """Navigate back until we're on the main menu.
 
     Tries go_back() repeatedly.  If the UI is unreachable or go_back()
     fails, falls back to a soft reset (Ctrl-D, USB reconnect).
     """
+    main_menu_markers = _load_label("MAIN_MENU_TITLE", *_supported_lang_codes())
     for _ in range(max_depth):
         try:
             labels = find_labels()
@@ -135,7 +210,7 @@ def ensure_main_menu(max_depth: int = 5):
             # UI command failed — device may still be booting after a reset.
             time.sleep(3)
             continue
-        if any(t in labels for t in _MAIN_MENU_MARKERS):
+        if any(t in labels for t in main_menu_markers):
             return
         if not go_back():
             # No back button — soft reset to get to a clean main menu.
@@ -144,9 +219,52 @@ def ensure_main_menu(max_depth: int = 5):
 
     # Final check after exhausting retries.
     labels = find_labels()
-    assert any(t in labels for t in _MAIN_MENU_MARKERS), (
+    assert any(t in labels for t in main_menu_markers), (
         f"Could not navigate to main menu. Labels: {labels}"
     )
+
+
+def click_button(label: str) -> None:
+    """Assert *label* is visible and click it."""
+    labels = find_labels()
+    assert label in labels, f"Cannot find button {label!r}. Visible labels: {labels}"
+    disco_run("ui", "click", label)
+    time.sleep(1)
+
+
+def navigate_to_language_menu(lang: str) -> None:
+    """Navigate from the main menu to the language selection menu.
+
+    *lang* is the language code currently active on the device (e.g. "en", "de").
+    Button labels are resolved from the language JSON files.
+    """
+    ensure_main_menu()
+    click_button(_load_label("MENU_MANAGE_SETTINGS", lang)[0])
+    click_button(_load_label("MENU_MANAGE_DEVICE",   lang)[0])
+    click_button(_load_label("MENU_LANGUAGE",        lang)[0])
+
+
+def ensure_english() -> None:
+    """Ensure the device UI is in English, switching if needed.
+
+    Detects the current language from visible main-menu labels and, if not
+    English, navigates to the language menu and selects English.
+    """
+    ensure_main_menu()
+    en_title = _load_label("MAIN_MENU_TITLE", "en")[0]
+    if en_title in find_labels():
+        return
+    # Identify the current language and navigate accordingly.
+    for lang in _supported_lang_codes():
+        if lang == "en":
+            continue
+        if _load_label("MAIN_MENU_TITLE", lang)[0] in find_labels():
+            navigate_to_language_menu(lang)
+            click_button(_load_metadata("language_name", "en")[0])
+            time.sleep(2)
+            ensure_main_menu()
+            return
+    raise RuntimeError(f"Cannot determine current UI language. Labels: {find_labels()}")
 
 
 # =========================================================================
@@ -154,8 +272,39 @@ def ensure_main_menu(max_depth: int = 5):
 # =========================================================================
 
 @pytest.fixture(scope="session", autouse=True)
-def _require_device():
-    """Fail hard if the board is not reachable — these tests need real hardware."""
+def _require_device(request):
+    """Build firmware with German, flash it, then verify the board is reachable.
+
+    The build+flash step is skipped only when --no-build-flash is passed.
+    """
+    if not request.config.getoption("--no-build-flash"):
+        print("\n[device-tests] Building MockUI firmware with ADD_LANG=de ...")
+        subprocess.run(
+            ["nix", "develop", "-c", "make", "mockui", "ADD_LANG=de"],
+            cwd=_REPO_ROOT,
+            check=True,
+        )
+        print("[device-tests] Flashing firmware (blocking until done) ...")
+        subprocess.run(
+            [*_CMD, "flash", "program", os.path.abspath(_FIRMWARE)],
+            check=True,
+        )
+        # Flash is complete. The board resets automatically at end of flashing.
+        # Poll until MicroPython is responsive (up to 30s) rather than fixed sleep.
+        print("[device-tests] Flash done — polling until board is responsive ...")
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            time.sleep(3)
+            probe = subprocess.run(
+                [*_CMD, "repl", "exec", "print('boot-ok')"],
+                capture_output=True, text=True, timeout=10,
+            )
+            if probe.returncode == 0 and "boot-ok" in probe.stdout:
+                time.sleep(3)  # extra settle time for UI to finish rendering
+                break
+        else:
+            raise RuntimeError("Board did not become responsive within 30s after flash")
+
     result = subprocess.run(
         [*_CMD, "repl", "exec", "print('pytest-ping')"],
         capture_output=True, text=True, timeout=15,
@@ -166,7 +315,9 @@ def _require_device():
         f"  stdout: {result.stdout.strip()}\n"
         f"  stderr: {result.stderr.strip()}"
     )
-    # Navigate to main menu (device may be on any screen from a previous run)
+    # Navigate to main menu and ensure English — device may be in any state
+    # from a previous (possibly failed) run.
     time.sleep(2)
     ensure_main_menu()
+    ensure_english()
     yield
