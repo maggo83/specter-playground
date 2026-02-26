@@ -1,66 +1,28 @@
 import lvgl as lv
-from .ui_consts import BTN_HEIGHT, BTN_WIDTH, BACK_BTN_WIDTH, BACK_BTN_HEIGHT
-from .symbol_lib import BTC_ICONS
+from .ui_consts import BTN_HEIGHT, BTN_WIDTH
+from .titled_screen import TitledScreen
 
-class ActionScreen(lv.obj):
-    """Generic action screen for menu items"""
+class ActionScreen(TitledScreen):
+    """Generic action screen for menu items."""
     def __init__(self, title, parent, *args, **kwargs):
-        # parent is the NavigationController (not necessarily the LVGL parent)
-        # attach to parent's `content` container when available so the status bar stays visible
-        lv_parent = getattr(parent, "content", parent)
-        super().__init__(lv_parent, *args, **kwargs)
-        
+        # TitledScreen creates title_bar (with optional back_btn + title_lbl) and body
+        super().__init__(title, parent, *args, **kwargs)
+
         # Get i18n manager from parent (always available via NavigationController)
         self.t = parent.i18n.t
-        
-        # discover navigation callback and shared state from parent
-        self.on_navigate = getattr(parent, "on_navigate", None)
 
-        # Fill parent
-        self.set_width(lv.pct(100))
-        self.set_height(lv.pct(100))
-        # Remove padding from base object to allow full-width content
-        self.set_style_pad_all(0, 0)
-        # Remove border
-        self.set_style_border_width(0, 0)
-
-        # If ui_state has history, show back button to the left of the title
-        if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
-            self.back_btn = lv.button(self)
-            self.back_btn.set_size(BACK_BTN_HEIGHT, BACK_BTN_WIDTH)
-            self.back_ico = lv.image(self.back_btn)
-            BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
-            self.back_ico.center()
-            # wire back to navigation callback: wrap handler in a lambda so the
-            # LVGL binding's argument passing doesn't mismatch the method signature.
-            self.back_btn.add_event_cb(lambda e: self.on_back(e), lv.EVENT.CLICKED, None)
-
-
-        # Title
-        self.title = lv.label(self)
-        self.title.set_text(title)
-        self.title.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        # smaller title offset for a tighter layout
-        self.title.align(lv.ALIGN.TOP_MID, 0, 18)
-
-        # Message
-        self.msg = lv.label(self)
+        # Message – placed inside body
+        self.msg = lv.label(self.body)
         self.msg.set_text(self.t("ACTION_SCREEN_PREFIX") + title)
         self.msg.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        # smaller gap between title and message
-        self.msg.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, 12)
+        self.msg.align(lv.ALIGN.TOP_MID, 0, 20)
 
-        # Back button
-        self.back_btn = lv.button(self)
-        self.back_btn.set_width(lv.pct(BTN_WIDTH))
-        self.back_btn.set_height(BTN_HEIGHT)
-        back_lbl = lv.label(self.back_btn)
+        # Back button – placed inside body below the message
+        self.action_back_btn = lv.button(self.body)
+        self.action_back_btn.set_width(lv.pct(BTN_WIDTH))
+        self.action_back_btn.set_height(BTN_HEIGHT)
+        back_lbl = lv.label(self.action_back_btn)
         back_lbl.set_text(self.t("ACTION_SCREEN_BACK"))
         back_lbl.center()
-        self.back_btn.align_to(self.msg, lv.ALIGN.OUT_BOTTOM_MID, 0, 40)
-        self.back_btn.add_event_cb(self.on_back, lv.EVENT.CLICKED, None)
-
-    def on_back(self, e):
-        if e.get_code() == lv.EVENT.CLICKED:
-            # navigate back to provided origin menu
-            self.on_navigate(None)
+        self.action_back_btn.align_to(self.msg, lv.ALIGN.OUT_BOTTOM_MID, 0, 40)
+        self.action_back_btn.add_event_cb(self.on_back, lv.EVENT.CLICKED, None)

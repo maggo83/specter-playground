@@ -1,60 +1,29 @@
 import lvgl as lv
-from ..basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH, TITLE_PADDING, BACK_BTN_HEIGHT, BACK_BTN_WIDTH
+from ..basic import SWITCH_HEIGHT, SWITCH_WIDTH
+from ..basic.titled_screen import TitledScreen
 from ..basic.symbol_lib import BTC_ICONS
 
-class InterfacesMenu(lv.obj):
+class InterfacesMenu(TitledScreen):
     """Menu to enable/disable hardware interfaces.
 
     menu_id: "interfaces"
     """
 
     def __init__(self, parent, *args, **kwargs):
-        # parent is the NavigationController (not necessarily the lv parent)
-        lv_parent = getattr(parent, "content", parent)
-        super().__init__(lv_parent, *args, **kwargs)
-
-        # Get translation function from i18n manager (always available via NavigationController)
+        # Get translation function early (needed for title)
         self.t = parent.i18n.t
+        # TitledScreen creates title_bar (with optional back_btn + title_lbl) and body
+        super().__init__(self.t("MENU_ENABLE_DISABLE_INTERFACES"), parent, *args, **kwargs)
 
-        self.on_navigate = getattr(parent, "on_navigate", None)
         self.state = getattr(parent, "specter_state", None)
         self.parent = parent
         self.menu_id = "interfaces"
 
-        # layout
-        self.set_width(lv.pct(100))
-        self.set_height(lv.pct(100))
-        # Remove padding from base menu object to allow full-width content
-        self.set_style_pad_all(0, 0)
-        # Remove border
-        self.set_style_border_width(0, 0)
-
-        # If ui_state has history, show back button to the left of the title
-        if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
-            self.back_btn = lv.button(self)
-            self.back_btn.set_size(BACK_BTN_HEIGHT, BACK_BTN_WIDTH)
-            self.back_ico = lv.image(self.back_btn)
-            BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
-            self.back_ico.center()
-            # wire back to navigation callback: wrap handler in a lambda so the
-            # LVGL binding's argument passing doesn't mismatch the method signature.
-            self.back_btn.add_event_cb(lambda e: self.on_back(e), lv.EVENT.CLICKED, None)
-        # Title
-        self.title = lv.label(self)
-        self.title.set_text(self.t("MENU_ENABLE_DISABLE_INTERFACES"))
-        self.title.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        self.title.align(lv.ALIGN.TOP_MID, 0, 18)
-
-        # Container for rows
-        self.container = lv.obj(self)
-        self.container.set_width(lv.pct(100))
-        self.container.set_height(lv.pct(MENU_PCT))
+        # Container for rows inside body
+        self.container = self.body
         self.container.set_layout(lv.LAYOUT.FLEX)
         self.container.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self.container.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        self.container.set_style_pad_all(0, 0)
-        self.container.set_style_border_width(0, 0)
-        self.container.align_to(self.title, lv.ALIGN.OUT_BOTTOM_MID, 0, TITLE_PADDING)
 
         # Build interface rows: list of tuples (icon, label_text, state_attr)
         rows = []

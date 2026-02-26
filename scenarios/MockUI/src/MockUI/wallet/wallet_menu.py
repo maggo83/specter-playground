@@ -1,4 +1,4 @@
-from ..basic import RED_HEX, GenericMenu, RED, ORANGE, TITLE_PADDING
+from ..basic import RED_HEX, GenericMenu, RED, ORANGE
 from ..basic.symbol_lib import BTC_ICONS
 import lvgl as lv
 
@@ -45,44 +45,34 @@ class WalletMenu(GenericMenu):
         # Remove the default title label and replace with editable text area + edit button
         self.title.delete()
 
-        # Create a dummy invisible title element at the same position as GenericMenu's title
-        # This is used as an anchor point for the container positioning
-        self.title_anchor = lv.label(self)
-        self.title_anchor.set_text("")
-        self.title_anchor.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        self.title_anchor.align(lv.ALIGN.TOP_MID, 0, 18)  # Same as GenericMenu
-
-        # Text area for wallet name (editable) - align to be centered (like title_anchor)
-        self.name_textarea = lv.textarea(self)
-        self.name_textarea.set_width(200)  # Fixed width
-        self.name_textarea.set_height(40)  # Fixed height
-        #self.name_textarea.set_one_line(True)
-        self.name_textarea.set_accepted_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~ ")  # No newlines
+        # Text area for wallet name (editable) – lives in title_bar, centred
+        self.name_textarea = lv.textarea(self.title_bar)
+        self.name_textarea.set_width(200)
+        self.name_textarea.set_height(40)
+        self.name_textarea.set_accepted_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~ ")
         self.name_textarea.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        self.name_textarea.align(lv.ALIGN.TOP_MID, 0, 5)
-        
+        self.name_textarea.align(lv.ALIGN.CENTER, 0, 0)
+
         # Set initial text from active wallet
         wallet_name = ""
         if state and state.active_wallet:
             wallet_name = state.active_wallet.name
         self.name_textarea.set_text(wallet_name)
 
-        # "Wallet: " label - position to left of text area
-        self.wallet_label = lv.label(self)
+        # "Wallet: " label – to the left of the text area
+        self.wallet_label = lv.label(self.title_bar)
         self.wallet_label.set_text("Wallet: ")
         self.wallet_label.set_style_text_align(lv.TEXT_ALIGN.RIGHT, 0)
-        self.wallet_label.align_to(self.name_textarea, lv.ALIGN.OUT_LEFT_MID, -6, 0)  # Align vertical center
+        self.wallet_label.align_to(self.name_textarea, lv.ALIGN.OUT_LEFT_MID, -6, 0)
 
-
-        # Edit button with icon - match height of text area, align bottom
-        # Get the actual height of the text area
-        self.edit_btn = lv.button(self)
+        # Edit button – square, matching textarea height, to the right of textarea
+        self.edit_btn = lv.button(self.title_bar)
         textarea_height = self.name_textarea.get_height()
-        self.edit_btn.set_size(textarea_height, textarea_height)  # Square button matching textarea height
+        self.edit_btn.set_size(textarea_height, textarea_height)
         self.edit_ico = lv.image(self.edit_btn)
         BTC_ICONS.EDIT.add_to_parent(self.edit_ico)
         self.edit_ico.center()
-        self.edit_btn.align_to(self.name_textarea, lv.ALIGN.OUT_RIGHT_BOTTOM, 6, 0)  # Align bottom edge
+        self.edit_btn.align_to(self.name_textarea, lv.ALIGN.OUT_RIGHT_BOTTOM, 6, 0)
 
         # Track keyboard state
         self.keyboard = None
@@ -94,10 +84,6 @@ class WalletMenu(GenericMenu):
         
         # Add defocus handler to text area
         self.name_textarea.add_event_cb(lambda e: self.on_defocus(e), lv.EVENT.DEFOCUSED, None)
-
-        # Position container using the anchor, not the title_container
-        # This ensures menu buttons are centered like in GenericMenu
-        self.container.align_to(self.title_anchor, lv.ALIGN.OUT_BOTTOM_MID, 0, TITLE_PADDING)
 
     def show_keyboard(self, e):
         """Show keyboard for editing wallet name."""
