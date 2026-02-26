@@ -6,6 +6,7 @@ from .wallet_bar import WalletBar
 from .action_screen import ActionScreen
 from .main_menu import MainMenu
 from .locked_menu import LockedMenu
+from .ui_consts import STATUS_BAR_PCT, CONTENT_PCT
 from ..wallet import (
     WalletMenu,
     ConnectWalletsMenu,
@@ -51,18 +52,18 @@ class NavigationController(lv.obj):
 
         self.current_screen = None
 
-        # Create device bar at top (5%), wallet bar at bottom (5%), and content in middle (90%)
-        self.device_bar = DeviceBar(self, height_pct=5)
+        # Create device bar at top (STATUS_BAR_PCT%), wallet bar at bottom (STATUS_BAR_PCT%), content in middle (CONTENT_PCT%)
+        self.device_bar = DeviceBar(self, height_pct=STATUS_BAR_PCT)
         self.device_bar.align(lv.ALIGN.TOP_MID, 0, 0)
 
         # Wallet bar at bottom
-        self.wallet_bar = WalletBar(self, height_pct=5)
+        self.wallet_bar = WalletBar(self, height_pct=STATUS_BAR_PCT)
         self.wallet_bar.align(lv.ALIGN.BOTTOM_MID, 0, 0)
 
         # Content area in middle (scrollable)
         self.content = lv.obj(self)
         self.content.set_width(lv.pct(100))
-        self.content.set_height(lv.pct(90))
+        self.content.set_height(lv.pct(CONTENT_PCT))
         self.content.set_layout(lv.LAYOUT.FLEX)
         self.content.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self.content.set_style_pad_all(0, 0)

@@ -31,10 +31,10 @@ def MainMenu(parent, *args, **kwargs):
         if (state.hasQR and state.enabledQR):
             scan_size = 1
             if not (state.active_wallet is None):
-                scan_size = 2
+                scan_size = 1.3
             menu_items.append((BTC_ICONS.SCAN, t("MAIN_MENU_SCAN_QR"), "scan_qr", None, scan_size, "HELP_SCAN_QR"))
         if (state.hasSD and state.enabledSD and state.detectedSD):
-            menu_items.append((BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_SD"), "load_sd", None, 2, None))
+            menu_items.append((BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_SD"), "load_sd", None, 1.3, None))
         if (state and state.active_wallet and not state.active_wallet.isMultiSig and 
             (
                    (state.hasQR and state.enabledQR) 
@@ -43,7 +43,7 @@ def MainMenu(parent, *args, **kwargs):
             )):
             menu_items.append((BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message", None, None, None))
         if (state and state.active_wallet is None and state.hasSmartCard and state.enabledSmartCard and state.detectedSmartCard):
-            menu_items.append((BTC_ICONS.SEND, t("MAIN_MENU_IMPORT_SMARTCARD"), "import_from_smartcard", None, 3, None))
+            menu_items.append((BTC_ICONS.SEND, t("MAIN_MENU_IMPORT_SMARTCARD"), "import_from_smartcard", None, 2, None))
 
     menu_items.append((None, t("MAIN_MENU_CHOOSE_WALLET"), None, None, None, None))
     if (state and not state.active_wallet is None):
@@ -51,7 +51,7 @@ def MainMenu(parent, *args, **kwargs):
     if state.registered_wallets and len(state.registered_wallets) > 1:
         menu_items.append((BTC_ICONS.REFRESH, t("MAIN_MENU_CHANGE_ADD_WALLET"), "change_wallet", None, None, None))
     else:
-        add_size = 2
+        add_size = 1.3
         if (state.registered_wallets and len(state.registered_wallets) > 0):
                 add_size = 1
         menu_items.append((BTC_ICONS.PLUS, t("MENU_ADD_WALLET"), "add_wallet", None, add_size, None))
