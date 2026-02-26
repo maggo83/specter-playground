@@ -14,7 +14,7 @@ class GenerateSeedMenu(GenericMenu):
         # Get translation function from i18n manager (always available via NavigationController)
         t = parent.i18n.t
         
-        super().__init__("generate_seedphrase", lv.SYMBOL.LIST + " " + t("MENU_GENERATE_NEW_SEEDPHRASE"), [], parent, *args, **kwargs)
+        super().__init__("generate_seedphrase", t("MENU_GENERATE_SEEDPHRASE"), [], parent, *args, **kwargs)
 
         self.parent = parent
         self.state = getattr(parent, "specter_state", None)
@@ -27,6 +27,7 @@ class GenerateSeedMenu(GenericMenu):
         name_row.set_flex_flow(lv.FLEX_FLOW.ROW)
         name_row.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         name_row.set_style_border_width(0, 0)
+        name_row.set_style_pad_all(0, 0)
 
         name_lbl = lv.label(name_row)
         name_lbl.set_text(t("GENERATE_SEED_WALLET_NAME"))
@@ -60,6 +61,7 @@ class GenerateSeedMenu(GenericMenu):
         ms_row.set_flex_flow(lv.FLEX_FLOW.ROW)
         ms_row.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         ms_row.set_style_border_width(0, 0)
+        ms_row.set_style_pad_all(0, 0)
 
         ms_left = lv.label(ms_row)
         ms_left.set_text(t("COMMON_SINGLESIG"))
@@ -82,6 +84,7 @@ class GenerateSeedMenu(GenericMenu):
         net_row.set_flex_flow(lv.FLEX_FLOW.ROW)
         net_row.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         net_row.set_style_border_width(0, 0)
+        net_row.set_style_pad_all(0, 0)
 
         net_left = lv.label(net_row)
         net_left.set_text(t("COMMON_MAINNET"))
@@ -111,6 +114,7 @@ class GenerateSeedMenu(GenericMenu):
         create_row.set_flex_flow(lv.FLEX_FLOW.ROW)
         create_row.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         create_row.set_style_border_width(0, 0)
+        create_row.set_style_pad_all(0, 0)
 
         self.create_btn = lv.button(create_row)
         self.create_btn.set_width(lv.pct(BTN_WIDTH))

@@ -9,12 +9,13 @@
     "MAIN_MENU_TITLE": "What do you want to do?",
     "MAIN_MENU_PROCESS_INPUT": "Process input",
     "MAIN_MENU_SCAN_QR": "Scan QR",
+    "HELP_SCAN_QR": "Use the camera to scan a QR code. This can be used to receive transactions, import wallet descriptors, or process PSBTs (Partially Signed Bitcoin Transactions) for signing.",
     "MAIN_MENU_LOAD_SD": "Load File from SD",
     "MAIN_MENU_SIGN_MESSAGE": "Sign Message",
     "MAIN_MENU_IMPORT_SMARTCARD": "Import Seed From SmartCard",
-    "MAIN_MENU_CHOOSE_WALLET": "Choose Wallet",
+    "MAIN_MENU_CHOOSE_WALLET": "Wallet",
     "MAIN_MENU_CHANGE_ADD_WALLET": "Change/Add Wallet",
-    "MAIN_MENU_MANAGE_SETTINGS": "Manage Settings",
+    "MAIN_MENU_MANAGE_SETTINGS": "Device",
     
     "WALLET_MENU_LABEL": "Wallet: ",
     "WALLET_MENU_EXPLORE": "Explore",
@@ -27,7 +28,7 @@
     "WALLET_MENU_CONNECT_EXPORT": "Connect/Export",
     "WALLET_MENU_EXPORT_DATA": "Export Data",
     
-    "ADD_WALLET_TITLE": "Add Wallet",
+    "ADD_WALLET_NEW_SEEDPHRASE": "New Seedphrase",
     "ADD_WALLET_IMPORT_FROM": "Import Seedphrase from",
     "ADD_WALLET_KEYBOARD": "Keyboard",
     
@@ -55,6 +56,7 @@
     "DEVICE_MENU_ADVANCED": "Advanced Features",
     "DEVICE_MENU_DANGERZONE": "Dangerzone",
     "DEVICE_MENU_WIPE": "Wipe Device",
+    "HELP_DEVICE_MENU_WIPE": "WARNING: This will permanently erase ALL data on the device including your seedphrase, wallet configurations, and settings.\nThis action cannot be undone.\nMake sure you have a backup of your seedphrase before proceeding!",
     
     "FIRMWARE_MENU_CURRENT_VERSION": "Current version ",
     "FIRMWARE_MENU_UPDATE_VIA": ". Update via",
@@ -98,14 +100,24 @@
     "MENU_MANAGE_SECURITY": "Manage Security Features",
     "MENU_ENABLE_DISABLE_INTERFACES": "Enable/Disable Interfaces",
     "MENU_MANAGE_STORAGE": "Manage Storage",
-    "MENU_GENERATE_NEW_SEEDPHRASE": "Generate New Seedphrase",
+    "MENU_GENERATE_SEEDPHRASE": "Generate Seedphrase",
     "MENU_MANAGE_DEVICE": "Manage Device",
+    "MENU_MANAGE_SETTINGS": "Manage Settings",
     "MENU_LANGUAGE": "Select Language",
     
     "HARDWARE_SMARTCARD": "SmartCard",
     "HARDWARE_SD_CARD": "SD Card",
     "HARDWARE_INTERNAL_FLASH": "internal Flash",
     "HARDWARE_USB": "USB",
-    "HARDWARE_QR_CODE": "QR Code"
+    "HARDWARE_QR_CODE": "QR Code",
+    
+    "TOUR_INTRO": "Welcome to Specter! This quick tour will show you the main features of your hardware wallet.",
+    "TOUR_LANGUAGE": "Tap here to change the display language.",
+    "TOUR_LOCK": "Lock your device when not in use. You'll need your PIN to unlock.",
+    "TOUR_INTERFACES": "These icons show available interfaces: QR scanner, USB, SD card, and SmartCard.",
+    "TOUR_BATTERY": "Battery status is shown here when running on battery power.",
+    "TOUR_POWER": "Tap here to toggle battery simulation on/off (demo only).",
+    "TOUR_WALLET_BAR": "Your active wallet info appears here. It's empty until you create or import a wallet.",
+    "TOUR_HELP_ICON": "Look for these help icons throughout the app. Tap them for more details about each feature."
   }
 }

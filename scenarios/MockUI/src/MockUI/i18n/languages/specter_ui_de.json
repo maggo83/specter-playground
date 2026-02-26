@@ -18,6 +18,10 @@
       "text": "QR-Code scannen",
       "ref_en": "Scan QR"
     },
+    "HELP_SCAN_QR": {
+      "text": "Verwende die Kamera um einen QR-Code zu scannen. Dies kann verwendet werden um Transaktionen zu empfangen, Wallet-Deskriptoren zu importieren oder PSBTs (Partially Signed Bitcoin Transactions) zum Signieren zu verarbeiten.",
+      "ref_en": "Use the camera to scan a QR code. This can be used to receive transactions, import wallet descriptors, or process PSBTs (Partially Signed Bitcoin Transactions) for signing."
+    },
     "MAIN_MENU_LOAD_SD": {
       "text": "Datei von SD laden",
       "ref_en": "Load File from SD"
@@ -32,15 +36,15 @@
     },
     "MAIN_MENU_CHOOSE_WALLET": {
       "text": "Wallet auswählen",
-      "ref_en": "Choose Wallet"
+      "ref_en": "Wallet"
     },
     "MAIN_MENU_CHANGE_ADD_WALLET": {
       "text": "Wallet wechseln/hinzufügen",
       "ref_en": "Change/Add Wallet"
     },
     "MAIN_MENU_MANAGE_SETTINGS": {
-      "text": "Einstellungen verwalten",
-      "ref_en": "Manage Settings"
+      "text": "Gerät",
+      "ref_en": "Device"
     },
     
     "WALLET_MENU_LABEL": {
@@ -84,9 +88,9 @@
       "ref_en": "Export Data"
     },
     
-    "ADD_WALLET_TITLE": {
-      "text": "Wallet hinzufügen",
-      "ref_en": "Add Wallet"
+    "ADD_WALLET_NEW_SEEDPHRASE": {
+      "text": "Neue Seedphrase",
+      "ref_en": "New Seedphrase"
     },
     "ADD_WALLET_IMPORT_FROM": {
       "text": "Seedphrase importieren von",
@@ -180,6 +184,10 @@
     "DEVICE_MENU_WIPE": {
       "text": "Gerät zurücksetzen",
       "ref_en": "Wipe Device"
+    },
+    "HELP_DEVICE_MENU_WIPE": {
+      "text": "WARNUNG: Dies löscht ALLE Daten auf dem Gerät permanent, einschließlich deiner Seedphrase, Wallet-Konfigurationen und Einstellungen.\nDiese Aktion kann nicht rückgängig gemacht werden.\nStelle sicher, dass du ein Backup deiner Seedphrase hast bevor du fortfährst!",
+      "ref_en": "WARNING: This will permanently erase ALL data on the device including your seedphrase, wallet configurations, and settings.\nThis action cannot be undone.\nMake sure you have a backup of your seedphrase before proceeding!"
     },
     
     "FIRMWARE_MENU_CURRENT_VERSION": {
@@ -325,13 +333,17 @@
       "text": "Speicher verwalten",
       "ref_en": "Manage Storage"
     },
-    "MENU_GENERATE_NEW_SEEDPHRASE": {
-      "text": "Neue Seedphrase generieren",
-      "ref_en": "Generate New Seedphrase"
+    "MENU_GENERATE_SEEDPHRASE": {
+      "text": "Seedphrase generieren",
+      "ref_en": "Generate Seedphrase"
     },
     "MENU_MANAGE_DEVICE": {
       "text": "Gerät verwalten",
       "ref_en": "Manage Device"
+    },
+    "MENU_MANAGE_SETTINGS": {
+      "text": "Einstellungen verwalten",
+      "ref_en": "Manage Settings"
     },
     "MENU_LANGUAGE": {
       "text": "Sprache auswählen",
@@ -356,6 +368,38 @@
     "HARDWARE_QR_CODE": {
       "text": "QR-Code",
       "ref_en": "QR Code"
+    },
+    "TOUR_INTRO": {
+      "text": "Willkommen bei Specter! Diese kurze Tour zeigt dir die wichtigsten Funktionen deiner Hardware-Wallet.",
+      "ref_en": "Welcome to Specter! This quick tour will show you the main features of your hardware wallet."
+    },
+    "TOUR_LANGUAGE": {
+      "text": "Tippe hier, um die Anzeigesprache zu ändern.",
+      "ref_en": "Tap here to change the display language."
+    },
+    "TOUR_LOCK": {
+      "text": "Sperre dein Gerät, wenn du es nicht benutzt. Zum Entsperren brauchst du deine PIN.",
+      "ref_en": "Lock your device when not in use. You'll need your PIN to unlock."
+    },
+    "TOUR_INTERFACES": {
+      "text": "Diese Symbole zeigen verfügbare Schnittstellen: QR-Scanner, USB, SD-Karte und SmartCard.",
+      "ref_en": "These icons show available interfaces: QR scanner, USB, SD card, and SmartCard."
+    },
+    "TOUR_BATTERY": {
+      "text": "Der Batteriestatus wird hier angezeigt, wenn das Gerät mit Batterie läuft.",
+      "ref_en": "Battery status is shown here when running on battery power."
+    },
+    "TOUR_POWER": {
+      "text": "Tippe hier, um die Batteriesimulation ein-/auszuschalten (nur Demo).",
+      "ref_en": "Tap here to toggle battery simulation on/off (demo only)."
+    },
+    "TOUR_WALLET_BAR": {
+      "text": "Deine aktive Wallet-Info erscheint hier. Sie ist leer, bis du eine Wallet erstellst oder importierst.",
+      "ref_en": "Your active wallet info appears here. It's empty until you create or import a wallet."
+    },
+    "TOUR_HELP_ICON": {
+      "text": "Achte auf diese Hilfe-Symbole in der App. Tippe sie an für mehr Details zu jeder Funktion.",
+      "ref_en": "Look for these help icons throughout the app. Tap them for more details about each feature."
     }
   }
 }

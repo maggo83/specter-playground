@@ -1,0 +1,312 @@
+"""UI Explainer component for guided tours / onboarding.
+
+Provides a spotlight/coach-mark style overlay that highlights a UI element
+and displays explanatory text with navigation controls.
+"""
+
+import lvgl as lv
+from ..basic.ui_consts import (
+    EXPLAINER_WIDTH_PCT,
+    EXPLAINER_HEIGHT_PCT,
+    EXPLAINER_OVERLAY_OPA,
+    BLACK_HEX,
+)
+from ..basic.symbol_lib import BTC_ICONS
+from ..basic.modal_overlay import ModalOverlay
+
+
+class UIExplainer:
+    """
+    A spotlight-style explainer that highlights a UI element with a dimmed overlay
+    and displays explanatory text with navigation buttons.
+    
+    Controlled by a parent GuidedTour that manages navigation between steps.
+    
+    Args:
+        tour: Parent GuidedTour instance that controls navigation
+        highlighted_element: lv.obj to highlight, OR tuple (x, y, width, height) for manual positioning, or None
+        text: Explanation text to display
+        text_position: Position of text box - "center" (default), "above", "below", "left", "right"
+    """
+    
+    def __init__(self, tour, highlighted_element, text, text_position="center"):
+        self.tour = tour
+        self.highlighted_element = highlighted_element
+        self.text = text
+        self.text_position = text_position
+        
+        # LVGL objects (created on show())
+        self._modal = None
+        self._overlay = None  # alias for self._modal.overlay, used internally
+        self._dim_strips = []
+        self._text_box = None
+    
+    def show(self):
+        """Create and display the explainer overlay."""
+        cutout = self._get_cutout_area()
+        self._modal = ModalOverlay(bg_opa=lv.OPA.TRANSP)
+        self._overlay = self._modal.overlay
+        self._create_dim_strips(cutout)
+        self._create_text_box(*self._calculate_text_box_position(cutout))
+    
+    def hide(self):
+        """Remove and destroy all LVGL objects."""
+        if self._modal is not None:
+            self._modal.close()
+            self._modal = None
+            self._overlay = None
+        self._dim_strips = []
+        self._text_box = None
+    
+    def _get_cutout_area(self):
+        """
+        Calculate the cutout area (x, y, width, height).
+        
+        Returns:
+            tuple: (x, y, width, height) in screen coordinates, or None if no element
+        """
+        if self.highlighted_element is None:
+            # No element to highlight - full overlay
+            return None
+        elif isinstance(self.highlighted_element, tuple):
+            # Manual positioning
+            return self.highlighted_element
+        else:
+            # Get coordinates from lv.obj
+            obj = self.highlighted_element
+            # Get screen coordinates
+            x = obj.get_x()
+            y = obj.get_y()
+            
+            # Walk up parent chain to get absolute screen position
+            parent = obj.get_parent()
+            while parent is not None:
+                x += parent.get_x()
+                y += parent.get_y()
+                parent = parent.get_parent()
+            
+            width = obj.get_width()
+            height = obj.get_height()
+            
+            return (x, y, width, height)
+    
+    def _create_dim_strips(self, cutout):
+        """
+        Create the semi-transparent overlay around the cutout (or full overlay if no cutout).
+        
+        Layout with cutout:
+        ┌─────────────────────────────────────┐
+        │       TOP STRIP (dimmed)            │
+        ├─────┬──────────────────┬────────────┤
+        │LEFT │    CUTOUT        │   RIGHT    │
+        │DIM  │  (transparent)   │   DIM      │
+        ├─────┴──────────────────┴────────────┤
+        │       BOTTOM STRIP (dimmed)         │
+        └─────────────────────────────────────┘
+        
+        If cutout is None, creates a single full-screen dim overlay.
+        """
+        disp = lv.display_get_default()
+        screen_width = disp.get_horizontal_resolution()
+        screen_height = disp.get_vertical_resolution()
+
+        def add_strip(x, y, w, h):
+            """Create a dim strip at the given position and size."""
+            strip = lv.obj(self._overlay)
+            strip.set_pos(x, y)
+            strip.set_size(w, h)
+            strip.set_style_bg_color(BLACK_HEX, 0)
+            strip.set_style_bg_opa(EXPLAINER_OVERLAY_OPA, 0)
+            strip.set_style_border_width(0, 0)
+            strip.set_style_pad_all(0, 0)
+            strip.set_style_radius(0, 0)
+            strip.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
+            self._dim_strips.append(strip)
+
+        if cutout is None:
+            # Full-screen dim overlay
+            add_strip(0, 0, screen_width, screen_height)
+        else:
+            cut_x, cut_y, cut_w, cut_h = cutout
+            # Top strip
+            if cut_y > 0:
+                add_strip(0, 0, screen_width, cut_y)
+            # Bottom strip
+            bottom_y = cut_y + cut_h
+            if bottom_y < screen_height:
+                add_strip(0, bottom_y, screen_width, screen_height - bottom_y)
+            # Left strip
+            if cut_x > 0:
+                add_strip(0, cut_y, cut_x, cut_h)
+            # Right strip
+            right_x = cut_x + cut_w
+            if right_x < screen_width:
+                add_strip(right_x, cut_y, screen_width - right_x, cut_h)
+    
+    def _create_text_box(self, box_x, box_y, box_width, box_height):
+        """Create the text box with explanation and navigation buttons.
+        
+        Args:
+            box_x: X position for the text box
+            box_y: Y position for the text box
+            box_width: Width of the text box
+            box_height: Height of the text box
+        """
+        # Create text box container
+        self._text_box = lv.obj(self._overlay)
+        self._text_box.set_size(box_width, box_height)
+        self._text_box.set_pos(box_x, box_y)
+        self._text_box.set_style_pad_all(10, 0)
+        self._text_box.set_style_radius(8, 0)
+        self._text_box.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
+        
+        # Use flex layout for vertical arrangement
+        self._text_box.set_layout(lv.LAYOUT.FLEX)
+        self._text_box.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+        self._text_box.set_flex_align(lv.FLEX_ALIGN.SPACE_BETWEEN, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+        
+        # Create text label (with flex grow to take available space)
+        text_container = lv.obj(self._text_box)
+        text_container.set_width(lv.pct(100))
+        text_container.set_flex_grow(1)
+        text_container.set_style_pad_all(5, 0)
+        text_container.set_style_border_width(0, 0)
+        text_container.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
+        
+        text_label = lv.label(text_container)
+        text_label.set_text(self.text)
+        text_label.set_width(lv.pct(95))
+        text_label.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+        text_label.set_long_mode(lv.label.LONG_MODE.WRAP)
+        text_label.center()
+        
+        # Create navigation button container
+        nav_container = lv.obj(self._text_box)
+        nav_container.set_width(lv.pct(100))
+        nav_container.set_height(40)
+        nav_container.set_layout(lv.LAYOUT.FLEX)
+        nav_container.set_flex_flow(lv.FLEX_FLOW.ROW)
+        nav_container.set_flex_align(lv.FLEX_ALIGN.SPACE_EVENLY, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+        nav_container.set_style_pad_all(0, 0)
+        nav_container.set_style_border_width(0, 0)
+        nav_container.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
+        
+        # Get position info from tour
+        is_first = self.tour.is_first()
+        is_last = self.tour.is_last()
+        
+        # Previous button (or invisible placeholder on first screen)
+        prev_btn = lv.button(nav_container)
+        prev_btn.set_size(50, 35)
+        if not is_first:
+            prev_icon = lv.image(prev_btn)
+            BTC_ICONS.CARET_LEFT.add_to_parent(prev_icon)
+            prev_icon.center()
+            prev_btn.add_event_cb(self._on_prev_clicked, lv.EVENT.CLICKED, None)
+        else:
+            prev_btn.set_style_bg_opa(lv.OPA.TRANSP, 0)
+            prev_btn.set_style_shadow_width(0, 0)
+            prev_btn.set_style_border_width(0, 0)
+            prev_btn.remove_flag(lv.obj.FLAG.CLICKABLE)
+        
+        # Skip/Complete button (always present)
+        skip_btn = lv.button(nav_container)
+        if is_last:
+            skip_btn.set_size(50, 35)
+            skip_icon = lv.image(skip_btn)
+            BTC_ICONS.CHECK.add_to_parent(skip_icon)
+            skip_icon.center()
+        else:
+            skip_btn.set_size(90, 35)
+            skip_label = lv.label(skip_btn)
+            skip_label.set_text("Skip Tour")
+            skip_label.center()
+        skip_btn.add_event_cb(self._on_skip_clicked, lv.EVENT.CLICKED, None)
+        
+        # Next button (or invisible placeholder on last screen)
+        next_btn = lv.button(nav_container)
+        next_btn.set_size(50, 35)
+        if not is_last:
+            next_icon = lv.image(next_btn)
+            BTC_ICONS.CARET_RIGHT.add_to_parent(next_icon)
+            next_icon.center()
+            next_btn.add_event_cb(self._on_next_clicked, lv.EVENT.CLICKED, None)
+        else:
+            next_btn.set_style_bg_opa(lv.OPA.TRANSP, 0)
+            next_btn.set_style_shadow_width(0, 0)
+            next_btn.set_style_border_width(0, 0)
+            next_btn.remove_flag(lv.obj.FLAG.CLICKABLE)
+    
+    def _calculate_text_box_position(self, cutout):
+        """Calculate text box dimensions and position based on text_position setting and cutout.
+        
+        Args:
+            cutout: Tuple (x, y, w, h) of cutout area, or None for full overlay
+            
+        Returns:
+            tuple: (x, y, width, height) for the text box
+        """
+        disp = lv.display_get_default()
+        screen_width = disp.get_horizontal_resolution()
+        screen_height = disp.get_vertical_resolution()
+        
+        # Calculate box dimensions
+        box_width = int(screen_width * EXPLAINER_WIDTH_PCT / 100)
+        box_height = int(screen_height * EXPLAINER_HEIGHT_PCT / 100)
+        
+        # Center position (used as default and when no cutout)
+        center_x = (screen_width - box_width) // 2
+        center_y = (screen_height - box_height) // 2
+        
+        # If no cutout or center position requested, return centered
+        if cutout is None or self.text_position == "center" or self.text_position not in ("above", "below", "left", "right"):
+            return (center_x, center_y, box_width, box_height)
+        
+        cut_x, cut_y, cut_w, cut_h = cutout
+        margin = 10  # Margin from cutout/screen edges
+        
+        if self.text_position == "above":
+            # Above the cutout, centered horizontally
+            x = center_x
+            y = cut_y - box_height - margin
+            # Ensure it stays on screen
+            if y < margin:
+                y = margin
+        elif self.text_position == "below":
+            # Below the cutout, centered horizontally
+            x = center_x
+            y = cut_y + cut_h + margin
+            # Ensure it stays on screen
+            if y + box_height > screen_height - margin:
+                y = screen_height - box_height - margin
+        elif self.text_position == "left":
+            # Left of the cutout, centered vertically
+            x = cut_x - box_width - margin
+            y = center_y
+            # Ensure it stays on screen
+            if x < margin:
+                x = margin
+        elif self.text_position == "right":
+            # Right of the cutout, centered vertically
+            x = cut_x + cut_w + margin
+            y = center_y
+            # Ensure it stays on screen
+            if x + box_width > screen_width - margin:
+                x = screen_width - box_width - margin
+        
+        return (x, y, box_width, box_height)
+    
+    def _on_prev_clicked(self, e):
+        """Handle previous button click - delegate to tour."""
+        if e.get_code() == lv.EVENT.CLICKED:
+            self.tour.prev()
+    
+    def _on_next_clicked(self, e):
+        """Handle next button click - delegate to tour."""
+        if e.get_code() == lv.EVENT.CLICKED:
+            self.tour.next()
+    
+    def _on_skip_clicked(self, e):
+        """Handle skip/complete button click - delegate to tour."""
+        if e.get_code() == lv.EVENT.CLICKED:
+            self.tour.skip()

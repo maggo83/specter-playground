@@ -48,6 +48,7 @@ if "lvgl" not in sys.modules:
     lvgl_mock.switch = LvMockObj
     lvgl_mock.image = LvMockObj
     lvgl_mock.EVENT = LvMockEvent
+    lvgl_mock.OPA = type("OPA", (), {"TRANSP": 0, "COVER": 255})()
     lvgl_mock.ALIGN = type("ALIGN", (), {"CENTER": 0, "TOP_LEFT": 1, "TOP_RIGHT": 2, "BOTTOM_LEFT": 3, "BOTTOM_RIGHT": 4})()
     lvgl_mock.SYMBOL = type("SYMBOL", (), {"BATTERY_FULL": "F", "BATTERY_3": "3", "BATTERY_2": "2", "BATTERY_1": "1", "BATTERY_EMPTY": "E", "CHARGE": "C"})()
     lvgl_mock.FLEX_FLOW = type("FLEX_FLOW", (), {"COLUMN": 0, "ROW": 1})()

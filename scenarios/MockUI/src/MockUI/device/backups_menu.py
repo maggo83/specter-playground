@@ -15,9 +15,9 @@ class BackupsMenu(GenericMenu):
         state = getattr(parent, "specter_state", None)
 
         menu_items = [
-            (BTC_ICONS.RECEIVE, t("BACKUPS_MENU_BACKUP_TO_SD"), "backup_to_sd", None),
-            (BTC_ICONS.SEND, t("BACKUPS_MENU_RESTORE_FROM_SD"), "restore_from_sd", None),
-            (BTC_ICONS.CROSS, t("BACKUPS_MENU_REMOVE_FROM_SD"), "remove_backup_from_sd", RED_HEX),
+            (BTC_ICONS.RECEIVE, t("BACKUPS_MENU_BACKUP_TO_SD"), "backup_to_sd", None, None, None),
+            (BTC_ICONS.SEND, t("BACKUPS_MENU_RESTORE_FROM_SD"), "restore_from_sd", None, None, None),
+            (BTC_ICONS.CROSS, t("BACKUPS_MENU_REMOVE_FROM_SD"), "remove_backup_from_sd", RED_HEX, None, None),
         ]
 
         title = t("MENU_MANAGE_BACKUPS")

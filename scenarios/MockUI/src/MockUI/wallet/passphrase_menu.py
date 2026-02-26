@@ -80,8 +80,8 @@ class PassphraseMenu(GenericMenu):
         self.pa_ta.set_text("")
         # Clear passphrase in state
         self.state.active_wallet.active_passphrase = None
-        # Refresh status bar
-        self.parent.status_bar.refresh(self.state)
+        # Refresh UI
+        self.parent.refresh_ui()
 
     def _open_keyboard(self, e):
         """Show keyboard for editing passphrase."""
@@ -112,14 +112,16 @@ class PassphraseMenu(GenericMenu):
                     self.state.active_wallet.active_passphrase = None
                 else:
                     self.state.active_wallet.active_passphrase = val
-                # Refresh status bar
-                self.parent.status_bar.refresh(self.state)
+                # Refresh UI
+                self.parent.refresh_ui()
                 # Remove focus from text area
                 self.pa_ta.remove_state(lv.STATE.FOCUSED)
                 # Delete keyboard
                 if self.keyboard:
                     self.keyboard.delete()
                     self.keyboard = None
+                # Navigate back to previous menu
+                self.on_navigate(None)
         
         # Add event handler for when Cancel button is pressed
         def on_keyboard_cancel(e):

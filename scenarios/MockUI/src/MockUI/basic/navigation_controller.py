@@ -1,7 +1,8 @@
 import lvgl as lv
 
 from ..helpers import UIState, SpecterState
-from .status_bar import StatusBar
+from .device_bar import DeviceBar
+from .wallet_bar import WalletBar
 from .action_screen import ActionScreen
 from .main_menu import MainMenu
 from .locked_menu import LockedMenu
@@ -22,8 +23,10 @@ from ..device import (
     StorageMenu,
     SecurityMenu,
     LanguageMenu,
+    SettingsMenu,
 )
 from ..i18n import I18nManager
+from ..tour import GuidedTour
 
 
 class NavigationController(lv.obj):
@@ -48,24 +51,37 @@ class NavigationController(lv.obj):
 
         self.current_screen = None
 
-        # Create a status bar (~10%) and a content container for the screens (~90%)
-        self.status_bar = StatusBar(self, height_pct=5)
+        # Create device bar at top (5%), wallet bar at bottom (5%), and content in middle (90%)
+        self.device_bar = DeviceBar(self, height_pct=5)
+        self.device_bar.align(lv.ALIGN.TOP_MID, 0, 0)
 
-        # content area below status bar where menus will be parented
+        # Wallet bar at bottom
+        self.wallet_bar = WalletBar(self, height_pct=5)
+        self.wallet_bar.align(lv.ALIGN.BOTTOM_MID, 0, 0)
+
+        # Content area in middle (scrollable)
         self.content = lv.obj(self)
         self.content.set_width(lv.pct(100))
-        self.content.set_height(lv.pct(95))
+        self.content.set_height(lv.pct(90))
         self.content.set_layout(lv.LAYOUT.FLEX)
         self.content.set_flex_flow(lv.FLEX_FLOW.COLUMN)
-        self.content.set_style_pad_all(0, 0)  # Remove padding to allow full-width content
-        self.content.align_to(self.status_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 0)
+        self.content.set_style_pad_all(0, 0)
+        self.content.set_style_radius(0, 0)
+        self.content.set_style_border_width(0, 0)
+        self.content.align_to(self.device_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 0)
+        # Enable scrolling for content area
+        self.content.set_scroll_dir(lv.DIR.VER)
 
         # initially show the main menu
         self.show_menu(None)
+        
+        # Start guided tour on first startup (after UI is fully constructed)
+        if self.ui_state.run_tour_on_startup:
+            GuidedTour(self).start()
 
-        # periodic refresh of the status bar every 30 seconds
+        # periodic refresh of both bars every 30 seconds
         def _tick(timer):
-            self.status_bar.refresh(self.specter_state)
+            self.refresh_ui()
 
         lv.timer_create(_tick, 30_000, None)
 
@@ -78,6 +94,11 @@ class NavigationController(lv.obj):
         """
         # Switch language in i18n manager
         self.i18n.set_language(lang_code)
+
+    def refresh_ui(self):
+        """Centralized refresh method for all UI components."""
+        self.device_bar.refresh(self.specter_state)
+        self.wallet_bar.refresh(self.specter_state)
 
     def show_menu(self, target_menu_id=None):
         
@@ -99,7 +120,7 @@ class NavigationController(lv.obj):
             self.ui_state.clear_history()
             self.ui_state.current_menu_id = "locked"
             self.current_screen = LockedMenu(self)
-            self.status_bar.refresh(self.specter_state)
+            self.refresh_ui()
             return
 
         # Create new screen (micropython doesn't support match/case)
@@ -134,11 +155,13 @@ class NavigationController(lv.obj):
             self.current_screen = StorageMenu(self)
         elif current == "select_language":
             self.current_screen = LanguageMenu(self)
+        elif current == "manage_settings":
+            self.current_screen = SettingsMenu(self)
         else:
             # For all other actions, show a generic action screen
             title = (target_menu_id or "").replace("_", " ")
             title = title[0].upper() + title[1:] if title else ""
             self.current_screen = ActionScreen(title, self)
 
-        # refresh the status bar
-        self.status_bar.refresh(self.specter_state)
+        # refresh the UI
+        self.refresh_ui()

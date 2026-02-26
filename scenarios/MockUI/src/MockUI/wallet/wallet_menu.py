@@ -1,4 +1,4 @@
-from ..basic import RED_HEX, GenericMenu, RED, ORANGE, PAD_SIZE
+from ..basic import RED_HEX, GenericMenu, RED, ORANGE, TITLE_PADDING
 from ..basic.symbol_lib import BTC_ICONS
 import lvgl as lv
 
@@ -16,26 +16,26 @@ class WalletMenu(GenericMenu):
         # Build menu items
         menu_items = []
 
-        menu_items.append((None, t("WALLET_MENU_EXPLORE"), None, None))
-        menu_items.append((BTC_ICONS.MENU, t("WALLET_MENU_VIEW_ADDRESSES"), "view_addresses", None))
+        menu_items.append((None, t("WALLET_MENU_EXPLORE"), None, None, None, None))
+        menu_items.append((BTC_ICONS.MENU, t("WALLET_MENU_VIEW_ADDRESSES"), "view_addresses", None, None, None))
         if (state and not state.active_wallet is None and state.active_wallet.isMultiSig):
-            menu_items.append((BTC_ICONS.ADDRESS_BOOK, t("WALLET_MENU_VIEW_SIGNERS"), "view_signers", None))
+            menu_items.append((BTC_ICONS.ADDRESS_BOOK, t("WALLET_MENU_VIEW_SIGNERS"), "view_signers", None, None, None))
 
-        menu_items.append((None, t("WALLET_MENU_MANAGE"), None, None))
+        menu_items.append((None, t("WALLET_MENU_MANAGE"), None, None, None, None))
         if (state and not state.active_wallet is None and not state.active_wallet.isMultiSig):
             #Probably not needed as a fixed setting -> derivation path can be chosen in address explorer or when exporting public keys
-            #menu_items.append((None, "Manage Derivation Path", "derivation_path", None))
-            menu_items.append((BTC_ICONS.MNEMONIC, t("MENU_MANAGE_SEEDPHRASE"), "manage_seedphrase", None))
-            menu_items.append((BTC_ICONS.PASSWORD, t("MENU_SET_PASSPHRASE"), "set_passphrase", None))
+            #menu_items.append((None, "Manage Derivation Path", "derivation_path", None, None, None))
+            menu_items.append((BTC_ICONS.MNEMONIC, t("MENU_MANAGE_SEEDPHRASE"), "manage_seedphrase", None, None, None))
+            menu_items.append((BTC_ICONS.PASSWORD, t("MENU_SET_PASSPHRASE"), "set_passphrase", None, None, None))
         elif (state and not state.active_wallet is None and state.active_wallet.isMultiSig):
-            menu_items.append((BTC_ICONS.CONSOLE, t("WALLET_MENU_MANAGE_DESCRIPTOR"), "manage_wallet_descriptor", None))
-        menu_items.append((BTC_ICONS.BITCOIN, t("WALLET_MENU_CHANGE_NETWORK"), "change_network", None))
+            menu_items.append((BTC_ICONS.CONSOLE, t("WALLET_MENU_MANAGE_DESCRIPTOR"), "manage_wallet_descriptor", None, None, None))
+        menu_items.append((BTC_ICONS.BITCOIN, t("WALLET_MENU_CHANGE_NETWORK"), "change_network", None, None, None))
 
         menu_items += [
-            (BTC_ICONS.TRASH, t("WALLET_MENU_DELETE_WALLET"), "delete_wallet", RED_HEX),
-            (None, t("WALLET_MENU_CONNECT_EXPORT"), None, None),
-            (BTC_ICONS.LINK, t("MENU_CONNECT_SW_WALLET"), "connect_sw_wallet", None),
-            (BTC_ICONS.EXPORT, t("WALLET_MENU_EXPORT_DATA"), "export_wallet", None)
+            (BTC_ICONS.TRASH, t("WALLET_MENU_DELETE_WALLET"), "delete_wallet", RED_HEX, None, None),
+            (None, t("WALLET_MENU_CONNECT_EXPORT"), None, None, None, None),
+            (BTC_ICONS.LINK, t("MENU_CONNECT_SW_WALLET"), "connect_sw_wallet", None, None, None),
+            (BTC_ICONS.EXPORT, t("WALLET_MENU_EXPORT_DATA"), "export_wallet", None, None, None)
         ]
 
         # Initialize GenericMenu with basic title (we'll customize it below)
@@ -50,28 +50,29 @@ class WalletMenu(GenericMenu):
         self.title_anchor = lv.label(self)
         self.title_anchor.set_text("")
         self.title_anchor.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        self.title_anchor.align(lv.ALIGN.TOP_MID, 0, 6)  # Same as GenericMenu
+        self.title_anchor.align(lv.ALIGN.TOP_MID, 0, 18)  # Same as GenericMenu
 
-        # "Wallet: " label - position at same height as title in other menus
-        self.wallet_label = lv.label(self)
-        self.wallet_label.set_text(t("WALLET_MENU_LABEL"))
-        self.wallet_label.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
-        self.wallet_label.align(lv.ALIGN.TOP_LEFT, 50, 6)  # Same Y offset as title
-
-        # Text area for wallet name (editable) - align bottom to label bottom
+        # Text area for wallet name (editable) - align to be centered (like title_anchor)
         self.name_textarea = lv.textarea(self)
-        self.name_textarea.set_width(150)  # Fixed width
-        self.name_textarea.set_one_line(True)
+        self.name_textarea.set_width(200)  # Fixed width
+        self.name_textarea.set_height(40)  # Fixed height
+        #self.name_textarea.set_one_line(True)
+        self.name_textarea.set_accepted_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~ ")  # No newlines
         self.name_textarea.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        self.name_textarea.set_style_pad_top(2, 0)  # Reduce internal padding
-        self.name_textarea.set_style_pad_bottom(2, 0)
-        self.name_textarea.align_to(self.wallet_label, lv.ALIGN.OUT_RIGHT_BOTTOM, 6, 0)  # Align bottom edge
+        self.name_textarea.align(lv.ALIGN.TOP_MID, 0, 5)
         
         # Set initial text from active wallet
         wallet_name = ""
         if state and state.active_wallet:
             wallet_name = state.active_wallet.name
         self.name_textarea.set_text(wallet_name)
+
+        # "Wallet: " label - position to left of text area
+        self.wallet_label = lv.label(self)
+        self.wallet_label.set_text("Wallet: ")
+        self.wallet_label.set_style_text_align(lv.TEXT_ALIGN.RIGHT, 0)
+        self.wallet_label.align_to(self.name_textarea, lv.ALIGN.OUT_LEFT_MID, -6, 0)  # Align vertical center
+
 
         # Edit button with icon - match height of text area, align bottom
         # Get the actual height of the text area
@@ -96,7 +97,7 @@ class WalletMenu(GenericMenu):
 
         # Position container using the anchor, not the title_container
         # This ensures menu buttons are centered like in GenericMenu
-        self.container.align_to(self.title_anchor, lv.ALIGN.OUT_BOTTOM_MID, 0, PAD_SIZE)
+        self.container.align_to(self.title_anchor, lv.ALIGN.OUT_BOTTOM_MID, 0, TITLE_PADDING)
 
     def show_keyboard(self, e):
         """Show keyboard for editing wallet name."""
@@ -125,7 +126,7 @@ class WalletMenu(GenericMenu):
                 new_name = self.name_textarea.get_text()
                 if self.state and self.state.active_wallet:
                     self.state.active_wallet.name = new_name
-                    self.parent.status_bar.refresh(self.state)
+                    self.parent.refresh_ui()
                 # Remove focus from text area
                 self.name_textarea.remove_state(lv.STATE.FOCUSED)
                 # Delete keyboard

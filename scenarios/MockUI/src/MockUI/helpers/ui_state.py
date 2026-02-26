@@ -7,6 +7,11 @@ Designed to avoid typing and external deps so it runs in the MicroPython
 simulator environment.
 """
 
+import json
+
+
+CONFIG_FILE = "ui_state_config.json"
+
 
 class UIState:
     """Small helper to track UI-level state.
@@ -24,6 +29,40 @@ class UIState:
 
         # modal currently open (string name) or None
         self.modal = None
+
+        # Tour state - loaded from config file
+        self._run_tour_on_startup = self._load_tour_state()
+
+    @property
+    def run_tour_on_startup(self):
+        """Whether the guided tour should run on startup."""
+        return self._run_tour_on_startup
+    
+    def set_tour_completed(self):
+        """Mark the tour as completed and persist the state."""
+        self._run_tour_on_startup = False
+        self._save_tour_state()
+    
+    def reset_tour(self):
+        """Reset tour state to run again on next startup (for testing)."""
+        self._run_tour_on_startup = True
+        self._save_tour_state()
+    
+    def _load_tour_state(self):
+        """Load tour completion state from config file."""
+        try:
+            with open(CONFIG_FILE, "r") as f:
+                config = json.load(f)
+                return not config.get("tour_completed", False)
+        except OSError:
+            # File doesn't exist - first run, show tour
+            return True
+    
+    def _save_tour_state(self):
+        """Save tour completion state to config file."""
+        config = {"tour_completed": not self._run_tour_on_startup}
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config, f)
 
     # Navigation helpers
     def push_menu(self, menu_id):
