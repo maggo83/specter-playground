@@ -56,6 +56,7 @@ class InterfacesMenu(TitledScreen):
             lbl = lv.label(row)
             lbl.set_text(text)
             lbl.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
+            lbl.set_style_text_font(lv.font_montserrat_22, 0)
             lbl.set_flex_grow(1)  # Take remaining space
 
             # Right toggle button

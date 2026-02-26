@@ -52,6 +52,7 @@ class GenericMenu(TitledScreen):
                 spacer.set_text(text or "")
                 spacer.set_width(lv.pct(BTN_WIDTH))
                 spacer.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
+                spacer.set_style_text_font(lv.font_montserrat_22, 0)
             else:
                 btn = lv.button(self.container)
                 btn.set_width(lv.pct(BTN_WIDTH))
@@ -78,6 +79,7 @@ class GenericMenu(TitledScreen):
                 lbl = lv.label(btn)
                 lbl.set_recolor(True)
                 lbl.set_text(text)
+                lbl.set_style_text_font(lv.font_montserrat_22, 0)
                 lbl.center()
 
                 # Add help icon on right side if help_key is provided
@@ -147,12 +149,14 @@ class GenericMenu(TitledScreen):
                 title_lbl = lv.label(dialog)
                 title_lbl.set_text(title_text)
                 title_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+                title_lbl.set_style_text_font(lv.font_montserrat_22, 0)
                 title_lbl.set_width(lv.pct(100))
 
                 # body text
                 text_lbl = lv.label(dialog)
                 text_lbl.set_text(help_text)
                 text_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+                text_lbl.set_style_text_font(lv.font_montserrat_22, 0)
                 text_lbl.set_width(lv.pct(100))
                 text_lbl.set_long_mode(lv.label.LONG_MODE.WRAP)
 
@@ -160,6 +164,7 @@ class GenericMenu(TitledScreen):
                 close_btn = lv.button(dialog)
                 close_lbl = lv.label(close_btn)
                 close_lbl.set_text("Close")
+                close_lbl.set_style_text_font(lv.font_montserrat_22, 0)
                 close_lbl.center()
 
                 def _close(ev):

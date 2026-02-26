@@ -114,7 +114,7 @@ class DeviceBar(lv.obj):
         self.power_btn.add_event_cb(self.power_cb, lv.EVENT.CLICKED, None)
 
         # Apply smaller font to labels
-        self.font = lv.font_montserrat_12
+        self.font = lv.font_montserrat_16
         labels = [self.lang_lbl, self.power_lbl]
         for lbl in labels:
             lbl.set_style_text_font(self.font, 0)

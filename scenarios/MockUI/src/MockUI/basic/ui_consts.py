@@ -36,7 +36,7 @@ MODAL_WIDTH_PCT = const(75)
 MODAL_HEIGHT_PCT = const(75)
 
 # UIExplainer dimensions and style
-EXPLAINER_WIDTH_PCT = const(65)   # Width of explainer text box (percentage of screen)
+EXPLAINER_WIDTH_PCT = const(70)   # Width of explainer text box (percentage of screen)
 EXPLAINER_HEIGHT_PCT = const(40)  # Height of explainer text box (percentage of screen)
 EXPLAINER_OVERLAY_OPA = const(200)  # Opacity of dim overlay (0-255, ~80% = 200)
 

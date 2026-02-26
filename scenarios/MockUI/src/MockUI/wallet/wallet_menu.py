@@ -48,7 +48,8 @@ class WalletMenu(GenericMenu):
         # Text area for wallet name (editable) – lives in title_bar, centred
         self.name_textarea = lv.textarea(self.title_bar)
         self.name_textarea.set_width(200)
-        self.name_textarea.set_height(40)
+        self.name_textarea.set_height(50)
+        self.name_textarea.set_style_text_font(lv.font_montserrat_22, 0)
         self.name_textarea.set_accepted_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~ ")
         self.name_textarea.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
         self.name_textarea.align(lv.ALIGN.CENTER, 0, 0)
@@ -62,6 +63,7 @@ class WalletMenu(GenericMenu):
         # "Wallet: " label – to the left of the text area
         self.wallet_label = lv.label(self.title_bar)
         self.wallet_label.set_text("Wallet: ")
+        self.wallet_label.set_style_text_font(lv.font_montserrat_22, 0)
         self.wallet_label.set_style_text_align(lv.TEXT_ALIGN.RIGHT, 0)
         self.wallet_label.align_to(self.name_textarea, lv.ALIGN.OUT_LEFT_MID, -6, 0)
 

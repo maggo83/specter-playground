@@ -177,13 +177,14 @@ class UIExplainer:
         text_label.set_text(self.text)
         text_label.set_width(lv.pct(95))
         text_label.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+        text_label.set_style_text_font(lv.font_montserrat_22, 0)
         text_label.set_long_mode(lv.label.LONG_MODE.WRAP)
         text_label.center()
         
         # Create navigation button container
         nav_container = lv.obj(self._text_box)
         nav_container.set_width(lv.pct(100))
-        nav_container.set_height(40)
+        nav_container.set_height(60)
         nav_container.set_layout(lv.LAYOUT.FLEX)
         nav_container.set_flex_flow(lv.FLEX_FLOW.ROW)
         nav_container.set_flex_align(lv.FLEX_ALIGN.SPACE_EVENLY, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
@@ -197,7 +198,7 @@ class UIExplainer:
         
         # Previous button (or invisible placeholder on first screen)
         prev_btn = lv.button(nav_container)
-        prev_btn.set_size(50, 35)
+        prev_btn.set_size(60, 50)
         if not is_first:
             prev_icon = lv.image(prev_btn)
             BTC_ICONS.CARET_LEFT.add_to_parent(prev_icon)
@@ -212,20 +213,21 @@ class UIExplainer:
         # Skip/Complete button (always present)
         skip_btn = lv.button(nav_container)
         if is_last:
-            skip_btn.set_size(50, 35)
+            skip_btn.set_size(60, 50)
             skip_icon = lv.image(skip_btn)
             BTC_ICONS.CHECK.add_to_parent(skip_icon)
             skip_icon.center()
         else:
-            skip_btn.set_size(90, 35)
+            skip_btn.set_size(160, 50)
             skip_label = lv.label(skip_btn)
             skip_label.set_text("Skip Tour")
+            skip_label.set_style_text_font(lv.font_montserrat_22, 0)
             skip_label.center()
         skip_btn.add_event_cb(self._on_skip_clicked, lv.EVENT.CLICKED, None)
         
         # Next button (or invisible placeholder on last screen)
         next_btn = lv.button(nav_container)
-        next_btn.set_size(50, 35)
+        next_btn.set_size(60, 50)
         if not is_last:
             next_icon = lv.image(next_btn)
             BTC_ICONS.CARET_RIGHT.add_to_parent(next_icon)

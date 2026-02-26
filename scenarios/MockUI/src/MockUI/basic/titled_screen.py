@@ -68,6 +68,7 @@ class TitledScreen(lv.obj):
         self.title_lbl = lv.label(self.title_bar)
         self.title_lbl.set_text(title)
         self.title_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+        self.title_lbl.set_style_text_font(lv.font_montserrat_28, 0)
         self.title_lbl.align(lv.ALIGN.CENTER, 0, 0)
         # Backward-compat alias (WalletMenu and tests reference self.title)
         self.title = self.title_lbl

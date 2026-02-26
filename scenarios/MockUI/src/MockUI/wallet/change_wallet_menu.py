@@ -41,6 +41,7 @@ class ChangeWalletMenu(GenericMenu):
             btn.set_height(BTN_HEIGHT)
             lbl = lv.label(btn)
             lbl.set_text(w.name)
+            lbl.set_style_text_font(lv.font_montserrat_22, 0)
             lbl.center()
             btn.add_event_cb(_make_select_callback(w), lv.EVENT.CLICKED, None)
 
@@ -61,6 +62,7 @@ class ChangeWalletMenu(GenericMenu):
         # Text centered
         add_lbl = lv.label(add_btn)
         add_lbl.set_text(t("MENU_ADD_WALLET"))
+        add_lbl.set_style_text_font(lv.font_montserrat_22, 0)
         add_lbl.center()
         
         add_btn.add_event_cb(lambda e: self.on_navigate("add_wallet") if e.get_code() == lv.EVENT.CLICKED else None, lv.EVENT.CLICKED, None)
