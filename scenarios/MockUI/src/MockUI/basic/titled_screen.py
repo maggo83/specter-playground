@@ -43,6 +43,7 @@ class TitledScreen(lv.obj):
         self.set_style_pad_all(0, 0)
         self.set_style_border_width(0, 0)
         self.set_style_radius(0, 0)
+        self.set_scroll_dir(lv.DIR.NONE)
 
         # ── Title bar ────────────────────────────────────────────────────────
         self.title_bar = lv.obj(self)
@@ -81,6 +82,8 @@ class TitledScreen(lv.obj):
         self.body.set_style_border_width(0, 0)
         self.body.set_style_radius(0, 0)
         self.body.align(lv.ALIGN.TOP_MID, 0, TITLE_ROW_HEIGHT + TITLE_PADDING)
+        # Disable all scrolling on body; subclasses can re-enable with set_scroll_dir if needed
+        self.body.set_scroll_dir(lv.DIR.NONE)
 
     def on_back(self, e):
         if e.get_code() == lv.EVENT.CLICKED:

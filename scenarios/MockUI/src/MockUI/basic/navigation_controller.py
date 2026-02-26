@@ -33,6 +33,7 @@ from ..tour import GuidedTour
 class NavigationController(lv.obj):
     def __init__(self, specter_state=None, ui_state=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.set_scroll_dir(lv.DIR.NONE)
 
         self.on_navigate = self.show_menu
         
@@ -70,8 +71,8 @@ class NavigationController(lv.obj):
         self.content.set_style_radius(0, 0)
         self.content.set_style_border_width(0, 0)
         self.content.align_to(self.device_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 0)
-        # Enable scrolling for content area
-        self.content.set_scroll_dir(lv.DIR.VER)
+        # TitledScreen always fills content 100% so no scrolling is needed here
+        self.content.set_scroll_dir(lv.DIR.NONE)
 
         # initially show the main menu
         self.show_menu(None)
