@@ -85,7 +85,7 @@ class GenericMenu(TitledScreen):
                 # Add help icon on right side if help_key is provided
                 if help_key:
                     help_btn = lv.button(btn)
-                    help_btn.set_size(28, 28)
+                    help_btn.set_size(int(BTN_HEIGHT), int(BTN_HEIGHT * size))
                     # Make the help button transparent (no background)
                     help_btn.set_style_bg_opa(lv.OPA.TRANSP, 0)
                     help_btn.set_style_shadow_width(0, 0)
