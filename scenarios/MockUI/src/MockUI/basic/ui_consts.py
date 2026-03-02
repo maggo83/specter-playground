@@ -21,8 +21,8 @@ STATUS_BAR_PCT = const(8)        # each bar (top + bottom), % of screen height
 CONTENT_PCT = const(84)          # 100 - 2 * STATUS_BAR_PCT
 
 # --- Icon sizes ---
-BTC_ICON_WIDTH = const(36)            # layout space per icon (was 24, now 1.5×)
-BTC_ICON_ZOOM = const(384)            # LVGL zoom: 256=100%, 384=150%, 512=200%
+BTC_ICON_WIDTH = const(42)            # layout space per icon (native bitmap size)
+BTC_ICON_ZOOM = const(256)            # LVGL zoom: 256=100% — bitmap is already 42×42, no scaling needed
 ONE_LETTER_SYMBOL_WIDTH = const(16)   # status bar 1-letter label (was 11)
 TWO_LETTER_SYMBOL_WIDTH = const(28)   # status bar 2-letter label (was 19)
 THREE_LETTER_SYMBOL_WIDTH = const(40) # status bar 3-letter label (was 27)

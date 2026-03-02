@@ -40,7 +40,6 @@ class GuidedTour:
         # Element can be lv.obj reference, (x, y, w, h) tuple, or None
         self.steps = [
             (None, t("TOUR_INTRO"), "center"),
-            (db.lang_lbl, t("TOUR_LANGUAGE"), "below"),
             (db.lock_btn, t("TOUR_LOCK"), "below"),
             (db.center_container, t("TOUR_INTERFACES"), "below"),
             (db.batt_icon, t("TOUR_BATTERY"), "below"),

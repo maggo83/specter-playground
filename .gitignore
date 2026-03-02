@@ -10,6 +10,9 @@ release
 .DS_Store
 .direnv
 
+# Bitcoin Icons source assets — regenerate via generate_btc_icons.py
+data/
+
 # RAG code scanner
 .rag/.venv/
 .rag/chroma_db/

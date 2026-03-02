@@ -1,6 +1,6 @@
 import lvgl as lv
 from ..helpers import Battery
-from .ui_consts import BTC_ICON_WIDTH, GREEN_HEX, ORANGE_HEX, RED_HEX, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH, THREE_LETTER_SYMBOL_WIDTH
+from .ui_consts import BTC_ICON_WIDTH, GREEN_HEX, ORANGE_HEX, RED_HEX, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH
 from .symbol_lib import BTC_ICONS
 
 
@@ -26,7 +26,7 @@ class DeviceBar(lv.obj):
 
         # LEFT SECTION: Lock button
         self.left_container = lv.obj(self)
-        self.left_container.set_width(STATUS_BTN_WIDTH + 10)
+        self.left_container.set_width(STATUS_BTN_WIDTH)
         self.left_container.set_height(lv.pct(100))
         self.left_container.set_layout(lv.LAYOUT.FLEX)
         self.left_container.set_flex_flow(lv.FLEX_FLOW.ROW)
@@ -43,7 +43,7 @@ class DeviceBar(lv.obj):
 
         # CENTER SECTION: Peripheral indicators
         self.center_container = lv.obj(self)
-        self.center_container.set_width(BTC_ICON_WIDTH * 4 + 40)
+        self.center_container.set_width(BTC_ICON_WIDTH * 4 + 30)
         self.center_container.set_height(lv.pct(100))
         self.center_container.set_layout(lv.LAYOUT.FLEX)
         self.center_container.set_flex_flow(lv.FLEX_FLOW.ROW)
@@ -75,9 +75,9 @@ class DeviceBar(lv.obj):
             ico.add_flag(lv.obj.FLAG.CLICKABLE)
             ico.add_event_cb(self.peripheral_ico_clicked, lv.EVENT.CLICKED, None)
 
-        # RIGHT SECTION: Battery, Language, Settings, Power (in that order)
+        # RIGHT SECTION: Battery, Settings, Power (in that order)
         self.right_container = lv.obj(self)
-        self.right_container.set_width(STATUS_BTN_WIDTH * 2 + THREE_LETTER_SYMBOL_WIDTH + 70)
+        self.right_container.set_width(STATUS_BTN_WIDTH * 3)
         self.right_container.set_height(lv.pct(100))
         self.right_container.set_layout(lv.LAYOUT.FLEX)
         self.right_container.set_flex_flow(lv.FLEX_FLOW.ROW)
@@ -89,13 +89,6 @@ class DeviceBar(lv.obj):
         self.batt_icon = Battery(self.right_container)
         self.batt_icon.VALUE = parent.specter_state.battery_pct
         self.batt_icon.update()
-
-        # Language indicator (clickable selector) - always visible
-        self.lang_lbl = lv.label(self.right_container)
-        self.lang_lbl.set_text("")
-        self.lang_lbl.set_width(THREE_LETTER_SYMBOL_WIDTH)
-        self.lang_lbl.add_flag(lv.obj.FLAG.CLICKABLE)
-        self.lang_lbl.add_event_cb(self.lang_clicked, lv.EVENT.CLICKED, None)
 
         # Settings button
         self.settings_btn = lv.button(self.right_container)
@@ -115,7 +108,7 @@ class DeviceBar(lv.obj):
 
         # Apply smaller font to labels
         self.font = lv.font_montserrat_16
-        labels = [self.lang_lbl, self.power_lbl]
+        labels = [self.power_lbl]
         for lbl in labels:
             lbl.set_style_text_font(self.font, 0)
 
@@ -169,10 +162,6 @@ class DeviceBar(lv.obj):
         else:
             self.batt_icon.VALUE = 100
             self.batt_icon.update()
-
-        # Language (always visible)
-        lang_code = self.parent.i18n.get_language()
-        self.lang_lbl.set_text(self._truncate(lang_code.upper(), 3))
 
         # Lock icon (always visible, but changes based on state)
         if locked:
