@@ -220,7 +220,7 @@ class UIExplainer:
         else:
             skip_btn.set_size(160, 50)
             skip_label = lv.label(skip_btn)
-            skip_label.set_text("Skip Tour")
+            skip_label.set_text(self.tour.nav.i18n.t("TOUR_SKIP_BTN"))
             skip_label.set_style_text_font(lv.font_montserrat_22, 0)
             skip_label.center()
         skip_btn.add_event_cb(self._on_skip_clicked, lv.EVENT.CLICKED, None)

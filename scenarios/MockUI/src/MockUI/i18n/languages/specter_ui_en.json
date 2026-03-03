@@ -57,6 +57,7 @@
     "DEVICE_MENU_DANGERZONE": "Dangerzone",
     "DEVICE_MENU_WIPE": "Wipe Device",
     "HELP_DEVICE_MENU_WIPE": "WARNING: This will permanently erase ALL data on the device including your seedphrase, wallet configurations, and settings.\nThis action cannot be undone.\nMake sure you have a backup of your seedphrase before proceeding!",
+    "DEVICE_MENU_RESTART_TOUR": "Restart Tour",
     
     "FIRMWARE_MENU_CURRENT_VERSION": "Current version ",
     "FIRMWARE_MENU_UPDATE_VIA": ". Update via",
@@ -83,6 +84,7 @@
     
     "ACTION_SCREEN_PREFIX": "Action: ",
     "ACTION_SCREEN_BACK": "Back",
+    "MODAL_CLOSE_BTN": "Close",
     
     "COMMON_WALLET": "Wallet",
     "COMMON_SINGLESIG": "SingleSig",
@@ -118,6 +120,7 @@
     "TOUR_BATTERY": "Battery status is shown here when running on battery power.",
     "TOUR_POWER": "Tap here to toggle battery simulation on/off (demo only).",
     "TOUR_WALLET_BAR": "Your active wallet info appears here. It's empty until you create or import a wallet.",
-    "TOUR_HELP_ICON": "Look for these help icons throughout the app. Tap them for more details about each feature."
+    "TOUR_HELP_ICON": "Look for these help icons throughout the app. Tap them for more details about each feature.",
+    "TOUR_SKIP_BTN": "Skip Tour"
   }
 }

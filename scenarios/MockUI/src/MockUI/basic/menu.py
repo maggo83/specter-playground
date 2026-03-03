@@ -163,7 +163,7 @@ class GenericMenu(TitledScreen):
                 # close button
                 close_btn = lv.button(dialog)
                 close_lbl = lv.label(close_btn)
-                close_lbl.set_text("Close")
+                close_lbl.set_text(self.i18n.t("MODAL_CLOSE_BTN"))
                 close_lbl.set_style_text_font(lv.font_montserrat_22, 0)
                 close_lbl.center()
 

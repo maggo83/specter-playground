@@ -1,6 +1,24 @@
 from ..basic import RED_HEX, ORANGE, GenericMenu
 from ..basic.symbol_lib import BTC_ICONS
+from ..tour import GuidedTour
 import lvgl as lv
+
+
+def _make_restart_tour_cb(nav):
+    """Return a click callback that immediately restarts the guided tour.
+
+    Steps:
+    1. Clear the navigation history stack (so pop_menu returns to 'main').
+    2. Call show_menu(None) which pops → current_menu_id = 'main' → shows MainMenu.
+    3. Start the tour overlay on top of the freshly shown main menu.
+    """
+    def callback(e):
+        if e.get_code() == lv.EVENT.CLICKED:
+            nav.ui_state.clear_history()
+            nav.show_menu(None)
+            GuidedTour(nav).start()
+    return callback
+
 
 def DeviceMenu(parent, *args, **kwargs):
     # Get translation function from i18n manager (always available via NavigationController)
@@ -22,7 +40,8 @@ def DeviceMenu(parent, *args, **kwargs):
         (BTC_ICONS.FLIP_HORIZONTAL, t("MENU_ENABLE_DISABLE_INTERFACES"), "interfaces", None, None, None),
         (BTC_ICONS.PHOTO, t("DEVICE_MENU_DISPLAY"), "display_settings", None, None, None),
         (lv.SYMBOL.VOLUME_MAX, t("DEVICE_MENU_SOUNDS"), "sound_settings", None, None, None),
-        (BTC_ICONS.MESSAGE, t("MENU_LANGUAGE"), "select_language", None, None, None)
+        (BTC_ICONS.MESSAGE, t("MENU_LANGUAGE"), "select_language", None, None, None),
+        (BTC_ICONS.REFRESH, t("DEVICE_MENU_RESTART_TOUR"), _make_restart_tour_cb(parent), None, None, None),
     ]
 
     menu_items += [
