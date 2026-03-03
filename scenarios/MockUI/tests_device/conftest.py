@@ -165,35 +165,38 @@ def go_back(delay: float = 1.0):
     return result.returncode == 0
 
 
-def soft_reset(wait: float = 12.0, poll_interval: float = 2.0):
+def _wait_for_device_responsive(
+    wait: float = 30.0,
+    settle: float = 5.0,
+    poll_interval: float = 3.0,
+) -> None:
+    """Poll until the device is responsive to REPL commands, or timeout."""
+    deadline = time.monotonic() + wait
+    time.sleep(settle)  # initial wait for device to finish booting
+    while time.monotonic() < deadline:
+        result = subprocess.run(
+            [*_CMD, "repl", "exec", "print('pytest-alive')"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode == 0 and "pytest-alive" in result.stdout:
+            return
+        time.sleep(poll_interval)
+    raise RuntimeError(f"Device did not become responsive within {settle + wait}s")
+
+
+def soft_reset(wait: float = 12.0):
     """Soft-reset the device and wait for it to be responsive again.
 
     ``disco repl reset`` sends Ctrl-C + Ctrl-D over pyserial.  The device
     reboots (USB disconnects/reconnects), so the command *always* exits
     with rc=1 and a "Serial error" — that is expected and ignored.
-
-    After firing the reset we poll with ``disco repl exec`` until the
-    device is back (up to *wait* seconds).
     """
     # Fire-and-forget: the serial error is expected because USB disconnects.
     subprocess.run(
         [*_CMD, "repl", "reset"],
         capture_output=True, text=True, timeout=10,
     )
-    # Wait for the device to reboot and reconnect USB CDC.
-    deadline = time.monotonic() + wait
-    while time.monotonic() < deadline:
-        time.sleep(poll_interval)
-        result = subprocess.run(
-            [*_CMD, "repl", "exec", "print('pytest-alive')"],
-            capture_output=True, text=True, timeout=10,
-        )
-        if result.returncode == 0 and "pytest-alive" in result.stdout:
-            time.sleep(3)  # settle time for UI to finish rendering
-            return
-    raise RuntimeError(
-        f"Device did not come back after soft_reset within {wait}s"
-    )
+    _wait_for_device_responsive(wait=wait)
 
 
 def ensure_main_menu(max_depth: int = 5):
@@ -292,32 +295,13 @@ def _require_device(request):
         # Flash is complete. The board resets automatically at end of flashing.
         # Poll until MicroPython is responsive (up to 30s) rather than fixed sleep.
         print("[device-tests] Flash done — polling until board is responsive ...")
-        deadline = time.monotonic() + 30
-        while time.monotonic() < deadline:
-            time.sleep(3)
-            probe = subprocess.run(
-                [*_CMD, "repl", "exec", "print('boot-ok')"],
-                capture_output=True, text=True, timeout=10,
-            )
-            if probe.returncode == 0 and "boot-ok" in probe.stdout:
-                time.sleep(3)  # extra settle time for UI to finish rendering
-                break
-        else:
-            raise RuntimeError("Board did not become responsive within 30s after flash")
 
-    result = subprocess.run(
-        [*_CMD, "repl", "exec", "print('pytest-ping')"],
-        capture_output=True, text=True, timeout=15,
-    )
-    assert result.returncode == 0 and "pytest-ping" in result.stdout, (
-        f"Device not reachable via disco tool.\n"
-        f"  DISCO_SCRIPT={DISCO_SCRIPT}\n"
-        f"  stdout: {result.stdout.strip()}\n"
-        f"  stderr: {result.stderr.strip()}"
-    )
+    # Always wait for the device to be responsive (covers both the build/flash
+    # path and --no-build-flash with a freshly-flashed or already-running board).
+    _wait_for_device_responsive(wait=60, settle=45, poll_interval=5)
+
     # Navigate to main menu and ensure English — device may be in any state
     # from a previous (possibly failed) run.
-    time.sleep(2)
     ensure_main_menu()
     ensure_english()
     yield

@@ -2,11 +2,12 @@ from micropython import const
 import lvgl as lv
 
 # --- Menu / button sizes (1.5× scaled for 800×480 touch target) ---
-BTN_HEIGHT = const(75)           # menu button height (was 50)
-BTN_WIDTH = const(100)           # Percentage of container width
-# Back-navigation button: W = width, H = height passed to set_size(w, h)
-BACK_BTN_HEIGHT = const(70)      # used as WIDTH in set_size(w, h) (was 50)
-BACK_BTN_WIDTH = const(48)       # used as HEIGHT in set_size(w, h) (was 32)
+BTN_HEIGHT = const(75)           # menu button height (px)
+BTN_WIDTH = const(100)           # menu button width (percent of screen width)
+PIN_BTN_HEIGHT = const(75)       # lock screen PIN keypad button height (px)
+PIN_BTN_WIDTH = const(100)       # lock screen PIN keypad button width (px)
+BACK_BTN_HEIGHT = const(70)      # back button height (px)
+BACK_BTN_WIDTH = const(48)       # back button width (px)
 MENU_PCT = const(100)
 TITLE_ROW_HEIGHT = const(60)     # fixed height reserved for the title + back-btn row
 TITLE_PADDING = const(15)        # gap between title row and button container

@@ -1,5 +1,6 @@
 import lvgl as lv
 from .menu import BTC_ICONS, GenericMenu
+from .ui_consts import PIN_BTN_WIDTH, PIN_BTN_HEIGHT
 
 
 class LockedMenu(GenericMenu):
@@ -24,14 +25,16 @@ class LockedMenu(GenericMenu):
         # Instruction label
         instr = lv.label(self.container)
         instr.set_text(t("LOCKED_MENU_ENTER_PIN"))
-        instr.set_width(200)
+        instr.set_width(320)
         instr.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+        instr.set_style_text_font(lv.font_montserrat_22, 0)
 
         # masked PIN display
         self.mask_lbl = lv.label(self.container)
         self.mask_lbl.set_text("")
-        self.mask_lbl.set_width(200)
+        self.mask_lbl.set_width(320)
         self.mask_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+        self.mask_lbl.set_style_text_font(lv.font_montserrat_22, 0)
 
         # keypad layout (3x4): 1..9, Del, 0, OK
         keys = [
@@ -47,7 +50,7 @@ class LockedMenu(GenericMenu):
             row_cont.set_layout(lv.LAYOUT.FLEX)
             row_cont.set_flex_flow(lv.FLEX_FLOW.ROW)
             row_cont.set_width(lv.pct(100))
-            row_cont.set_height(48)
+            row_cont.set_height(lv.SIZE_CONTENT)
             # center buttons in the row and remove visible backgrounds/borders
             row_cont.set_flex_align(
                 lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER
@@ -57,8 +60,8 @@ class LockedMenu(GenericMenu):
 
             for k in row:
                 b = lv.button(row_cont)
-                b.set_width(60)
-                b.set_height(36)
+                b.set_width(PIN_BTN_WIDTH)
+                b.set_height(PIN_BTN_HEIGHT)
                 if k == "Del":
                     im = lv.image(b)
                     BTC_ICONS.CLEAR_CHARACTER.add_to_parent(im)
@@ -74,6 +77,7 @@ class LockedMenu(GenericMenu):
                     lb = lv.label(b)
                     lb.center()
                     lb.set_text(k)
+                    lb.set_style_text_font(lv.font_montserrat_22, 0)
                     b.add_event_cb(lambda e, d=k: self._on_digit(e, d), lv.EVENT.CLICKED, None)
 
     def _update_mask(self):
