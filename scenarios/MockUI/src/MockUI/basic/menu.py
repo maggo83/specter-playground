@@ -6,60 +6,64 @@ from .modal_overlay import ModalOverlay
 
 
 class GenericMenu(TitledScreen):
-    """Reusable menu builder.
+    """Reusable menu builder — template method pattern.
 
-    title: string title shown at top
-    menu_items: list of (icon, text, target_behavior, color, size, help_key) where:
+    Subclasses override the three hooks:
+        get_title(t, state)      -> str          title shown at the top
+        get_menu_items(t, state) -> list         list of (icon, text, target_behavior, color, size, help_key)
+        post_init(t, state)      -> None         called after all LVGL widgets are built
+
+    Each tuple element of menu_items:
         - icon: Icon object or lv.SYMBOL string
         - text: Display text for the menu item
-        - target_behavior: None (creates label/spacer), string (menu_id to navigate to), or callable (custom callback)
+        - target_behavior: None (creates label/spacer), string (menu_id to navigate to), or callable
         - color: Optional color for the button
-        - size: Size multiplier for button height (default=1, minimum=1). E.g., size=1.5 increases height by 50%
-        - help_key: Optional i18n key for help text. If provided, a help icon appears on the right side of the button.
-                   Clicking it shows a popup with the translated help text.
+        - size: Size multiplier for button height (default=1, minimum=1)
+        - help_key: Optional i18n key for a help popup
     """
 
-    def __init__(self, title, menu_items, parent):
-        # TitledScreen creates title_bar (with optional back_btn + title_lbl) and body
-        super().__init__(title, parent)
-        # Override on_navigate with the stricter parent.on_navigate (not getattr fallback)
-        self.on_navigate = parent.on_navigate
-        # optional shared state object (SpecterState) is stored on parent
-        self.state = parent.specter_state
-        # store i18n manager for help text translation
-        self.i18n = parent.i18n
+    def __init__(self, parent):
+        # TitledScreen sets self.parent, self.state, self.i18n, self.on_navigate, self.body, etc.
+        super().__init__("", parent)
 
-        # self.container = self.body for backward-compat (WalletMenu uses self.container)
-        self.container = self.body
-        self.container.set_layout(lv.LAYOUT.FLEX)
-        self.container.set_flex_flow(lv.FLEX_FLOW.COLUMN)
-        self.container.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+        title = self.get_title(self.i18n.t, self.state)
+        self.title_lbl.set_text(title)
 
-        # Build items
+        menu_items = self.get_menu_items(self.i18n.t, self.state)
+
+        self.body.set_layout(lv.LAYOUT.FLEX)
+        self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+        self.body.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+
+        self._build_menu_items(menu_items)
+        self.post_init(self.i18n.t, self.state)
+
+    def _build_menu_items(self, menu_items):
+        """Build LVGL widgets for each item in the menu_items list."""
         for item in menu_items:
-            # Extract tuple elements - now expecting 6 elements: (icon, text, target_behavior, color, size, help_key)
+            # Extract tuple elements: (icon, text, target_behavior, color, size, help_key)
             icon, text, target_behavior, color, size, help_key = item
-            
+
             # Normalize size: default to 1, ensure minimum of 1
             if size is None or size < 1:
                 size = 1
-            
+
             if target_behavior is None:
-                spacer = lv.label(self.container)
+                spacer = lv.label(self.body)
                 spacer.set_recolor(True)
                 spacer.set_text(text or "")
                 spacer.set_width(lv.pct(BTN_WIDTH))
                 spacer.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
                 spacer.set_style_text_font(lv.font_montserrat_22, 0)
             else:
-                btn = lv.button(self.container)
+                btn = lv.button(self.body)
                 btn.set_width(lv.pct(BTN_WIDTH))
                 # Apply size scaling to button height
                 scaled_height = int(BTN_HEIGHT * size)
                 btn.set_height(scaled_height)
                 if color:
                     btn.set_style_bg_color(color, lv.PART.MAIN)
-                
+
                 if icon:
                     # Check if icon is an Icon (includes ColoredIcon subclass)
                     if isinstance(icon, Icon):
@@ -72,7 +76,7 @@ class GenericMenu(TitledScreen):
                         ico.set_recolor(True)
                         ico.set_text(icon or "")
                         ico.align(lv.ALIGN.LEFT_MID, 8, 0)
-  
+
                 # Add text label centered
                 lbl = lv.label(btn)
                 lbl.set_recolor(True)
@@ -89,15 +93,33 @@ class GenericMenu(TitledScreen):
                     help_btn.set_style_shadow_width(0, 0)
                     help_btn.set_style_border_width(0, 0)
                     help_btn.align(lv.ALIGN.RIGHT_MID, -4, 0)
-                    
+
                     help_icon_img = lv.image(help_btn)
                     BTC_ICONS.QUESTION_CIRCLE.add_to_parent(help_icon_img)
                     help_icon_img.center()
-                    
+
                     # Create help popup callback
                     help_btn.add_event_cb(self.make_help_callback(text, help_key), lv.EVENT.CLICKED, None)
 
                 btn.add_event_cb(self.make_callback(target_behavior), lv.EVENT.CLICKED, None)
+
+    # --- template-method hooks -------------------------------------------
+
+    TITLE_KEY = None  # set in subclass to avoid overriding get_title
+
+    def get_title(self, t, state):
+        """Return the menu title string. Override in subclasses, or just set TITLE_KEY."""
+        return t(self.TITLE_KEY) if self.TITLE_KEY else ""
+
+    def get_menu_items(self, t, state):
+        """Return the list of (icon, text, target_behavior, color, size, help_key) tuples."""
+        return []
+
+    def post_init(self, t, state):
+        """Called after all LVGL widgets are built. Override for post-construction work."""
+        pass
+
+    # --- internal helpers -------------------------------------------------
 
     def make_callback(self, target_behavior):
         """Create callback for button - handles both string menu_ids and custom callables."""

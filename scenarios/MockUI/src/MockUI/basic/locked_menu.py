@@ -1,36 +1,39 @@
 import lvgl as lv
-from .menu import BTC_ICONS, GenericMenu
+from .titled_screen import TitledScreen
+from .symbol_lib import BTC_ICONS
 from .ui_consts import PIN_BTN_WIDTH, PIN_BTN_HEIGHT
 
 
-class LockedMenu(GenericMenu):
+class LockedMenu(TitledScreen):
     """Simple lock screen that accepts a numeric PIN to unlock the device."""
 
     def __init__(self, parent):
-        # Get translation function from i18n manager (always available via NavigationController)
-        t = parent.i18n.t
-        
-        # parent is the NavigationController
-        title = t("LOCKED_MENU_TITLE") + str(parent.specter_state.fw_version)
-        super().__init__(title, [], parent)
+        super().__init__(parent.i18n.t("LOCKED_MENU_TITLE"), parent)
 
-        self.parent = parent
         self.pin_buf = ""
 
-        # center the content in this menu's container
-        self.container.set_flex_align(
+        self.body.set_layout(lv.LAYOUT.FLEX)
+        self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+        self.body.set_flex_align(
             lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER
         )
 
+        # Firmware version info
+        fw_ver = lv.label(self.body)
+        fw_ver.set_text(str(self.state.fw_version))
+        fw_ver.set_width(320)
+        fw_ver.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+        fw_ver.set_style_text_font(lv.font_montserrat_12, 0)
+
         # Instruction label
-        instr = lv.label(self.container)
-        instr.set_text(t("LOCKED_MENU_ENTER_PIN"))
+        instr = lv.label(self.body)
+        instr.set_text(self.i18n.t("LOCKED_MENU_ENTER_PIN"))
         instr.set_width(320)
         instr.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
         instr.set_style_text_font(lv.font_montserrat_22, 0)
 
         # masked PIN display
-        self.mask_lbl = lv.label(self.container)
+        self.mask_lbl = lv.label(self.body)
         self.mask_lbl.set_text("")
         self.mask_lbl.set_width(320)
         self.mask_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
@@ -45,7 +48,7 @@ class LockedMenu(GenericMenu):
         ]
 
         for row in keys:
-            row_cont = lv.obj(self.container)
+            row_cont = lv.obj(self.body)
             # make the row container slightly taller than the buttons so they fit
             row_cont.set_layout(lv.LAYOUT.FLEX)
             row_cont.set_flex_flow(lv.FLEX_FLOW.ROW)
