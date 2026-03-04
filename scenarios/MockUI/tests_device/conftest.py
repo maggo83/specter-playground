@@ -227,12 +227,66 @@ def ensure_main_menu(max_depth: int = 5):
     )
 
 
-def click_button(label: str) -> None:
-    """Assert *label* is visible and click it."""
+def click_by_label(label: str, delay: float = 1.0) -> None:
+    """Assert *label* is visible on the main screen and click it."""
     labels = find_labels()
     assert label in labels, f"Cannot find button {label!r}. Visible labels: {labels}"
     disco_run("ui", "click", label)
-    time.sleep(1)
+    time.sleep(delay)
+
+
+def click_by_index(index_str: str, delay: float = 1.0) -> None:
+    """Click a widget on the main screen by dot-separated tree index (e.g. '1.0.2')."""
+    disco_run("ui", "click", "--index", index_str)
+    time.sleep(delay)
+
+
+def find_labels_overlay() -> list[str]:
+    """Return all visible text labels (len > 1) from the LVGL layer_top (overlays)."""
+    raw = disco_run("ui", "screen", "--layer", "top", "--json")
+    if not raw:
+        return []
+    tree = json.loads(raw)
+    labels = []
+
+    def _walk(node):
+        text = node.get("text")
+        if text and len(text) > 1:
+            labels.append(text)
+        for child in node.get("children", []):
+            _walk(child)
+
+    for node in (tree if isinstance(tree, list) else [tree]):
+        _walk(node)
+    return labels
+
+
+def click_overlay_by_label(label: str, delay: float = 1.0) -> None:
+    """Assert *label* is visible in the overlay and click it."""
+    labels = find_labels_overlay()
+    assert label in labels, (
+        f"Cannot find overlay button {label!r}. Visible overlay labels: {labels}"
+    )
+    disco_run("ui", "click", "--layer", "top", label)
+    time.sleep(delay)
+
+
+def click_overlay_by_index(index_str: str, delay: float = 1.0) -> None:
+    """Click an overlay widget by dot-separated tree index (e.g. '0.1.2').
+
+    Useful for icon-only buttons (prev/next/checkmark) that have no text label.
+    """
+    disco_run("ui", "click", "--layer", "top", "--index", index_str)
+    time.sleep(delay)
+
+
+def _read_flash_json(path: str) -> dict:
+    """Read a JSON file from the device flash via REPL and return parsed dict."""
+    output = disco_run(
+        "repl", "exec",
+        f"import json; f=open({path!r}); print(json.dumps(json.load(f))); f.close()",
+    )
+    return json.loads(output)
 
 
 def navigate_to_language_menu(lang: str) -> None:
@@ -242,9 +296,19 @@ def navigate_to_language_menu(lang: str) -> None:
     Button labels are resolved from the language JSON files.
     """
     ensure_main_menu()
-    click_button(_load_label("MENU_MANAGE_SETTINGS", lang)[0])
-    click_button(_load_label("MENU_MANAGE_DEVICE",   lang)[0])
-    click_button(_load_label("MENU_LANGUAGE",        lang)[0])
+    click_by_label(_load_label("MENU_MANAGE_SETTINGS", lang)[0])
+    click_by_label(_load_label("MENU_MANAGE_DEVICE",   lang)[0])
+    click_by_label(_load_label("MENU_LANGUAGE",        lang)[0])
+
+
+def navigate_to_device_menu(lang: str = "en") -> None:
+    """Navigate from the main menu to the Device settings menu.
+
+    *lang* is the language code currently active on the device (e.g. "en", "de").
+    """
+    ensure_main_menu()
+    click_by_label(_load_label("MENU_MANAGE_SETTINGS", lang)[0])
+    click_by_label(_load_label("MENU_MANAGE_DEVICE",   lang)[0])
 
 
 def ensure_english() -> None:
@@ -263,7 +327,7 @@ def ensure_english() -> None:
             continue
         if _load_label("MAIN_MENU_TITLE", lang)[0] in find_labels():
             navigate_to_language_menu(lang)
-            click_button(_load_metadata("language_name", "en")[0])
+            click_by_label(_load_metadata("language_name", "en")[0])
             time.sleep(2)
             ensure_main_menu()
             return
