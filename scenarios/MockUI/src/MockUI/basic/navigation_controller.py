@@ -31,6 +31,19 @@ from ..tour import GuidedTour
 
 
 class NavigationController(lv.obj):
+    # Static tour step definitions: (element_spec, i18n_key, position)
+    # element_spec is None, a dotted attribute-path string, or a (x, y, w, h) tuple.
+    # Resolved to runtime objects by GuidedTour.resolve_steps() before use.
+    INTRO_TOUR_STEPS = [
+        (None,                          "TOUR_INTRO",       "center"),
+        ("device_bar.lock_btn",         "TOUR_LOCK",        "below"),
+        ("device_bar.center_container", "TOUR_INTERFACES",  "below"),
+        ("device_bar.batt_icon",        "TOUR_BATTERY",     "below"),
+        ("device_bar.power_btn",        "TOUR_POWER",       "below"),
+        ("wallet_bar",                  "TOUR_WALLET_BAR",  "above"),
+        ((435, 143, 28, 28),            "TOUR_HELP_ICON",   "left"),
+    ]
+
     def __init__(self, specter_state=None, ui_state=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_scroll_dir(lv.DIR.NONE)
@@ -79,7 +92,7 @@ class NavigationController(lv.obj):
         
         # Start guided tour on first startup (after UI is fully constructed)
         if self.ui_state.run_tour_on_startup:
-            GuidedTour(self).start()
+            GuidedTour(self, GuidedTour.resolve_steps(self.INTRO_TOUR_STEPS, self)).start()
 
         # periodic refresh of both bars every 30 seconds
         def _tick(timer):
@@ -108,13 +121,17 @@ class NavigationController(lv.obj):
         if self.current_screen:
             self.current_screen.delete()
 
-        # Update UIState navigation history when present
-        if target_menu_id is not None:
-            # navigating 'down' into target
-            self.ui_state.push_menu(target_menu_id)
-        else:
-            # when moving up/back, pop to previous menu
+        # Update UIState navigation history
+        if target_menu_id is None:
+            # navigating up/back: pop previous menu from history
             self.ui_state.pop_menu()
+        elif target_menu_id == "start_intro_tour":
+            # special action: clear history and set current directly, no push
+            self.ui_state.clear_history()
+            self.ui_state.current_menu_id = target_menu_id
+        else:
+            # navigating down into a new menu
+            self.ui_state.push_menu(target_menu_id)
 
         # If the device is locked, always show the locked screen
         if self.specter_state.is_locked:
@@ -127,7 +144,7 @@ class NavigationController(lv.obj):
 
         # Create new screen (micropython doesn't support match/case)
         current = self.ui_state.current_menu_id
-        if current == "main":
+        if current in ("main", "start_intro_tour"):
             self.current_screen = MainMenu(self)
         elif current == "manage_wallet":
             self.current_screen = WalletMenu(self)
@@ -167,3 +184,7 @@ class NavigationController(lv.obj):
 
         # refresh the UI
         self.refresh_ui()
+
+        # If this was a start_intro_tour action, launch the tour overlay now
+        if self.ui_state.current_menu_id == "start_intro_tour":
+            GuidedTour(self, GuidedTour.resolve_steps(self.INTRO_TOUR_STEPS, self)).start()
