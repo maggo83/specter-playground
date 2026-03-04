@@ -4,7 +4,7 @@ import lvgl as lv
 from ..basic.symbol_lib import BTC_ICONS
 
 
-def SettingsMenu(parent, *args, **kwargs):
+def SettingsMenu(parent):
     # read state and navigation callback from the parent controller
     on_navigate = getattr(parent, "on_navigate", None)
     state = getattr(parent, "specter_state", None)
@@ -20,4 +20,4 @@ def SettingsMenu(parent, *args, **kwargs):
     # Storage management
     menu_items.append((lv.SYMBOL.DRIVE, t("MENU_MANAGE_STORAGE"), "manage_storage", None, None, None))
 
-    return GenericMenu(t("MENU_MANAGE_SETTINGS"), menu_items, parent, *args, **kwargs)
+    return GenericMenu(t("MENU_MANAGE_SETTINGS"), menu_items, parent)

@@ -19,9 +19,9 @@ class GenericMenu(TitledScreen):
                    Clicking it shows a popup with the translated help text.
     """
 
-    def __init__(self, title, menu_items, parent, *args, **kwargs):
+    def __init__(self, title, menu_items, parent):
         # TitledScreen creates title_bar (with optional back_btn + title_lbl) and body
-        super().__init__(title, parent, *args, **kwargs)
+        super().__init__(title, parent)
         # Override on_navigate with the stricter parent.on_navigate (not getattr fallback)
         self.on_navigate = parent.on_navigate
         # optional shared state object (SpecterState) is stored on parent

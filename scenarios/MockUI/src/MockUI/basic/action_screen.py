@@ -4,9 +4,9 @@ from .titled_screen import TitledScreen
 
 class ActionScreen(TitledScreen):
     """Generic action screen for menu items."""
-    def __init__(self, title, parent, *args, **kwargs):
+    def __init__(self, title, parent):
         # TitledScreen creates title_bar (with optional back_btn + title_lbl) and body
-        super().__init__(title, parent, *args, **kwargs)
+        super().__init__(title, parent)
 
         # Get i18n manager from parent (always available via NavigationController)
         self.t = parent.i18n.t

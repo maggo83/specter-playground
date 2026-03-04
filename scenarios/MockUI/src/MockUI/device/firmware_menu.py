@@ -9,7 +9,7 @@ class FirmwareMenu(GenericMenu):
     menu_id: "manage_firmware"
     """
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent):
         # Get translation function from i18n manager (always available via NavigationController)
         t = parent.i18n.t
         
@@ -35,4 +35,4 @@ class FirmwareMenu(GenericMenu):
 
 
         title = t("MENU_MANAGE_FIRMWARE")
-        super().__init__(title, menu_items, parent, *args, **kwargs)
+        super().__init__(title, menu_items, parent)

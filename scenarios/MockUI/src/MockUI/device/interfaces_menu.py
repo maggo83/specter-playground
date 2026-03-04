@@ -6,11 +6,11 @@ from ..basic.symbol_lib import BTC_ICONS
 class InterfacesMenu(TitledScreen):
     """Menu to enable/disable hardware interfaces."""
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent):
         # Get translation function early (needed for title)
         self.t = parent.i18n.t
         # TitledScreen creates title_bar (with optional back_btn + title_lbl) and body
-        super().__init__(self.t("MENU_ENABLE_DISABLE_INTERFACES"), parent, *args, **kwargs)
+        super().__init__(self.t("MENU_ENABLE_DISABLE_INTERFACES"), parent)
 
         self.state = getattr(parent, "specter_state", None)
         self.parent = parent

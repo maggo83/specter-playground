@@ -11,7 +11,7 @@ class AddWalletMenu(GenericMenu):
       Conditional items included according to parent.specter_state flags.
     """
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent):
         # Get translation function from i18n manager (always available via NavigationController)
         t = parent.i18n.t
         
@@ -38,4 +38,4 @@ class AddWalletMenu(GenericMenu):
             (lv.SYMBOL.KEYBOARD, t("ADD_WALLET_KEYBOARD"), "import_from_keyboard", None, None, None),
         ]
 
-        super().__init__(t("MENU_ADD_WALLET"), menu_items, parent, *args, **kwargs)
+        super().__init__(t("MENU_ADD_WALLET"), menu_items, parent)

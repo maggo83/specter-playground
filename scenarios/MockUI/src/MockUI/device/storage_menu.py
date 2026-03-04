@@ -8,7 +8,7 @@ class StorageMenu(GenericMenu):
     menu_id: "manage_storage"
     """
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent):
         # Get translation function from i18n manager (always available via NavigationController)
         t = parent.i18n.t
         
@@ -25,4 +25,4 @@ class StorageMenu(GenericMenu):
         if state and state.hasSD and state.enabledSD and state.detectedSD:
             menu_items.append((BTC_ICONS.SD_CARD, t("STORAGE_MENU_SD_CARD"), "sdcard", None, None, None))
 
-        super().__init__(t("MENU_MANAGE_STORAGE"), menu_items, parent, *args, **kwargs)
+        super().__init__(t("MENU_MANAGE_STORAGE"), menu_items, parent)

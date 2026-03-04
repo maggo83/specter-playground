@@ -7,7 +7,7 @@ class ConnectWalletsMenu(GenericMenu):
     menu_id: "connect_sw_wallet"
     """
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent):
         # Get translation function from i18n manager (always available via NavigationController)
         t = parent.i18n.t
         
@@ -19,4 +19,4 @@ class ConnectWalletsMenu(GenericMenu):
             (None, t("CONNECT_WALLETS_OTHER"), "connect_other", None, None, None),
         ]
 
-        super().__init__(t("MENU_CONNECT_SW_WALLET"), menu_items, parent, *args, **kwargs)
+        super().__init__(t("MENU_CONNECT_SW_WALLET"), menu_items, parent)

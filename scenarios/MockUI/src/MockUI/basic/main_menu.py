@@ -5,7 +5,7 @@ from .symbol_lib import BTC_ICONS
 from .ui_consts import GREEN_HEX, RED_HEX, WHITE_HEX
 
 
-def MainMenu(parent, *args, **kwargs):
+def MainMenu(parent):
     # read state and navigation callback from the parent controller
     on_navigate = getattr(parent, "on_navigate", None)
     state = getattr(parent, "specter_state", None)
@@ -62,4 +62,4 @@ def MainMenu(parent, *args, **kwargs):
     menu_items.append((BTC_ICONS.GEAR, t("MENU_MANAGE_SETTINGS"), "manage_settings", None, None, None))
 
 
-    return GenericMenu(t("MAIN_MENU_TITLE"), menu_items, parent, *args, **kwargs)
+    return GenericMenu(t("MAIN_MENU_TITLE"), menu_items, parent)

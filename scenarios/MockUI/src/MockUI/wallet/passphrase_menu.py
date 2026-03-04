@@ -8,11 +8,11 @@ class PassphraseMenu(GenericMenu):
     menu_id: "set_passphrase"
     """
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent):
         # Get translation function from i18n manager (always available via NavigationController)
         t = parent.i18n.t
         
-        super().__init__(t("MENU_SET_PASSPHRASE"), [], parent, *args, **kwargs)
+        super().__init__(t("MENU_SET_PASSPHRASE"), [], parent)
 
         self.parent = parent
         self.state = parent.specter_state

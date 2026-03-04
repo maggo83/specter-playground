@@ -6,13 +6,13 @@ from .ui_consts import PIN_BTN_WIDTH, PIN_BTN_HEIGHT
 class LockedMenu(GenericMenu):
     """Simple lock screen that accepts a numeric PIN to unlock the device."""
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent):
         # Get translation function from i18n manager (always available via NavigationController)
         t = parent.i18n.t
         
         # parent is the NavigationController
         title = t("LOCKED_MENU_TITLE") + str(parent.specter_state.fw_version)
-        super().__init__(title, [], parent, *args, **kwargs)
+        super().__init__(title, [], parent)
 
         self.parent = parent
         self.pin_buf = ""

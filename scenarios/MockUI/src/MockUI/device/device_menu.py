@@ -3,7 +3,7 @@ from ..basic.symbol_lib import BTC_ICONS
 import lvgl as lv
 
 
-def DeviceMenu(parent, *args, **kwargs):
+def DeviceMenu(parent):
     # Get translation function from i18n manager (always available via NavigationController)
     t = parent.i18n.t
     
@@ -33,4 +33,4 @@ def DeviceMenu(parent, *args, **kwargs):
     ]
 
 
-    return GenericMenu(t("MENU_MANAGE_DEVICE"), menu_items, parent, *args, **kwargs)
+    return GenericMenu(t("MENU_MANAGE_DEVICE"), menu_items, parent)

@@ -31,9 +31,9 @@ class TitledScreen(lv.obj):
         self.on_navigate – navigation callback from parent NavigationController
     """
 
-    def __init__(self, title, parent, *args, **kwargs):
+    def __init__(self, title, parent):
         lv_parent = getattr(parent, "content", parent)
-        super().__init__(lv_parent, *args, **kwargs)
+        super().__init__(lv_parent)
 
         self.on_navigate = getattr(parent, "on_navigate", None)
 

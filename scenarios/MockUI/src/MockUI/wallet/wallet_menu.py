@@ -6,7 +6,7 @@ import lvgl as lv
 class WalletMenu(GenericMenu):
     """Menu for managing an active wallet with editable name."""
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent):
         state = getattr(parent, "specter_state", None)
         self.parent = parent
         
@@ -40,7 +40,7 @@ class WalletMenu(GenericMenu):
 
         # Initialize GenericMenu with basic title (we'll customize it below)
         title = t("MENU_MANAGE_WALLET")
-        super().__init__(title, menu_items, parent, *args, **kwargs)
+        super().__init__(title, menu_items, parent)
 
         # Remove the default title label and replace with editable text area + edit button
         self.title.delete()

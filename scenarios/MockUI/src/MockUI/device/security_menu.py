@@ -2,7 +2,7 @@ from ..basic import GenericMenu
 from ..basic.symbol_lib import BTC_ICONS
 import lvgl as lv
 
-def SecurityMenu(parent, *args, **kwargs):
+def SecurityMenu(parent):
     # Get translation function from i18n manager (always available via NavigationController)
     t = parent.i18n.t
     
@@ -17,4 +17,4 @@ def SecurityMenu(parent, *args, **kwargs):
         (None, t("SECURITY_MENU_DURESS_ACTION"), "set_duress_pin_action", None, None, None),
     ]
 
-    return GenericMenu(t("MENU_MANAGE_SECURITY"), menu_items, parent, *args, **kwargs)
+    return GenericMenu(t("MENU_MANAGE_SECURITY"), menu_items, parent)
