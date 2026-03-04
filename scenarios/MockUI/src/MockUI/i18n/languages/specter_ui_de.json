@@ -334,8 +334,8 @@
       "ref_en": "Manage Security Features"
     },
     "MENU_ENABLE_DISABLE_INTERFACES": {
-      "text": "Schnittstellen aktivieren/deaktivieren",
-      "ref_en": "Enable/Disable Interfaces"
+      "text": "Schnittstellen de-/aktivieren",
+      "ref_en": "En-/Disable Interfaces"
     },
     "MENU_MANAGE_STORAGE": {
       "text": "Speicher verwalten",

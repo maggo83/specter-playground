@@ -6,14 +6,9 @@ import lvgl as lv
 class WalletMenu(GenericMenu):
     """Menu for managing an active wallet with editable name."""
 
-    def __init__(self, parent):
-        state = getattr(parent, "specter_state", None)
-        self.parent = parent
-        
-        # Get translation function from i18n manager (always available via NavigationController)
-        t = parent.i18n.t
+    TITLE_KEY = "MENU_MANAGE_WALLET"
 
-        # Build menu items
+    def get_menu_items(self, t, state):
         menu_items = []
 
         menu_items.append((None, t("WALLET_MENU_EXPLORE"), None, None, None, None))
@@ -38,10 +33,9 @@ class WalletMenu(GenericMenu):
             (BTC_ICONS.EXPORT, t("WALLET_MENU_EXPORT_DATA"), "export_wallet", None, None, None)
         ]
 
-        # Initialize GenericMenu with basic title (we'll customize it below)
-        title = t("MENU_MANAGE_WALLET")
-        super().__init__(title, menu_items, parent)
+        return menu_items
 
+    def post_init(self, t, state):
         # Remove the default title label and replace with editable text area + edit button
         self.title.delete()
 
