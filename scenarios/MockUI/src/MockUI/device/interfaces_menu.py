@@ -4,10 +4,7 @@ from ..basic.titled_screen import TitledScreen
 from ..basic.symbol_lib import BTC_ICONS
 
 class InterfacesMenu(TitledScreen):
-    """Menu to enable/disable hardware interfaces.
-
-    menu_id: "interfaces"
-    """
+    """Menu to enable/disable hardware interfaces."""
 
     def __init__(self, parent, *args, **kwargs):
         # Get translation function early (needed for title)
@@ -17,7 +14,6 @@ class InterfacesMenu(TitledScreen):
 
         self.state = getattr(parent, "specter_state", None)
         self.parent = parent
-        self.menu_id = "interfaces"
 
         # Container for rows inside body
         self.container = self.body

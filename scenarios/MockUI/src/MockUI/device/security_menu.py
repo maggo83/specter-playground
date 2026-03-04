@@ -17,4 +17,4 @@ def SecurityMenu(parent, *args, **kwargs):
         (None, t("SECURITY_MENU_DURESS_ACTION"), "set_duress_pin_action", None, None, None),
     ]
 
-    return GenericMenu("manage_security", t("MENU_MANAGE_SECURITY"), menu_items, parent, *args, **kwargs)
+    return GenericMenu(t("MENU_MANAGE_SECURITY"), menu_items, parent, *args, **kwargs)

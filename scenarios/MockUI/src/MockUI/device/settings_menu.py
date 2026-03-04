@@ -20,4 +20,4 @@ def SettingsMenu(parent, *args, **kwargs):
     # Storage management
     menu_items.append((lv.SYMBOL.DRIVE, t("MENU_MANAGE_STORAGE"), "manage_storage", None, None, None))
 
-    return GenericMenu("manage_settings", t("MENU_MANAGE_SETTINGS"), menu_items, parent, *args, **kwargs)
+    return GenericMenu(t("MENU_MANAGE_SETTINGS"), menu_items, parent, *args, **kwargs)

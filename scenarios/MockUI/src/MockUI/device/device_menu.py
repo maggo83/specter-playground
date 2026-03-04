@@ -33,4 +33,4 @@ def DeviceMenu(parent, *args, **kwargs):
     ]
 
 
-    return GenericMenu("manage_device", t("MENU_MANAGE_DEVICE"), menu_items, parent, *args, **kwargs)
+    return GenericMenu(t("MENU_MANAGE_DEVICE"), menu_items, parent, *args, **kwargs)

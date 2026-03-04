@@ -35,4 +35,4 @@ class FirmwareMenu(GenericMenu):
 
 
         title = t("MENU_MANAGE_FIRMWARE")
-        super().__init__("manage_firmware", title, menu_items, parent, *args, **kwargs)
+        super().__init__(title, menu_items, parent, *args, **kwargs)

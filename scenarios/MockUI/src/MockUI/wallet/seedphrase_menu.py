@@ -35,4 +35,4 @@ def SeedPhraseMenu(parent, *args, **kwargs):
     menu_items.append((None, t("SEEDPHRASE_MENU_ADVANCED"), None, None, None, None))
     menu_items.append((BTC_ICONS.SHARED_WALLET, t("SEEDPHRASE_MENU_BIP85"), "derive_bip85", None, None, None))
 
-    return GenericMenu("manage_seedphrase", t("MENU_MANAGE_SEEDPHRASE"), menu_items, parent, *args, **kwargs)
+    return GenericMenu(t("MENU_MANAGE_SEEDPHRASE"), menu_items, parent, *args, **kwargs)

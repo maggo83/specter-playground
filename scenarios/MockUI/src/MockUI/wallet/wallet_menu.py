@@ -40,7 +40,7 @@ class WalletMenu(GenericMenu):
 
         # Initialize GenericMenu with basic title (we'll customize it below)
         title = t("MENU_MANAGE_WALLET")
-        super().__init__("manage_wallet", title, menu_items, parent, *args, **kwargs)
+        super().__init__(title, menu_items, parent, *args, **kwargs)
 
         # Remove the default title label and replace with editable text area + edit button
         self.title.delete()

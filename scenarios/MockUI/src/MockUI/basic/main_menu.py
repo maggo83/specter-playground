@@ -62,4 +62,4 @@ def MainMenu(parent, *args, **kwargs):
     menu_items.append((BTC_ICONS.GEAR, t("MENU_MANAGE_SETTINGS"), "manage_settings", None, None, None))
 
 
-    return GenericMenu("main", t("MAIN_MENU_TITLE"), menu_items, parent, *args, **kwargs)
+    return GenericMenu(t("MAIN_MENU_TITLE"), menu_items, parent, *args, **kwargs)

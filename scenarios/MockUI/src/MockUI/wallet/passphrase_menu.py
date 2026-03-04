@@ -12,7 +12,7 @@ class PassphraseMenu(GenericMenu):
         # Get translation function from i18n manager (always available via NavigationController)
         t = parent.i18n.t
         
-        super().__init__("set_passphrase", t("MENU_SET_PASSPHRASE"), [], parent, *args, **kwargs)
+        super().__init__(t("MENU_SET_PASSPHRASE"), [], parent, *args, **kwargs)
 
         self.parent = parent
         self.state = parent.specter_state

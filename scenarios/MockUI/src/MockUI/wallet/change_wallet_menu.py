@@ -23,7 +23,7 @@ class ChangeWalletMenu(GenericMenu):
         t = parent.i18n.t
 
         # Initialize base GenericMenu with no auto-built items
-        super().__init__("change_wallet", t("MAIN_MENU_CHANGE_ADD_WALLET"), [], parent, *args, **kwargs)
+        super().__init__(t("MAIN_MENU_CHANGE_ADD_WALLET"), [], parent, *args, **kwargs)
 
         # Helper to set active wallet and navigate back
         def _make_select_callback(wallet):

@@ -12,7 +12,7 @@ class LockedMenu(GenericMenu):
         
         # parent is the NavigationController
         title = t("LOCKED_MENU_TITLE") + str(parent.specter_state.fw_version)
-        super().__init__("locked", title, [], parent, *args, **kwargs)
+        super().__init__(title, [], parent, *args, **kwargs)
 
         self.parent = parent
         self.pin_buf = ""

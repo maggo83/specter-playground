@@ -32,7 +32,6 @@ class LanguageMenu(GenericMenu):
         
         # Call GenericMenu constructor
         super().__init__(
-            "select_language",
             parent.i18n.t("MENU_LANGUAGE"),
             menu_items,
             parent

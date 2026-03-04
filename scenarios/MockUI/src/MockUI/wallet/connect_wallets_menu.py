@@ -19,4 +19,4 @@ class ConnectWalletsMenu(GenericMenu):
             (None, t("CONNECT_WALLETS_OTHER"), "connect_other", None, None, None),
         ]
 
-        super().__init__("connect_sw_wallet", t("MENU_CONNECT_SW_WALLET"), menu_items, parent, *args, **kwargs)
+        super().__init__(t("MENU_CONNECT_SW_WALLET"), menu_items, parent, *args, **kwargs)
