@@ -1,13 +1,27 @@
-# main.py - MockUI on STM32F469 Discovery
+# main.py - MockUI entry point (STM32F469 Discovery + unix simulator)
 import gc
+import sys
 import display
 import lvgl as lv
 import utime as time
 
+# Detect platform: pyb is hardware-only, not present on unix simulator
+try:
+    import pyb as _pyb
+    _ON_HARDWARE = True
+except ImportError:
+    _pyb = None
+    _ON_HARDWARE = False
+
 from MockUI import NavigationController, SpecterState
 
-# Init display without autoupdate timer to avoid heap fragmentation
-display.init()
+# Init display.
+# Hardware: display.init() disables the autoupdate timer (avoids heap fragmentation).
+# Simulator: display.init(False) disables SDL autoupdate so we drive the loop manually.
+if _ON_HARDWARE:
+    display.init()
+else:
+    display.init(False)
 
 gc.collect()
 
@@ -43,9 +57,14 @@ gc.collect()
 scr = NavigationController(specter_state)
 lv.screen_load(scr)
 
-# Enable USB REPL for debugging
-import pyb
-pyb.usb_mode("VCP")
+# Start TCP control server when --control flag is passed (simulator only)
+if not _ON_HARDWARE and '--control' in sys.argv:
+    from sim_control import ControlServer
+    ControlServer(scr)
+
+# Enable USB REPL for debugging (hardware only)
+if _ON_HARDWARE:
+    _pyb.usb_mode("VCP")
 
 while True:
     display.update(30)
