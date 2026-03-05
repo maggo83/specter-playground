@@ -14,7 +14,7 @@ from mcp.types import Tool, TextContent
 # Project root
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 SIMULATOR_BIN = PROJECT_ROOT / "bin" / "micropython_unix"
-SIMULATOR_SCRIPT = PROJECT_ROOT / "scenarios" / "mock_ui.py"
+SIMULATOR_SCRIPT = PROJECT_ROOT / "scenarios" / "mockui_fw" / "main.py"
 CONTROL_PORT = 9876
 
 

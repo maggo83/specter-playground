@@ -162,7 +162,7 @@ mockui: $(TARGET_DIR) mpy-cross build-i18n build-flash-image $(MPY_DIR)/ports/st
 	@ls -lh $(TARGET_DIR)/mockui.bin
 
 # unixport (simulator)
-unix: $(TARGET_DIR) mpy-cross $(MPY_DIR)/ports/unix
+unix: $(TARGET_DIR) mpy-cross build-i18n $(MPY_DIR)/ports/unix
 	@echo Building binary with frozen files
 	make -C $(MPY_DIR)/ports/unix \
 		USER_C_MODULES=$(USER_C_MODULES) \
@@ -170,7 +170,7 @@ unix: $(TARGET_DIR) mpy-cross $(MPY_DIR)/ports/unix
 		CFLAGS_EXTRA='-DMP_CONFIGFILE="<mpconfigport_specter.h>"' && \
 	cp $(MPY_DIR)/ports/unix/build-standard/micropython $(TARGET_DIR)/micropython_unix
 
-SCRIPT ?= mock_ui.py
+SCRIPT ?= mockui_fw/main.py
 
 simulate: unix
 	$(TARGET_DIR)/micropython_unix scenarios/$(SCRIPT)

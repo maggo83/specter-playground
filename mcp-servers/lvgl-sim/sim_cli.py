@@ -218,13 +218,13 @@ def restart():
     import time
 
     # Kill existing simulator
-    subprocess.run(['pkill', '-f', 'micropython_unix.*mock_ui'], capture_output=True)
+    subprocess.run(['pkill', '-f', 'micropython_unix.*mockui_fw'], capture_output=True)
     time.sleep(1)
 
     # Start new one
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     subprocess.Popen(
-        [f'{project_root}/bin/micropython_unix', f'{project_root}/scenarios/mock_ui.py', '--control'],
+        [f'{project_root}/bin/micropython_unix', f'{project_root}/scenarios/mockui_fw/main.py', '--control'],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
     )
     time.sleep(2)
