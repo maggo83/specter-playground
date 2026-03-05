@@ -11,6 +11,7 @@ class LockedMenu(TitledScreen):
         super().__init__(parent.i18n.t("LOCKED_MENU_TITLE"), parent)
 
         self.pin_buf = ""
+        t = parent.i18n.t
 
         self.body.set_layout(lv.LAYOUT.FLEX)
         self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
@@ -18,26 +19,28 @@ class LockedMenu(TitledScreen):
             lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER
         )
 
-        # Firmware version info
-        fw_ver = lv.label(self.body)
-        fw_ver.set_text(str(self.state.fw_version))
-        fw_ver.set_width(320)
+        # Firmware version – shown as a subtitle directly under the title bar,
+        # inside the TITLE_PADDING gap so it doesn't push body content down.
+        fw_ver = lv.label(self)
+        fw_ver.set_text(t("LOCKED_MENU_FW_VERSION") + str(self.state.fw_version))
+        fw_ver.set_width(lv.pct(100))
         fw_ver.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        fw_ver.set_style_text_font(lv.font_montserrat_12, 0)
+        fw_ver.set_style_text_font(lv.font_montserrat_16, 0)
+        fw_ver.align_to(self.title_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 1)
 
         # Instruction label
         instr = lv.label(self.body)
-        instr.set_text(self.i18n.t("LOCKED_MENU_ENTER_PIN"))
+        instr.set_text(t("LOCKED_MENU_ENTER_PIN"))
         instr.set_width(320)
         instr.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        instr.set_style_text_font(lv.font_montserrat_22, 0)
+        instr.set_style_text_font(lv.font_montserrat_28, 0)
 
         # masked PIN display
         self.mask_lbl = lv.label(self.body)
         self.mask_lbl.set_text("")
         self.mask_lbl.set_width(320)
         self.mask_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        self.mask_lbl.set_style_text_font(lv.font_montserrat_22, 0)
+        self.mask_lbl.set_style_text_font(lv.font_montserrat_28, 0)
 
         # keypad layout (3x4): 1..9, Del, 0, OK
         keys = [

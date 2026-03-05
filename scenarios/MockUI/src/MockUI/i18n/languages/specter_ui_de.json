@@ -260,8 +260,12 @@
     },
     
     "LOCKED_MENU_TITLE": {
-      "text": "Gerät gesperrt, Firmware-Version ",
-      "ref_en": "Device Locked, Firmware version "
+      "text": "Gerät gesperrt",
+      "ref_en": "Device Locked"
+    },
+    "LOCKED_MENU_FW_VERSION": {
+      "text": "Firmware-Version: ",
+      "ref_en": "Firmware version: "
     },
     "LOCKED_MENU_ENTER_PIN": {
       "text": "PIN eingeben zum Entsperren:",
@@ -334,8 +338,8 @@
       "ref_en": "Manage Security Features"
     },
     "MENU_ENABLE_DISABLE_INTERFACES": {
-      "text": "Schnittstellen aktivieren/deaktivieren",
-      "ref_en": "Enable/Disable Interfaces"
+      "text": "Schnittstellen de-/aktivieren",
+      "ref_en": "En-/Disable Interfaces"
     },
     "MENU_MANAGE_STORAGE": {
       "text": "Speicher verwalten",
