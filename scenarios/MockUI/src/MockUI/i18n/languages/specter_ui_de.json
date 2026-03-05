@@ -338,7 +338,7 @@
       "ref_en": "Manage Firmware"
     },
     "MENU_MANAGE_PREFERENCES": {
-      "text": "Bneutzer Einstellungen",
+      "text": "Benutzer Einstellungen",
       "ref_en": "User Preferences"
     },
     "MENU_MANAGE_SECURITY": {
@@ -362,7 +362,7 @@
       "ref_en": "Manage Device"
     },
     "MENU_MANAGE_SETTINGS": {
-      "text": "Einstellungen verwalten",
+      "text": "Einstellungen",
       "ref_en": "Manage Settings"
     },
     "MENU_SETTINGS_SECURITY": {

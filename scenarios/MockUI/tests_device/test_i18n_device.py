@@ -179,7 +179,7 @@ class TestI18nFunctional:
         """Full round-trip: navigate, switch to non-default language,
         verify persistence across soft reset, restore English.
 
-        Navigation path: Main → Manage Settings → Manage Device → Select Language
+        Navigation path: Main → Settings (gear icon) → Select Language (EN)
         (handled by navigate_to_language_menu() in conftest.py)
 
         Sub-checks:

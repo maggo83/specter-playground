@@ -28,6 +28,7 @@ from conftest import (
     ensure_main_menu,
     find_labels,
     find_labels_overlay,
+    navigate_to_settings_menu,
 )
 
 # =========================================================================
@@ -102,12 +103,13 @@ def _setup_scan_qr():
 
     ensure_main_menu()
     if _button_label not in find_labels():
-        # QR disabled — activate via REPL and force a menu rebuild.
+        # Activate QR via REPL and navigate away/back via the gear button
+        # to force the main menu to rebuild.
         disco_run(
             "repl", "exec",
             "specter_state.hasQR = True; specter_state.enabledQR = True",
         )
-        click_by_label(_load_label("MENU_MANAGE_SETTINGS", "en")[0])
+        navigate_to_settings_menu()
         ensure_main_menu()
 
 
