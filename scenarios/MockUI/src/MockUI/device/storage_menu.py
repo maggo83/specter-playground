@@ -8,7 +8,7 @@ class StorageMenu(GenericMenu):
     TITLE_KEY = "MENU_MANAGE_STORAGE"
 
     def get_menu_items(self, t, state):
-        menu_items = [(None, t("MENU_MANAGE_STORAGE"), None, None, None, None)]
+        menu_items = []
         menu_items.append((BTC_ICONS.FILE, t("STORAGE_MENU_INTERNAL_FLASH"), "internal_flash", None, None, None))
 
         if state and state.hasSmartCard and state.enabledSmartCard and state.detectedSmartCard:
@@ -16,5 +16,6 @@ class StorageMenu(GenericMenu):
 
         if state and state.hasSD and state.enabledSD and state.detectedSD:
             menu_items.append((BTC_ICONS.SD_CARD, t("STORAGE_MENU_SD_CARD"), "sdcard", None, None, None))
+            menu_items.append((BTC_ICONS.COPY, t("MENU_MANAGE_BACKUPS"), "manage_backups", None, None, None))
 
         return menu_items

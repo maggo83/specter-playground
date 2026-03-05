@@ -24,7 +24,7 @@ class LanguageMenu(GenericMenu):
             menu_items.append((symbol, label, lambda e, lc=lang_code: self._on_language_selected(e, lc), None, None, None))
 
         # Add "Load new language" option (uses default string navigation)
-        menu_items.append((lv.SYMBOL.DOWNLOAD, t("MENU_LOAD_NEW_LANGUAGE"), "load_language", None, None, None))
+        menu_items.append((BTC_ICONS.RECEIVE, t("MENU_LOAD_NEW_LANGUAGE"), "load_language", None, None, None))
 
         return menu_items
     

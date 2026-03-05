@@ -337,9 +337,13 @@
       "text": "Firmware verwalten",
       "ref_en": "Manage Firmware"
     },
+    "MENU_MANAGE_PREFERENCES": {
+      "text": "Bneutzer Einstellungen",
+      "ref_en": "User Preferences"
+    },
     "MENU_MANAGE_SECURITY": {
-      "text": "Sicherheitsfunktionen verwalten",
-      "ref_en": "Manage Security Features"
+      "text": "Sicherheitsfunktionen",
+      "ref_en": "Security Features"
     },
     "MENU_ENABLE_DISABLE_INTERFACES": {
       "text": "Schnittstellen de-/aktivieren",
@@ -360,6 +364,10 @@
     "MENU_MANAGE_SETTINGS": {
       "text": "Einstellungen verwalten",
       "ref_en": "Manage Settings"
+    },
+    "MENU_SETTINGS_SECURITY": {
+      "text": "Sicherheitseinstellungen",
+      "ref_en": "Security Settings"
     },
     "MENU_LANGUAGE": {
       "text": "Sprache auswählen",
