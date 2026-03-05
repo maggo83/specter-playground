@@ -52,7 +52,4 @@ class MainMenu(GenericMenu):
                     add_size = 1
             menu_items.append((BTC_ICONS.PLUS, t("MENU_ADD_WALLET"), "add_wallet", None, add_size, None))
 
-        menu_items.append((None, t("MAIN_MENU_MANAGE_SETTINGS"), None, None, None, None))
-        menu_items.append((BTC_ICONS.GEAR, t("MENU_MANAGE_SETTINGS"), "manage_settings", None, None, None))
-
         return menu_items
