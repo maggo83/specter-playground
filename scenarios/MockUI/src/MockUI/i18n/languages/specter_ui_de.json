@@ -127,6 +127,10 @@
       "text": "Seedphrase anzeigen",
       "ref_en": "Show Seedphrase"
     },
+    "SEEDPHRASE_MENU_STORAGE": {
+      "text": "Speicher",
+      "ref_en": "Storage"
+    },
     "SEEDPHRASE_MENU_STORE_TO": {
       "text": "Speichern auf",
       "ref_en": "Store to"

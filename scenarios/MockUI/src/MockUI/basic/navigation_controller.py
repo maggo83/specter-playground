@@ -13,6 +13,8 @@ from ..wallet import (
     ChangeWalletMenu,
     AddWalletMenu,
     SeedPhraseMenu,
+    StoreSeedphraseMenu,
+    ClearSeedphraseMenu,
     GenerateSeedMenu,
     PassphraseMenu,
 )
@@ -173,6 +175,10 @@ class NavigationController(lv.obj):
             self.current_screen = InterfacesMenu(self)
         elif current == "manage_seedphrase":
             self.current_screen = SeedPhraseMenu(self)
+        elif current == "store_seedphrase":
+            self.current_screen = StoreSeedphraseMenu(self)
+        elif current == "clear_seedphrase":
+            self.current_screen = ClearSeedphraseMenu(self)
         elif current == "generate_seedphrase":
             self.current_screen = GenerateSeedMenu(self)
         elif current == "set_passphrase":
