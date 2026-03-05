@@ -21,10 +21,11 @@ class AddWalletMenu(GenericMenu):
         if state and state.hasQR and state.enabledQR:
             menu_items.append((BTC_ICONS.QR_CODE, t("HARDWARE_QR_CODE"), "import_from_qr", None, None, None))
 
+        menu_items.append((lv.SYMBOL.KEYBOARD, t("ADD_WALLET_KEYBOARD"), "import_from_keyboard", None, None, None))
+
         if state and state.hasSD and state.enabledSD and state.detectedSD:
             menu_items.append((BTC_ICONS.SD_CARD, t("HARDWARE_SD_CARD"), "import_from_sd", None, None, None))
 
         menu_items.append((BTC_ICONS.FILE, t("HARDWARE_INTERNAL_FLASH"), "import_from_flash", None, None, None))
-        menu_items.append((lv.SYMBOL.KEYBOARD, t("ADD_WALLET_KEYBOARD"), "import_from_keyboard", None, None, None))
 
         return menu_items
