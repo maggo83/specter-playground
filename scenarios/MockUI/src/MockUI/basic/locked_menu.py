@@ -1,37 +1,46 @@
 import lvgl as lv
-from .menu import BTC_ICONS, GenericMenu
+from .titled_screen import TitledScreen
+from .symbol_lib import BTC_ICONS
+from .ui_consts import PIN_BTN_WIDTH, PIN_BTN_HEIGHT
 
 
-class LockedMenu(GenericMenu):
+class LockedMenu(TitledScreen):
     """Simple lock screen that accepts a numeric PIN to unlock the device."""
 
-    def __init__(self, parent, *args, **kwargs):
-        # Get translation function from i18n manager (always available via NavigationController)
-        t = parent.i18n.t
-        
-        # parent is the NavigationController
-        title = t("LOCKED_MENU_TITLE") + str(parent.specter_state.fw_version)
-        super().__init__("locked", title, [], parent, *args, **kwargs)
+    def __init__(self, parent):
+        super().__init__(parent.i18n.t("LOCKED_MENU_TITLE"), parent)
 
-        self.parent = parent
         self.pin_buf = ""
+        t = parent.i18n.t
 
-        # center the content in this menu's container
-        self.container.set_flex_align(
+        self.body.set_layout(lv.LAYOUT.FLEX)
+        self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+        self.body.set_flex_align(
             lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER
         )
 
+        # Firmware version – shown as a subtitle directly under the title bar,
+        # inside the TITLE_PADDING gap so it doesn't push body content down.
+        fw_ver = lv.label(self)
+        fw_ver.set_text(t("LOCKED_MENU_FW_VERSION") + str(self.state.fw_version))
+        fw_ver.set_width(lv.pct(100))
+        fw_ver.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+        fw_ver.set_style_text_font(lv.font_montserrat_16, 0)
+        fw_ver.align_to(self.title_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 1)
+
         # Instruction label
-        instr = lv.label(self.container)
+        instr = lv.label(self.body)
         instr.set_text(t("LOCKED_MENU_ENTER_PIN"))
-        instr.set_width(200)
+        instr.set_width(320)
         instr.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+        instr.set_style_text_font(lv.font_montserrat_28, 0)
 
         # masked PIN display
-        self.mask_lbl = lv.label(self.container)
+        self.mask_lbl = lv.label(self.body)
         self.mask_lbl.set_text("")
-        self.mask_lbl.set_width(200)
+        self.mask_lbl.set_width(320)
         self.mask_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+        self.mask_lbl.set_style_text_font(lv.font_montserrat_28, 0)
 
         # keypad layout (3x4): 1..9, Del, 0, OK
         keys = [
@@ -42,12 +51,12 @@ class LockedMenu(GenericMenu):
         ]
 
         for row in keys:
-            row_cont = lv.obj(self.container)
+            row_cont = lv.obj(self.body)
             # make the row container slightly taller than the buttons so they fit
             row_cont.set_layout(lv.LAYOUT.FLEX)
             row_cont.set_flex_flow(lv.FLEX_FLOW.ROW)
             row_cont.set_width(lv.pct(100))
-            row_cont.set_height(48)
+            row_cont.set_height(lv.SIZE_CONTENT)
             # center buttons in the row and remove visible backgrounds/borders
             row_cont.set_flex_align(
                 lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER
@@ -57,8 +66,8 @@ class LockedMenu(GenericMenu):
 
             for k in row:
                 b = lv.button(row_cont)
-                b.set_width(60)
-                b.set_height(36)
+                b.set_width(PIN_BTN_WIDTH)
+                b.set_height(PIN_BTN_HEIGHT)
                 if k == "Del":
                     im = lv.image(b)
                     BTC_ICONS.CLEAR_CHARACTER.add_to_parent(im)
@@ -74,6 +83,7 @@ class LockedMenu(GenericMenu):
                     lb = lv.label(b)
                     lb.center()
                     lb.set_text(k)
+                    lb.set_style_text_font(lv.font_montserrat_22, 0)
                     b.add_event_cb(lambda e, d=k: self._on_digit(e, d), lv.EVENT.CLICKED, None)
 
     def _update_mask(self):

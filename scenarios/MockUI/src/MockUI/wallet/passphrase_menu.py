@@ -8,21 +8,15 @@ class PassphraseMenu(GenericMenu):
     menu_id: "set_passphrase"
     """
 
-    def __init__(self, parent, *args, **kwargs):
-        # Get translation function from i18n manager (always available via NavigationController)
-        t = parent.i18n.t
-        
-        super().__init__("set_passphrase", t("MENU_SET_PASSPHRASE"), [], parent, *args, **kwargs)
+    TITLE_KEY = "MENU_SET_PASSPHRASE"
 
-        self.parent = parent
-        self.state = parent.specter_state
-        
+    def post_init(self, t, state):
         # Track keyboard state and original value
         self.keyboard = None
         self.original_passphrase = ""
 
         # Row for passphrase input
-        pa_row = lv.obj(self.container)
+        pa_row = lv.obj(self.body)
         pa_row.set_width(lv.pct(100))
         pa_row.set_height(lv.pct(20))
         pa_row.set_layout(lv.LAYOUT.FLEX)
@@ -34,6 +28,7 @@ class PassphraseMenu(GenericMenu):
         pa_lbl.set_text(t("PASSPHRASE_MENU_LABEL"))
         pa_lbl.set_width(lv.pct(30))
         pa_lbl.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
+        pa_lbl.set_style_text_font(lv.font_montserrat_22, 0)
 
         # editable textarea
         self.pa_ta = lv.textarea(pa_row)
@@ -43,7 +38,8 @@ class PassphraseMenu(GenericMenu):
             val = self.state.active_wallet.active_passphrase
         self.pa_ta.set_text(val)
         self.pa_ta.set_width(lv.pct(60))
-        self.pa_ta.set_height(40)
+        self.pa_ta.set_height(50)
+        self.pa_ta.set_style_text_font(lv.font_montserrat_22, 0)
         self.pa_ta.set_accepted_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~ ")  # No newlines
 
         # make textarea clickable
@@ -53,7 +49,7 @@ class PassphraseMenu(GenericMenu):
         # Add defocus handler
         self.pa_ta.add_event_cb(self._on_defocus, lv.EVENT.DEFOCUSED, None)
 
-        buttons_row = lv.obj(self.container)
+        buttons_row = lv.obj(self.body)
         buttons_row.set_width(lv.pct(100))
         buttons_row.set_height(lv.pct(50))
         buttons_row.set_layout(lv.LAYOUT.FLEX)
@@ -68,6 +64,7 @@ class PassphraseMenu(GenericMenu):
         self.clear_btn.set_height(BTN_HEIGHT)
         self.clear_lbl = lv.label(self.clear_btn)
         self.clear_lbl.set_text(lv.SYMBOL.CLOSE + " " + t("PASSPHRASE_MENU_CLEAR"))
+        self.clear_lbl.set_style_text_font(lv.font_montserrat_22, 0)
         self.clear_lbl.center()
         self.clear_btn.add_event_cb(self._on_clear, lv.EVENT.CLICKED, None)
 

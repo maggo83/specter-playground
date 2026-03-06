@@ -1,7 +1,8 @@
 """Core Icon class and bitmap conversion utilities."""
 
 import lvgl as lv
-from ..ui_consts import WHITE_HEX
+from ..ui_consts import WHITE_HEX, BTC_ICON_ZOOM
+
 
 
 def color_to_rgb(color):
@@ -86,10 +87,10 @@ class Icon:
     Reusable icon class that can be rendered as an image.
     
     Can be called with a color to create a new Icon with that color:
-        icon = BTC_ICONS.CHECKMARK(GREEN_HEX)
+        icon = BTC_ICONS.CHECK(GREEN_HEX)
     
     Or used directly (will use white as default color):
-        icon = BTC_ICONS.CHECKMARK
+        icon = BTC_ICONS.CHECK
     
     NOTE: Unlike lv.SYMBOL.*, custom bitmap icons cannot be directly concatenated 
     into strings because they're images, not font characters. Use create_image() 
@@ -148,7 +149,7 @@ class Icon:
 
         return Icon._global_image_dsc_cache[cache_key]
 
-    def add_to_parent(self, parent):
+    def add_to_parent(self, parent, zoom=None):
         """
         Add this icon to a parent lv.image object.
         Sets the A8 image source and applies the icon colour via the
@@ -156,9 +157,15 @@ class Icon:
 
         Args:
             parent: The lv.image object to configure
+            zoom: LVGL zoom factor (256=100%, 512=200%). Defaults to BTC_ICON_ZOOM.
         """
+        if zoom is None:
+            zoom = BTC_ICON_ZOOM
         parent.set_src(self.get_image_dsc())
-        parent.set_size(self.width, self.height)
+        scaled_w = self.width * zoom // 256
+        scaled_h = self.height * zoom // 256
+        parent.set_size(scaled_w, scaled_h)
+        parent.set_scale(zoom)
         # Apply colour via recolor (image data is alpha-only A8)
         r, g, b = color_to_rgb(self.color)
         parent.set_style_image_recolor(lv.color_make(r, g, b), 0)

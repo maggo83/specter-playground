@@ -5,7 +5,6 @@ highlighting key interface elements and explaining their purpose.
 """
 
 from .ui_explainer import UIExplainer
-from ..i18n.i18n_manager import t
 
 
 class GuidedTour:
@@ -17,41 +16,62 @@ class GuidedTour:
     Acts as the central controller - UIExplainer delegates navigation back here.
     
     Usage:
-        tour = GuidedTour(nav_controller)
+        steps = GuidedTour.resolve_steps(NavigationController.INTRO_TOUR_STEPS, nav)
+        tour = GuidedTour(nav, steps)
         tour.start()
     """
     
-    def __init__(self, nav_controller):
-        """Initialize the tour with a reference to the NavigationController.
-        
+    def __init__(self, nav_controller, steps):
+        """Initialize the tour with a NavigationController and resolved steps.
+
         Args:
             nav_controller: The NavigationController instance (must be fully constructed)
+            steps: List of (element, text, position) tuples already resolved at runtime.
         """
         self.nav = nav_controller
-        self.steps = []
+        self.steps = steps
         self.current_index = 0
         self.current_explainer = None
     
     def start(self):
-        """Build the steps list and show the first step."""
-        db = self.nav.device_bar
-        
-        # Define tour steps: (element, text, position)
-        # Element can be lv.obj reference, (x, y, w, h) tuple, or None
-        self.steps = [
-            (None, t("TOUR_INTRO"), "center"),
-            (db.lang_lbl, t("TOUR_LANGUAGE"), "below"),
-            (db.lock_btn, t("TOUR_LOCK"), "below"),
-            (db.center_container, t("TOUR_INTERFACES"), "below"),
-            (db.batt_icon, t("TOUR_BATTERY"), "below"),
-            (db.power_btn, t("TOUR_POWER"), "below"),
-            (self.nav.wallet_bar, t("TOUR_WALLET_BAR"), "above"),
-            # Help icon: manual coordinates - approximate position for first help icon
-            ((435, 143, 28, 28), t("TOUR_HELP_ICON"), "left"),
-        ]
-        
+        """Show the first step of the tour."""
         self.current_index = 0
         self._show_current()
+
+    @staticmethod
+    def resolve_steps(static_steps, nav):
+        """Resolve a static step definition list into a runtime steps list.
+
+        Each entry in static_steps is (element_spec, i18n_key, position) where
+        element_spec is one of:
+          - None                  -> no highlight (full-screen overlay)
+          - (x, y, w, h) tuple   -> manual screen coordinates, passed through
+          - "attr.path" string    -> resolved via getattr chain on nav
+
+        Returns a list of (element, translated_text, position) tuples.
+        """
+        resolved = []
+        for element_spec, key, position in static_steps:
+            if element_spec is None:
+                element = None
+            elif isinstance(element_spec, tuple):
+                if len(element_spec) != 4 or not all(isinstance(v, (int, float)) for v in element_spec):
+                    raise ValueError(
+                        "element_spec tuple must be (x, y, w, h) with 4 numeric values, got {!r}".format(element_spec)
+                    )
+                element = element_spec
+            elif isinstance(element_spec, str):
+                # Resolve dotted attribute path on nav (e.g. "device_bar.lock_btn")
+                element = nav
+                for part in element_spec.split("."):
+                    element = getattr(element, part)
+            else:
+                raise TypeError(
+                    "Invalid element_spec {!r}: expected None, tuple, or str".format(element_spec)
+                )
+            text = nav.i18n.t(key)
+            resolved.append((element, text, position))
+        return resolved
     
     def is_first(self):
         """Return True if currently on the first step."""

@@ -40,6 +40,7 @@
     "PASSPHRASE_MENU_CLEAR": "Clear",
     
     "SEEDPHRASE_MENU_SHOW": "Show Seedphrase",
+    "SEEDPHRASE_MENU_STORAGE": "Storage",
     "SEEDPHRASE_MENU_STORE_TO": "Store to",
     "SEEDPHRASE_MENU_CLEAR_FROM": "Clear from",
     "SEEDPHRASE_MENU_CLEAR_ALL": "all attached storage",
@@ -57,6 +58,7 @@
     "DEVICE_MENU_DANGERZONE": "Dangerzone",
     "DEVICE_MENU_WIPE": "Wipe Device",
     "HELP_DEVICE_MENU_WIPE": "WARNING: This will permanently erase ALL data on the device including your seedphrase, wallet configurations, and settings.\nThis action cannot be undone.\nMake sure you have a backup of your seedphrase before proceeding!",
+    "DEVICE_MENU_RESTART_TOUR": "Restart Tour",
     
     "FIRMWARE_MENU_CURRENT_VERSION": "Current version ",
     "FIRMWARE_MENU_UPDATE_VIA": ". Update via",
@@ -78,11 +80,13 @@
     
     "MENU_LOAD_NEW_LANGUAGE": "Load New Language",
 
-    "LOCKED_MENU_TITLE": "Device Locked, Firmware version ",
+    "LOCKED_MENU_TITLE": "Device Locked",
+    "LOCKED_MENU_FW_VERSION": "Firmware Version: ",
     "LOCKED_MENU_ENTER_PIN": "Enter PIN to unlock:",
     
     "ACTION_SCREEN_PREFIX": "Action: ",
     "ACTION_SCREEN_BACK": "Back",
+    "MODAL_CLOSE_BTN": "Close",
     
     "COMMON_WALLET": "Wallet",
     "COMMON_SINGLESIG": "SingleSig",
@@ -97,12 +101,14 @@
     "MENU_ADD_WALLET": "Add Wallet",
     "MENU_MANAGE_BACKUPS": "Manage Backups",
     "MENU_MANAGE_FIRMWARE": "Manage Firmware",
-    "MENU_MANAGE_SECURITY": "Manage Security Features",
-    "MENU_ENABLE_DISABLE_INTERFACES": "Enable/Disable Interfaces",
+    "MENU_MANAGE_PREFERENCES": "User Preferences",
+    "MENU_MANAGE_SECURITY": "Security Features",
+    "MENU_ENABLE_DISABLE_INTERFACES": "En-/Disable Interfaces",
     "MENU_MANAGE_STORAGE": "Manage Storage",
     "MENU_GENERATE_SEEDPHRASE": "Generate Seedphrase",
     "MENU_MANAGE_DEVICE": "Manage Device",
     "MENU_MANAGE_SETTINGS": "Manage Settings",
+    "MENU_SETTINGS_SECURITY": "Security Settings",
     "MENU_LANGUAGE": "Select Language",
     
     "HARDWARE_SMARTCARD": "SmartCard",
@@ -118,6 +124,7 @@
     "TOUR_BATTERY": "Battery status is shown here when running on battery power.",
     "TOUR_POWER": "Tap here to toggle battery simulation on/off (demo only).",
     "TOUR_WALLET_BAR": "Your active wallet info appears here. It's empty until you create or import a wallet.",
-    "TOUR_HELP_ICON": "Look for these help icons throughout the app. Tap them for more details about each feature."
+    "TOUR_HELP_ICON": "Look for these help icons throughout the app. Tap them for more details about each feature.",
+    "TOUR_SKIP_BTN": "Skip Tour"
   }
 }

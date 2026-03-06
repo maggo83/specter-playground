@@ -43,7 +43,7 @@ class WalletBar(lv.obj):
         self.net_lbl.set_width(70)
 
         # Apply smaller font
-        self.font = lv.font_montserrat_12
+        self.font = lv.font_montserrat_16
         labels = [self.wallet_name_lbl, self.net_lbl]
         for lbl in labels:
             lbl.set_style_text_font(self.font, 0)

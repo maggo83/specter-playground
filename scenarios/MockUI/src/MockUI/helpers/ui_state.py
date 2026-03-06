@@ -10,7 +10,7 @@ simulator environment.
 import json
 
 
-CONFIG_FILE = "ui_state_config.json"
+CONFIG_FILE = "/flash/ui_state_config.json"
 
 
 class UIState:

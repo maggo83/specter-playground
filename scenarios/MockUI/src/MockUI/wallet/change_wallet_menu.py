@@ -14,42 +14,37 @@ class ChangeWalletMenu(GenericMenu):
     and then navigates back (behaves like pressing back).
     """
 
-    def __init__(self, parent, *args, **kwargs):
-        # Build menu items directly to avoid GenericMenu attaching its own callbacks
-        self.parent = parent
-        wallets = getattr(parent.specter_state, "registered_wallets", [])
+    TITLE_KEY = "MAIN_MENU_CHANGE_ADD_WALLET"
 
-        # Get translation function from i18n manager (always available via NavigationController)
-        t = parent.i18n.t
-
-        # Initialize base GenericMenu with no auto-built items
-        super().__init__("change_wallet", t("MAIN_MENU_CHANGE_ADD_WALLET"), [], parent, *args, **kwargs)
+    def post_init(self, t, state):
+        wallets = getattr(state, "registered_wallets", [])
 
         # Helper to set active wallet and navigate back
         def _make_select_callback(wallet):
             def cb(e):
                 # only act on actual clicked events
                 if e.get_code() == lv.EVENT.CLICKED:
-                    parent.specter_state.active_wallet = wallet
+                    self.state.active_wallet = wallet
                     self.on_navigate(None)  # navigate back
             return cb
 
         # Create a button for each registered wallet
         for w in wallets:
-            btn = lv.button(self.container)
+            btn = lv.button(self.body)
             btn.set_width(lv.pct(BTN_WIDTH))
             btn.set_height(BTN_HEIGHT)
             lbl = lv.label(btn)
             lbl.set_text(w.name)
+            lbl.set_style_text_font(lv.font_montserrat_22, 0)
             lbl.center()
             btn.add_event_cb(_make_select_callback(w), lv.EVENT.CLICKED, None)
 
         # spacer
-        spacer = lv.label(self.container)
+        spacer = lv.label(self.body)
         spacer.set_text("")
 
         # Add Wallet button navigates to add_wallet
-        add_btn = lv.button(self.container)
+        add_btn = lv.button(self.body)
         add_btn.set_width(lv.pct(BTN_WIDTH))
         add_btn.set_height(BTN_HEIGHT)
         
@@ -61,6 +56,7 @@ class ChangeWalletMenu(GenericMenu):
         # Text centered
         add_lbl = lv.label(add_btn)
         add_lbl.set_text(t("MENU_ADD_WALLET"))
+        add_lbl.set_style_text_font(lv.font_montserrat_22, 0)
         add_lbl.center()
         
         add_btn.add_event_cb(lambda e: self.on_navigate("add_wallet") if e.get_code() == lv.EVENT.CLICKED else None, lv.EVENT.CLICKED, None)

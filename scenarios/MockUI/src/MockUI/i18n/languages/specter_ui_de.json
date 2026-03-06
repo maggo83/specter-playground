@@ -127,6 +127,10 @@
       "text": "Seedphrase anzeigen",
       "ref_en": "Show Seedphrase"
     },
+    "SEEDPHRASE_MENU_STORAGE": {
+      "text": "Speicher",
+      "ref_en": "Storage"
+    },
     "SEEDPHRASE_MENU_STORE_TO": {
       "text": "Speichern auf",
       "ref_en": "Store to"
@@ -188,6 +192,10 @@
     "HELP_DEVICE_MENU_WIPE": {
       "text": "WARNUNG: Dies löscht ALLE Daten auf dem Gerät permanent, einschließlich deiner Seedphrase, Wallet-Konfigurationen und Einstellungen.\nDiese Aktion kann nicht rückgängig gemacht werden.\nStelle sicher, dass du ein Backup deiner Seedphrase hast bevor du fortfährst!",
       "ref_en": "WARNING: This will permanently erase ALL data on the device including your seedphrase, wallet configurations, and settings.\nThis action cannot be undone.\nMake sure you have a backup of your seedphrase before proceeding!"
+    },
+    "DEVICE_MENU_RESTART_TOUR": {
+      "text": "Tour neu starten",
+      "ref_en": "Restart Tour"
     },
     
     "FIRMWARE_MENU_CURRENT_VERSION": {
@@ -256,8 +264,12 @@
     },
     
     "LOCKED_MENU_TITLE": {
-      "text": "Gerät gesperrt, Firmware-Version ",
-      "ref_en": "Device Locked, Firmware version "
+      "text": "Gerät gesperrt",
+      "ref_en": "Device Locked"
+    },
+    "LOCKED_MENU_FW_VERSION": {
+      "text": "Firmware-Version: ",
+      "ref_en": "Firmware version: "
     },
     "LOCKED_MENU_ENTER_PIN": {
       "text": "PIN eingeben zum Entsperren:",
@@ -271,6 +283,10 @@
     "ACTION_SCREEN_BACK": {
       "text": "Zurück",
       "ref_en": "Back"
+    },
+    "MODAL_CLOSE_BTN": {
+      "text": "Schließen",
+      "ref_en": "Close"
     },
     
     "COMMON_WALLET": {
@@ -321,13 +337,17 @@
       "text": "Firmware verwalten",
       "ref_en": "Manage Firmware"
     },
+    "MENU_MANAGE_PREFERENCES": {
+      "text": "Benutzer Einstellungen",
+      "ref_en": "User Preferences"
+    },
     "MENU_MANAGE_SECURITY": {
-      "text": "Sicherheitsfunktionen verwalten",
-      "ref_en": "Manage Security Features"
+      "text": "Sicherheitsfunktionen",
+      "ref_en": "Security Features"
     },
     "MENU_ENABLE_DISABLE_INTERFACES": {
-      "text": "Schnittstellen aktivieren/deaktivieren",
-      "ref_en": "Enable/Disable Interfaces"
+      "text": "Schnittstellen de-/aktivieren",
+      "ref_en": "En-/Disable Interfaces"
     },
     "MENU_MANAGE_STORAGE": {
       "text": "Speicher verwalten",
@@ -342,8 +362,12 @@
       "ref_en": "Manage Device"
     },
     "MENU_MANAGE_SETTINGS": {
-      "text": "Einstellungen verwalten",
+      "text": "Einstellungen",
       "ref_en": "Manage Settings"
+    },
+    "MENU_SETTINGS_SECURITY": {
+      "text": "Sicherheitseinstellungen",
+      "ref_en": "Security Settings"
     },
     "MENU_LANGUAGE": {
       "text": "Sprache auswählen",
@@ -400,6 +424,10 @@
     "TOUR_HELP_ICON": {
       "text": "Achte auf diese Hilfe-Symbole in der App. Tippe sie an für mehr Details zu jeder Funktion.",
       "ref_en": "Look for these help icons throughout the app. Tap them for more details about each feature."
+    },
+    "TOUR_SKIP_BTN": {
+      "text": "Tour beenden",
+      "ref_en": "Skip Tour"
     }
   }
 }
