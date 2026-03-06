@@ -13,18 +13,21 @@ from ..wallet import (
     ChangeWalletMenu,
     AddWalletMenu,
     SeedPhraseMenu,
+    StoreSeedphraseMenu,
+    ClearSeedphraseMenu,
     GenerateSeedMenu,
     PassphraseMenu,
 )
 from ..device import (
-    DeviceMenu,
+    SecuritySettingsMenu,
     BackupsMenu,
     FirmwareMenu,
     InterfacesMenu,
     StorageMenu,
-    SecurityMenu,
+    SecurityFeaturesMenu,
     LanguageMenu,
     SettingsMenu,
+    PreferencesMenu,
 )
 from ..i18n import I18nManager
 from ..tour import GuidedTour
@@ -115,6 +118,13 @@ class NavigationController(lv.obj):
         self.device_bar.refresh(self.specter_state)
         self.wallet_bar.refresh(self.specter_state)
 
+    def set_wallet_bar_visible(self, visible):
+        """Show or hide the wallet bar (e.g. while a full-screen keyboard is open)."""
+        if visible:
+            self.wallet_bar.remove_flag(lv.obj.FLAG.HIDDEN)
+        else:
+            self.wallet_bar.add_flag(lv.obj.FLAG.HIDDEN)
+
     def show_menu(self, target_menu_id=None):
         
         # Delete current screen (free memory)
@@ -148,8 +158,8 @@ class NavigationController(lv.obj):
             self.current_screen = MainMenu(self)
         elif current == "manage_wallet":
             self.current_screen = WalletMenu(self)
-        elif current == "manage_device":
-            self.current_screen = DeviceMenu(self)
+        elif current == "manage_security_settings":
+            self.current_screen = SecuritySettingsMenu(self)
         elif current == "manage_backups":
             self.current_screen = BackupsMenu(self)
         elif current == "manage_firmware":
@@ -160,12 +170,16 @@ class NavigationController(lv.obj):
             self.current_screen = ChangeWalletMenu(self)
         elif current == "add_wallet":
             self.current_screen = AddWalletMenu(self)
-        elif current == "manage_security":
-            self.current_screen = SecurityMenu(self)
+        elif current == "manage_security_features":
+            self.current_screen = SecurityFeaturesMenu(self)
         elif current == "interfaces":
             self.current_screen = InterfacesMenu(self)
         elif current == "manage_seedphrase":
             self.current_screen = SeedPhraseMenu(self)
+        elif current == "store_seedphrase":
+            self.current_screen = StoreSeedphraseMenu(self)
+        elif current == "clear_seedphrase":
+            self.current_screen = ClearSeedphraseMenu(self)
         elif current == "generate_seedphrase":
             self.current_screen = GenerateSeedMenu(self)
         elif current == "set_passphrase":
@@ -174,6 +188,8 @@ class NavigationController(lv.obj):
             self.current_screen = StorageMenu(self)
         elif current == "select_language":
             self.current_screen = LanguageMenu(self)
+        elif current == "manage_preferences":
+            self.current_screen = PreferencesMenu(self)
         elif current == "manage_settings":
             self.current_screen = SettingsMenu(self)
         else:

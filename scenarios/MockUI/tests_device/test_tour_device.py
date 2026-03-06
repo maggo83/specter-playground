@@ -29,6 +29,7 @@ from conftest import (
     click_by_label,
     click_overlay_by_label,
     navigate_to_device_menu,
+    navigate_to_preferences_menu,
     soft_reset,
 )
 
@@ -191,9 +192,9 @@ def test_e_skipped_tour_persists_after_reset():
 
 
 def test_f_restart_tour_from_device_menu():
-    """'Restart Tour' in Device Menu re-launches the intro overlay."""
+    """'Restart Tour' in Preferences Menu re-launches the intro overlay."""
     restart_label = _load_label("DEVICE_MENU_RESTART_TOUR", "en")[0]
-    navigate_to_device_menu("en")
+    navigate_to_preferences_menu("en")
     click_by_label(restart_label)
 
     intro_text = _load_label("TOUR_INTRO", "en")[0]

@@ -26,6 +26,7 @@ Key detection patterns recognised in source code:
     i18n_manager["KEY"] / i18n_manager['KEY']
     i18n_manager("KEY") / i18n_manager('KEY')
     i18n_manager.t("KEY") / i18n_manager.t('KEY')
+    TITLE_KEY = "KEY"  (GenericMenu subclass class attribute)
 """
 
 import argparse
@@ -83,6 +84,7 @@ class I18nSynchronizer:
         #   i18n_manager("KEY") / i18n_manager('KEY')
         #   i18n_manager.t("KEY") / i18n_manager.t('KEY')  ← captured by the
         #       generic t() pattern since we match the .t(…) suffix
+        #   TITLE_KEY = "KEY"  (GenericMenu subclass class attribute)
         _dq = r'"([^"]+)"'   # double-quoted key capture group
         _sq = r"'([^']+)'"   # single-quoted key capture group
         self.i18n_patterns = [
@@ -92,6 +94,10 @@ class I18nSynchronizer:
             re.compile(r"i18n(?:_manager)?\[" + _sq + r"\]"),
             re.compile(r'i18n(?:_manager)?\(' + _dq + r'\)'),
             re.compile(r"i18n(?:_manager)?\(" + _sq + r"\)"),
+            # GenericMenu subclasses declare the title key as a class attribute
+            # instead of calling t("KEY") directly — scan for that pattern too.
+            re.compile(r'TITLE_KEY\s*=\s*' + _dq),
+            re.compile(r"TITLE_KEY\s*=\s*" + _sq),
         ]
 
         # Tracks which per-file log files have already been initialised

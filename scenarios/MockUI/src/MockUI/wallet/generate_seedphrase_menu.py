@@ -10,17 +10,11 @@ class GenerateSeedMenu(GenericMenu):
     menu_id: "generate_seedphrase"
     """
 
-    def __init__(self, parent, *args, **kwargs):
-        # Get translation function from i18n manager (always available via NavigationController)
-        t = parent.i18n.t
-        
-        super().__init__("generate_seedphrase", t("MENU_GENERATE_SEEDPHRASE"), [], parent, *args, **kwargs)
+    TITLE_KEY = "MENU_GENERATE_SEEDPHRASE"
 
-        self.parent = parent
-        self.state = getattr(parent, "specter_state", None)
-
+    def post_init(self, t, state):
         # Wallet name row (bigger than children)
-        name_row = lv.obj(self.container)
+        name_row = lv.obj(self.body)
         name_row.set_width(lv.pct(100))
         name_row.set_height(70)
         name_row.set_layout(lv.LAYOUT.FLEX)
@@ -56,7 +50,7 @@ class GenerateSeedMenu(GenericMenu):
   
 
         # MultiSig row: [SingleSig] [switch] [MultiSig]
-        ms_row = lv.obj(self.container)
+        ms_row = lv.obj(self.body)
         ms_row.set_width(lv.pct(100))
         ms_row.set_height(60)
         ms_row.set_layout(lv.LAYOUT.FLEX)
@@ -81,7 +75,7 @@ class GenerateSeedMenu(GenericMenu):
         ms_right.set_style_text_font(lv.font_montserrat_22, 0)
 
         # Network row: [mainnet] [switch] [testnet]
-        net_row = lv.obj(self.container)
+        net_row = lv.obj(self.body)
         net_row.set_width(lv.pct(100))
         net_row.set_height(60)
         net_row.set_layout(lv.LAYOUT.FLEX)
@@ -107,14 +101,14 @@ class GenerateSeedMenu(GenericMenu):
 
         # generate and show xPub above Create
         self.generated_xpub = self._generate_dummy_xpub()
-        xp_lbl = lv.label(self.container)
+        xp_lbl = lv.label(self.body)
         xp_lbl.set_text(t("GENERATE_SEED_XPUB") + self.generated_xpub)
         xp_lbl.set_width(lv.pct(100))
         xp_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
         xp_lbl.set_style_text_font(lv.font_montserrat_16, 0)
 
         # Create button row
-        create_row = lv.obj(self.container)
+        create_row = lv.obj(self.body)
         create_row.set_width(lv.pct(100))
         create_row.set_height(80)
         create_row.set_layout(lv.LAYOUT.FLEX)

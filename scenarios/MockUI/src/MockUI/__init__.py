@@ -17,13 +17,14 @@ from .wallet import (
 )
 
 from .device import (
-    DeviceMenu,
+    SecuritySettingsMenu,
     FirmwareMenu,
     InterfacesMenu,
     BackupsMenu,
-    SecurityMenu,
+    SecurityFeaturesMenu,
     StorageMenu,
     SettingsMenu,
+    PreferencesMenu,
 )
 
 from .tour import GuidedTour
@@ -38,7 +39,7 @@ __all__ = [
     "GREEN", "ORANGE", "RED",
     "MainMenu",
     "WalletMenu",
-    "DeviceMenu",
+    "SecuritySettingsMenu",
     "SpecterState",
     "Wallet",
     "ActionScreen",
@@ -46,7 +47,7 @@ __all__ = [
     "DeviceBar",
     "WalletBar",
     "SeedPhraseMenu",
-    "SecurityMenu",
+    "SecurityFeaturesMenu",
     "InterfacesMenu",
     "BackupsMenu",
     "FirmwareMenu",

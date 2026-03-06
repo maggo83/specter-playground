@@ -40,6 +40,7 @@
     "PASSPHRASE_MENU_CLEAR": "Clear",
     
     "SEEDPHRASE_MENU_SHOW": "Show Seedphrase",
+    "SEEDPHRASE_MENU_STORAGE": "Storage",
     "SEEDPHRASE_MENU_STORE_TO": "Store to",
     "SEEDPHRASE_MENU_CLEAR_FROM": "Clear from",
     "SEEDPHRASE_MENU_CLEAR_ALL": "all attached storage",
@@ -79,7 +80,8 @@
     
     "MENU_LOAD_NEW_LANGUAGE": "Load New Language",
 
-    "LOCKED_MENU_TITLE": "Device Locked, Firmware version ",
+    "LOCKED_MENU_TITLE": "Device Locked",
+    "LOCKED_MENU_FW_VERSION": "Firmware Version: ",
     "LOCKED_MENU_ENTER_PIN": "Enter PIN to unlock:",
     
     "ACTION_SCREEN_PREFIX": "Action: ",
@@ -99,12 +101,14 @@
     "MENU_ADD_WALLET": "Add Wallet",
     "MENU_MANAGE_BACKUPS": "Manage Backups",
     "MENU_MANAGE_FIRMWARE": "Manage Firmware",
-    "MENU_MANAGE_SECURITY": "Manage Security Features",
-    "MENU_ENABLE_DISABLE_INTERFACES": "Enable/Disable Interfaces",
+    "MENU_MANAGE_PREFERENCES": "User Preferences",
+    "MENU_MANAGE_SECURITY": "Security Features",
+    "MENU_ENABLE_DISABLE_INTERFACES": "En-/Disable Interfaces",
     "MENU_MANAGE_STORAGE": "Manage Storage",
     "MENU_GENERATE_SEEDPHRASE": "Generate Seedphrase",
     "MENU_MANAGE_DEVICE": "Manage Device",
     "MENU_MANAGE_SETTINGS": "Manage Settings",
+    "MENU_SETTINGS_SECURITY": "Security Settings",
     "MENU_LANGUAGE": "Select Language",
     
     "HARDWARE_SMARTCARD": "SmartCard",
