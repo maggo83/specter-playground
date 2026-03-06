@@ -4,40 +4,30 @@ from ..basic.titled_screen import TitledScreen
 from ..basic.symbol_lib import BTC_ICONS
 
 class InterfacesMenu(TitledScreen):
-    """Menu to enable/disable hardware interfaces.
+    """Menu to enable/disable hardware interfaces."""
 
-    menu_id: "interfaces"
-    """
-
-    def __init__(self, parent, *args, **kwargs):
-        # Get translation function early (needed for title)
-        self.t = parent.i18n.t
-        # TitledScreen creates title_bar (with optional back_btn + title_lbl) and body
-        super().__init__(self.t("MENU_ENABLE_DISABLE_INTERFACES"), parent, *args, **kwargs)
-
-        self.state = getattr(parent, "specter_state", None)
-        self.parent = parent
-        self.menu_id = "interfaces"
+    def __init__(self, parent):
+        # TitledScreen sets self.parent, self.state, self.i18n, self.on_navigate
+        super().__init__(parent.i18n.t("MENU_ENABLE_DISABLE_INTERFACES"), parent)
 
         # Container for rows inside body
-        self.container = self.body
-        self.container.set_layout(lv.LAYOUT.FLEX)
-        self.container.set_flex_flow(lv.FLEX_FLOW.COLUMN)
-        self.container.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+        self.body.set_layout(lv.LAYOUT.FLEX)
+        self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+        self.body.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
 
         # Build interface rows: list of tuples (icon, label_text, state_attr)
         rows = []
         if self.state.hasQR:
-            rows.append((BTC_ICONS.QR_CODE, self.t("HARDWARE_QR_CODE"), "enabledQR"))
+            rows.append((BTC_ICONS.QR_CODE, self.i18n.t("HARDWARE_QR_CODE"), "enabledQR"))
         if self.state.hasUSB:
-            rows.append((BTC_ICONS.USB, self.t("HARDWARE_USB"), "enabledUSB"))
+            rows.append((BTC_ICONS.USB, self.i18n.t("HARDWARE_USB"), "enabledUSB"))
         if self.state.hasSD:
-            rows.append((BTC_ICONS.SD_CARD, self.t("HARDWARE_SD_CARD"), "enabledSD"))
+            rows.append((BTC_ICONS.SD_CARD, self.i18n.t("HARDWARE_SD_CARD"), "enabledSD"))
         if self.state.hasSmartCard:
-            rows.append((BTC_ICONS.SMARTCARD, self.t("HARDWARE_SMARTCARD"), "enabledSmartCard"))
+            rows.append((BTC_ICONS.SMARTCARD, self.i18n.t("HARDWARE_SMARTCARD"), "enabledSmartCard"))
 
         for icon, text, state_attr in rows:
-            row = lv.obj(self.container)
+            row = lv.obj(self.body)
             row.set_style_border_width(0, 0)
 
             row.set_width(lv.pct(100))
@@ -87,9 +77,3 @@ class InterfacesMenu(TitledScreen):
 
 
             sw.add_event_cb(lambda e, a=state_attr: _handler(e, a), lv.EVENT.VALUE_CHANGED, None)
-
-
-
-    def on_back(self, e):
-        if e.get_code() == lv.EVENT.CLICKED:
-            self.on_navigate(None)

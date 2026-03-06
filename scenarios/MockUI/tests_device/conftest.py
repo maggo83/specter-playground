@@ -227,24 +227,163 @@ def ensure_main_menu(max_depth: int = 5):
     )
 
 
-def click_button(label: str) -> None:
-    """Assert *label* is visible and click it."""
+def click_by_label(label: str, delay: float = 1.0) -> None:
+    """Assert *label* is visible on the main screen and click it."""
     labels = find_labels()
     assert label in labels, f"Cannot find button {label!r}. Visible labels: {labels}"
     disco_run("ui", "click", label)
-    time.sleep(1)
+    time.sleep(delay)
+
+
+def click_by_index(index_str: str, delay: float = 1.0) -> None:
+    """Click a widget on the main screen by dot-separated tree index (e.g. '1.0.2')."""
+    disco_run("ui", "click", "--index", index_str)
+    time.sleep(delay)
+
+
+def click_by_partial_label(partial: str, delay: float = 1.0) -> None:
+    """Find the first visible label that contains *partial* and click it."""
+    labels = find_labels()
+    matches = [lbl for lbl in labels if partial in lbl]
+    assert matches, f"No label containing {partial!r}. Visible labels: {labels}"
+    disco_run("ui", "click", matches[0])
+    time.sleep(delay)
+
+
+def find_labels_overlay() -> list[str]:
+    """Return all visible text labels (len > 1) from the LVGL layer_top (overlays)."""
+    raw = disco_run("ui", "screen", "--layer", "top", "--json")
+    if not raw:
+        return []
+    tree = json.loads(raw)
+    labels = []
+
+    def _walk(node):
+        text = node.get("text")
+        if text and len(text) > 1:
+            labels.append(text)
+        for child in node.get("children", []):
+            _walk(child)
+
+    for node in (tree if isinstance(tree, list) else [tree]):
+        _walk(node)
+    return labels
+
+
+def click_overlay_by_label(label: str, delay: float = 1.0) -> None:
+    """Assert *label* is visible in the overlay and click it."""
+    labels = find_labels_overlay()
+    assert label in labels, (
+        f"Cannot find overlay button {label!r}. Visible overlay labels: {labels}"
+    )
+    disco_run("ui", "click", "--layer", "top", label)
+    time.sleep(delay)
+
+
+def click_overlay_by_index(index_str: str, delay: float = 1.0) -> None:
+    """Click an overlay widget by dot-separated tree index (e.g. '0.1.2').
+
+    Useful for icon-only buttons (prev/next/checkmark) that have no text label.
+    """
+    disco_run("ui", "click", "--layer", "top", "--index", index_str)
+    time.sleep(delay)
+
+
+def _read_flash_json(path: str) -> dict:
+    """Read a JSON file from the device flash via REPL and return parsed dict."""
+    output = disco_run(
+        "repl", "exec",
+        f"import json; f=open({path!r}); print(json.dumps(json.load(f))); f.close()",
+    )
+    return json.loads(output)
+
+
+def _find_settings_btn_index() -> str:
+    """Walk the live screen tree to find the gear/settings button index.
+
+    Layout (from live tree dump):
+        screen root [0]   device_bar (obj)
+          [0] left_container
+          [1] center_container
+          [2] right_container
+            [0] battery (obj)
+            [1] settings_btn  ← target
+            [2] power_btn
+        screen root [1]   content area (main menu etc.)
+    Returns a dot-separated index string, e.g. ``'0.2.1'``.
+    """
+    tree = json.loads(disco_run("ui", "screen", "--json"))
+    nodes = tree if isinstance(tree, list) else [tree]
+
+    # device_bar → right_container → settings_btn
+    steps = [0, 2, 1]
+    parts: list[str] = []
+    current: dict = {"children": nodes}
+    for step in steps:
+        children = current.get("children", [])
+        assert len(children) > step, (
+            f"Tree shorter than expected at child [{step}] "
+            f"(path so far: {'.'.join(parts) or 'root'}): "
+            f"node has {len(children)} children"
+        )
+        current = children[step]
+        parts.append(str(step))
+    return ".".join(parts)
+
+
+def navigate_to_settings_menu() -> None:
+    """Navigate to the Settings menu by clicking the gear button in the device bar.
+
+    The gear button is icon-only (no text label), so its widget-tree index is
+    discovered dynamically and clicked by index.
+    """
+    ensure_main_menu()
+    click_by_index(_find_settings_btn_index())
 
 
 def navigate_to_language_menu(lang: str) -> None:
     """Navigate from the main menu to the language selection menu.
 
     *lang* is the language code currently active on the device (e.g. "en", "de").
-    Button labels are resolved from the language JSON files.
+    The Settings gear button is icon-only, so we click it by index.
+    The Language button shows a dynamic label (e.g. "Select Language (EN)"),
+    so we match on the base translation string only.
     """
-    ensure_main_menu()
-    click_button(_load_label("MENU_MANAGE_SETTINGS", lang)[0])
-    click_button(_load_label("MENU_MANAGE_DEVICE",   lang)[0])
-    click_button(_load_label("MENU_LANGUAGE",        lang)[0])
+    navigate_to_settings_menu()
+    click_by_partial_label(_load_label("MENU_LANGUAGE", lang)[0])
+
+
+def navigate_to_device_menu(lang: str = "en") -> None:
+    """Navigate from the main menu to the Security settings menu.
+
+    *lang* is the language code currently active on the device (e.g. "en", "de").
+    The Settings gear button is icon-only, so we navigate via REPL.
+    """
+    navigate_to_settings_menu()
+    click_by_label(_load_label("MENU_SETTINGS_SECURITY", lang)[0])
+
+
+def navigate_to_preferences_menu(lang: str = "en") -> None:
+    """Navigate from the main menu to the Preferences menu.
+
+    *lang* is the language code currently active on the device (e.g. "en", "de").
+    The Settings gear button is icon-only, so we navigate via REPL.
+    """
+    navigate_to_settings_menu()
+    click_by_label(_load_label("MENU_MANAGE_PREFERENCES", lang)[0])
+
+
+def dismiss_tour_if_present() -> None:
+    """Skip the tour overlay if it is currently visible in layer_top.
+
+    Safe to call at any time — does nothing if the tour is not showing.
+    Does NOT call ensure_main_menu() so it can be used inside fixtures
+    without risking recursion.
+    """
+    skip_label = _load_label("TOUR_SKIP_BTN", "en")[0]
+    if skip_label in find_labels_overlay():
+        disco_run("ui", "click", "--layer", "top", skip_label)
+        time.sleep(1.0)
 
 
 def ensure_english() -> None:
@@ -263,7 +402,7 @@ def ensure_english() -> None:
             continue
         if _load_label("MAIN_MENU_TITLE", lang)[0] in find_labels():
             navigate_to_language_menu(lang)
-            click_button(_load_metadata("language_name", "en")[0])
+            click_by_label(_load_metadata("language_name", "en")[0])
             time.sleep(2)
             ensure_main_menu()
             return
@@ -303,5 +442,6 @@ def _require_device(request):
     # Navigate to main menu and ensure English — device may be in any state
     # from a previous (possibly failed) run.
     ensure_main_menu()
+    dismiss_tour_if_present()
     ensure_english()
     yield

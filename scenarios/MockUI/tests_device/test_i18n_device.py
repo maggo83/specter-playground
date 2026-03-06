@@ -22,7 +22,7 @@ import pytest
 
 from conftest import (
     disco_run, find_labels, go_back, ensure_main_menu, soft_reset,
-    navigate_to_language_menu, click_button, _load_label, _load_metadata,
+    navigate_to_language_menu, click_by_label, _load_label, _load_metadata,
 )
 
 # Sentinel strings returned by I18nManager — must match i18n_manager.py.
@@ -179,7 +179,7 @@ class TestI18nFunctional:
         """Full round-trip: navigate, switch to non-default language,
         verify persistence across soft reset, restore English.
 
-        Navigation path: Main → Manage Settings → Manage Device → Select Language
+        Navigation path: Main → Settings (gear icon) → Select Language (EN)
         (handled by navigate_to_language_menu() in conftest.py)
 
         Sub-checks:
@@ -199,7 +199,7 @@ class TestI18nFunctional:
         )
 
         # --- 2. Switch to German (non-default!) ---
-        click_button(_DEUTSCH)
+        click_by_label(_DEUTSCH)
         time.sleep(2)
         ensure_main_menu()
         labels = find_labels()
@@ -232,7 +232,7 @@ class TestI18nFunctional:
         # but gc.collect() is much faster.
         disco_run("repl", "exec", "import gc; gc.collect()")
         navigate_to_language_menu(LANG_DE)
-        click_button(_ENGLISH)
+        click_by_label(_ENGLISH)
         time.sleep(2)
         ensure_main_menu()
 

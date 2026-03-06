@@ -3,20 +3,11 @@ from ..basic.symbol_lib import BTC_ICONS
 import lvgl as lv
 
 class AddWalletMenu(GenericMenu):
-    """Menu to create or import a wallet.
+    """Menu to create or import a wallet."""
 
-    Menu items:
-    - Generate New Seedphrase
-    - Import Seedphrase from: SmartCard, QR Code, SD Card, internal Flash, Keyboard
-      Conditional items included according to parent.specter_state flags.
-    """
+    TITLE_KEY = "MENU_ADD_WALLET"
 
-    def __init__(self, parent, *args, **kwargs):
-        # Get translation function from i18n manager (always available via NavigationController)
-        t = parent.i18n.t
-        
-        state = getattr(parent, "specter_state", None)
-
+    def get_menu_items(self, t, state):
         menu_items = [
             (None, t("ADD_WALLET_NEW_SEEDPHRASE"), None, None, None, None),
             (BTC_ICONS.MNEMONIC, t("MENU_GENERATE_SEEDPHRASE"), "generate_seedphrase", None, None, None),
@@ -30,12 +21,11 @@ class AddWalletMenu(GenericMenu):
         if state and state.hasQR and state.enabledQR:
             menu_items.append((BTC_ICONS.QR_CODE, t("HARDWARE_QR_CODE"), "import_from_qr", None, None, None))
 
+        menu_items.append((lv.SYMBOL.KEYBOARD, t("ADD_WALLET_KEYBOARD"), "import_from_keyboard", None, None, None))
+
         if state and state.hasSD and state.enabledSD and state.detectedSD:
             menu_items.append((BTC_ICONS.SD_CARD, t("HARDWARE_SD_CARD"), "import_from_sd", None, None, None))
 
-        menu_items += [
-            (BTC_ICONS.FILE, t("HARDWARE_INTERNAL_FLASH"), "import_from_flash", None, None, None),
-            (lv.SYMBOL.KEYBOARD, t("ADD_WALLET_KEYBOARD"), "import_from_keyboard", None, None, None),
-        ]
+        menu_items.append((BTC_ICONS.FILE, t("HARDWARE_INTERNAL_FLASH"), "import_from_flash", None, None, None))
 
-        super().__init__("add_wallet", t("MENU_ADD_WALLET"), menu_items, parent, *args, **kwargs)
+        return menu_items

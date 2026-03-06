@@ -4,20 +4,16 @@ from ..basic.symbol_lib import BTC_ICONS
 
 
 class LanguageMenu(GenericMenu):
-    def __init__(self, parent):
-        # Get available languages from i18n manager
-        self.parent = parent
-        available_langs = parent.i18n.get_available_languages()
-        current_lang = parent.i18n.get_language()
-        
-        # Get translation function from i18n manager
-        t = parent.i18n.t
+    TITLE_KEY = "MENU_LANGUAGE"
 
-        # Build menu items with custom callbacks for language selection
+    def get_menu_items(self, t, state):
+        available_langs = self.parent.i18n.get_available_languages()
+        current_lang = self.parent.i18n.get_language()
+
         menu_items = []
-        
+
         for lang_code in available_langs:
-            label = parent.i18n.get_language_name(lang_code)
+            label = self.parent.i18n.get_language_name(lang_code)
             # Add checkmark for currently selected language
             if lang_code == current_lang:
                 symbol = BTC_ICONS.CHECK
@@ -26,17 +22,11 @@ class LanguageMenu(GenericMenu):
 
             # Pass a callback function instead of a string
             menu_items.append((symbol, label, lambda e, lc=lang_code: self._on_language_selected(e, lc), None, None, None))
-        
+
         # Add "Load new language" option (uses default string navigation)
-        menu_items.append((lv.SYMBOL.DOWNLOAD, t("MENU_LOAD_NEW_LANGUAGE"), "load_language", None, None, None))
-        
-        # Call GenericMenu constructor
-        super().__init__(
-            "select_language",
-            parent.i18n.t("MENU_LANGUAGE"),
-            menu_items,
-            parent
-        )
+        menu_items.append((BTC_ICONS.RECEIVE, t("MENU_LOAD_NEW_LANGUAGE"), "load_language", None, None, None))
+
+        return menu_items
     
     def _on_language_selected(self, e, lang_code):
         """Handle language selection: change language and go back."""
