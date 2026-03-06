@@ -23,3 +23,6 @@ build
 scenarios/MockUI/src/MockUI/i18n/translation_keys.py
 scenarios/MockUI/src/MockUI/i18n/language_config.json
 
+# Simulator runtime state files (generated at runtime, not for version control)
+ui_state_config.json
+

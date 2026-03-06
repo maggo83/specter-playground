@@ -1,13 +1,29 @@
-# main.py - MockUI on STM32F469 Discovery
+# main.py - MockUI entry point (STM32F469 Discovery + unix simulator)
 import gc
+import sys
 import display
 import lvgl as lv
 import utime as time
 
-from MockUI import NavigationController, SpecterState
+# Detect platform: sys.platform is 'linux'/'darwin' on unix simulator,
+# 'pyboard' on STM32 hardware. (import pyb is NOT reliable — a stub exists for unix.)
+_ON_HARDWARE = sys.platform not in ('linux', 'darwin')
 
-# Init display without autoupdate timer to avoid heap fragmentation
-display.init()
+# --- Simulator environment setup (the only place with platform-specific logic) ---
+if not _ON_HARDWARE:
+    import os
+    # Mount build/flash_image as /flash so firmware code sees the same path as on
+    # hardware. make build-i18n places lang_*.bin files in build/flash_image/i18n/.
+    # os.getcwd() is the project root when launched via `make simulate`.
+    os.mount(os.VfsPosix(os.getcwd() + '/build/flash_image'), '/flash')
+    # Disable SDL autoupdate so our manual loop drives it.
+    display.init(False)
+else:
+    # Hardware: display.init() disables the autoupdate timer internally.
+    display.init()
+# --- End simulator setup ---
+
+from MockUI import NavigationController, SpecterState
 
 gc.collect()
 
@@ -43,9 +59,10 @@ gc.collect()
 scr = NavigationController(specter_state)
 lv.screen_load(scr)
 
-# Enable USB REPL for debugging
-import pyb
-pyb.usb_mode("VCP")
+# Start TCP control server when --control flag is passed (simulator only)
+if not _ON_HARDWARE and '--control' in sys.argv:
+    from sim_control import ControlServer
+    ControlServer(scr)
 
 while True:
     display.update(30)
