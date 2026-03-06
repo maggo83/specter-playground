@@ -201,6 +201,12 @@ class NavigationController(lv.obj):
         # refresh the UI
         self.refresh_ui()
 
-        # If this was a start_intro_tour action, launch the tour overlay now
+        # If this was a start_intro_tour action, launch the tour overlay now.
+        # Reset current_menu_id to "main" BEFORE starting the tour so that
+        # "start_intro_tour" is never left in the history stack.  Without this,
+        # navigating away from the main menu (e.g. into WalletMenu) pushes
+        # "start_intro_tour" onto history, and popping back triggers the tour
+        # again even if the user already skipped it.
         if self.ui_state.current_menu_id == "start_intro_tour":
+            self.ui_state.current_menu_id = "main"
             GuidedTour(self, GuidedTour.resolve_steps(self.INTRO_TOUR_STEPS, self)).start()
