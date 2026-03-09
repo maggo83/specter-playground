@@ -1,6 +1,7 @@
 import lvgl as lv
 import urandom
 from ..basic import RED, ORANGE, GREEN, GenericMenu, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
+from ..basic.keyboard_text_rules import PROFILE_SEED_NAME
 from ..helpers import Wallet
 
 
@@ -32,6 +33,7 @@ class GenerateSeedMenu(GenericMenu):
         # editable text area
         self.name_ta = lv.textarea(name_row)
         self.name_ta.set_text(t("COMMON_WALLET") + str(urandom.randint(1, 10)) )
+        self._original_name = self.name_ta.get_text()
         self.name_ta.set_width(lv.pct(60))
         self.name_ta.set_height(50)
         self.name_ta.set_style_text_font(lv.font_montserrat_22, 0)
@@ -39,14 +41,9 @@ class GenerateSeedMenu(GenericMenu):
         # can be edited on touch/GUI environments. Use attribute checks rather
         # than try/except to avoid swallowing real errors.
         self.name_ta.add_flag(lv.obj.FLAG.CLICKABLE)
-
-        # Create an on-screen keyboard and keep it
-        # hidden until the textarea is clicked.
-        self._kb = lv.keyboard(self)
-        self._kb.add_flag(lv.obj.FLAG.HIDDEN)
-        # associate keyboard with textarea and show it on click
-        self._kb.set_textarea(self.name_ta)
         self.name_ta.add_event_cb(self._open_keyboard, lv.EVENT.CLICKED, None)
+        self.name_ta.add_event_cb(self._on_defocus, lv.EVENT.DEFOCUSED, None)
+        self.add_event_cb(lambda e: self._on_screen_delete(e), lv.EVENT.DELETE, None)
   
 
         # MultiSig row: [SingleSig] [switch] [MultiSig]
@@ -130,12 +127,28 @@ class GenerateSeedMenu(GenericMenu):
         """Show the on-screen keyboard and attach it to the textarea."""
         if e.get_code() != lv.EVENT.CLICKED:
             return
+        if self.parent.keyboard_manager.is_open_for(self):
+            return
 
-        # ensure keyboard targets the textarea
-        self._kb.set_textarea(self.name_ta)
+        self._original_name = self.name_ta.get_text()
+        self.parent.keyboard_manager.open(
+            self,
+            self.name_ta,
+            PROFILE_SEED_NAME,
+            on_commit=lambda value: setattr(self, "_original_name", value),
+            hide_wallet_bar=True,
+        )
 
-        # make keyboard visible if the binding uses flags
-        self._kb.remove_flag(lv.obj.FLAG.HIDDEN)
+    def _on_defocus(self, e):
+        if e.get_code() != lv.EVENT.DEFOCUSED:
+            return
+        if self.parent.keyboard_manager.is_open_for(self):
+            self.name_ta.set_text(getattr(self, "_original_name", self.name_ta.get_text()))
+            self.parent.keyboard_manager.close()
+
+    def _on_screen_delete(self, e):
+        if e.get_code() == lv.EVENT.DELETE:
+            self.parent.keyboard_manager.on_owner_deleted(self)
 
     def _generate_dummy_xpub(self):
         try:
