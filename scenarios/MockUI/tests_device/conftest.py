@@ -199,6 +199,22 @@ def soft_reset(wait: float = 12.0):
     _wait_for_device_responsive(wait=wait)
 
 
+def flash_firmware(wait: float = 55.0, settle: float = 45.0) -> None:
+    """Flash bin/mockui.bin onto the device and wait until it is responsive.
+
+    The board resets automatically at the end of flashing, so this function
+    just blocks until MicroPython is reachable again (up to *wait* seconds,
+    with an initial *settle* delay for the USB re-enumeration).
+    """
+    print("[device-tests] Flashing firmware ...")
+    subprocess.run(
+        [*_CMD, "flash", "program", os.path.abspath(_FIRMWARE)],
+        check=True,
+    )
+    print("[device-tests] Flash done — polling until board is responsive ...")
+    _wait_for_device_responsive(wait=wait, settle=settle)
+
+
 def ensure_main_menu(max_depth: int = 5):
     """Navigate back until we're on the main menu.
 
@@ -426,18 +442,11 @@ def _require_device(request):
             cwd=_REPO_ROOT,
             check=True,
         )
-        print("[device-tests] Flashing firmware (blocking until done) ...")
-        subprocess.run(
-            [*_CMD, "flash", "program", os.path.abspath(_FIRMWARE)],
-            check=True,
-        )
-        # Flash is complete. The board resets automatically at end of flashing.
-        # Poll until MicroPython is responsive (up to 30s) rather than fixed sleep.
-        print("[device-tests] Flash done — polling until board is responsive ...")
-
-    # Always wait for the device to be responsive (covers both the build/flash
-    # path and --no-build-flash with a freshly-flashed or already-running board).
-    _wait_for_device_responsive(wait=60, settle=45, poll_interval=5)
+        flash_firmware()
+    else:
+        # Always wait for the device to be responsive (covers --no-build-flash
+        # with a freshly-flashed or already-running board).
+        _wait_for_device_responsive(wait=60, settle=45, poll_interval=5)
 
     # Navigate to main menu and ensure English — device may be in any state
     # from a previous (possibly failed) run.
