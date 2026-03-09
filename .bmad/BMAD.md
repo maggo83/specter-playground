@@ -28,7 +28,7 @@ Key facts every agent must know:
 - **Framework**: LVGL v9.3 (UI), running on STM32F469 disco board
 - **Simulator**: `bin/micropython_unix` + LVGL — invoked via `nix develop -c make simulate`
 - **MCP tools**: `lvgl-sim` (simulator control), `code-rag` (semantic code search)
-- **Test runner**: two suites — (1) **unit tests**: `pytest` (no nix, always runnable, `scenarios/MockUI/tests/`); (2) **device tests**: `pytest scenarios/MockUI/tests_device/ -v` (requires STM32F469 board with microUSB/CN13/bottom cable for REPL). Detect board: `disco serial list 2>&1 | grep -q MicroPython && echo PRESENT || echo ABSENT`. When in doubt, **ask the human** before skipping device tests.
+- **Test runner**: two suites — (1) **unit tests**: `./.venv/bin/python -m pytest` (no nix, always runnable, `scenarios/MockUI/tests/`); (2) **device tests**: `./.venv/bin/python -m pytest scenarios/MockUI/tests_device/ -v` (requires STM32F469 board with microUSB/CN13/bottom cable for REPL). Detect board: `disco serial list 2>&1 | grep -q MicroPython && echo PRESENT || echo ABSENT`. When in doubt, **ask the human** before skipping device tests.
 - **i18n**: Binary `.bin` files compiled from JSON — `nix develop -c make build-i18n ADD_LANG=de`, `nix develop -c make sync-i18n`
 - **Build**: `nix develop -c make unix` (simulator), `nix develop -c make mockui ADD_LANG=de` (full STM32 firmware)
 - **Flash**: `disco flash program bin/mockui.bin --addr 0x08000000`

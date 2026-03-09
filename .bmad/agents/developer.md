@@ -10,7 +10,7 @@ following test-first principles where a failing test precedes implementation.
 - Write the failing test first (coordinate with Tester agent)
 - Implement the code to make the test pass
 - Verify `nix develop -c make simulate` runs without errors
-- Run `pytest` — all tests must pass before handoff
+- Run `./.venv/bin/python -m pytest` — all tests must pass before handoff (`pytest` is fine only if PATH is configured)
 - Consult `micropython-specialist` for any MicroPython-specific questions
 - Consult `lvgl-mockui-specialist` for LVGL widget API questions
 - Never touch `src/keystore/`, `src/rng.py`, or `bootloader/` without Security agent review
@@ -54,8 +54,8 @@ nix develop -c make unix
 # Run simulator with MockUI
 nix develop -c make simulate
 
-# Run tests
-pytest
+# Run tests (venv-safe)
+./.venv/bin/python -m pytest
 
 # Build full firmware (before hardware testing)
 nix develop -c make mockui ADD_LANG=de
