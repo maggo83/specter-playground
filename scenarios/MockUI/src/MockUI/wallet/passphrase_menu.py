@@ -1,5 +1,6 @@
 import lvgl as lv
 from ..basic import GenericMenu, BTN_WIDTH, BTN_HEIGHT, PAD_SIZE
+from ..basic.keyboard_text_rules import PROFILE_PASSPHRASE_GENERAL
 
 
 class PassphraseMenu(GenericMenu):
@@ -11,8 +12,7 @@ class PassphraseMenu(GenericMenu):
     TITLE_KEY = "MENU_SET_PASSPHRASE"
 
     def post_init(self, t, state):
-        # Track keyboard state and original value
-        self.keyboard = None
+        # Track original value for cancel/defocus
         self.original_passphrase = ""
 
         # Row for passphrase input
@@ -40,7 +40,6 @@ class PassphraseMenu(GenericMenu):
         self.pa_ta.set_width(lv.pct(60))
         self.pa_ta.set_height(50)
         self.pa_ta.set_style_text_font(lv.font_montserrat_22, 0)
-        self.pa_ta.set_accepted_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~ ")  # No newlines
 
         # make textarea clickable
         self.pa_ta.add_flag(lv.obj.FLAG.CLICKABLE)
@@ -48,6 +47,7 @@ class PassphraseMenu(GenericMenu):
         
         # Add defocus handler
         self.pa_ta.add_event_cb(self._on_defocus, lv.EVENT.DEFOCUSED, None)
+        self.add_event_cb(lambda e: self._on_screen_delete(e), lv.EVENT.DELETE, None)
 
         buttons_row = lv.obj(self.body)
         buttons_row.set_width(lv.pct(100))
@@ -84,66 +84,37 @@ class PassphraseMenu(GenericMenu):
         """Show keyboard for editing passphrase."""
         if e.get_code() != lv.EVENT.CLICKED:
             return
-
-        # If keyboard already exists, delete it first
-        if self.keyboard:
-            self.keyboard.delete()
-            self.keyboard = None
+        if self.parent.keyboard_manager.is_open_for(self):
+            return
 
         # Store original passphrase for cancel/defocus
         self.original_passphrase = self.pa_ta.get_text()
 
-        # Create keyboard
-        self.keyboard = lv.keyboard(self)
-        self.keyboard.set_textarea(self.pa_ta)
-        
-        # Keep focus on text area
-        self.pa_ta.add_state(lv.STATE.FOCUSED)
-        
-        # Add event handler for when OK button is pressed
-        def on_keyboard_ready(e):
-            if e.get_code() == lv.EVENT.READY:
-                # Update passphrase in state
-                val = self.pa_ta.get_text()
-                if val == "":
-                    self.state.active_wallet.active_passphrase = None
-                else:
-                    self.state.active_wallet.active_passphrase = val
-                # Refresh UI
-                self.parent.refresh_ui()
-                # Remove focus from text area
-                self.pa_ta.remove_state(lv.STATE.FOCUSED)
-                # Delete keyboard
-                if self.keyboard:
-                    self.keyboard.delete()
-                    self.keyboard = None
-                # Navigate back to previous menu
-                self.on_navigate(None)
-        
-        # Add event handler for when Cancel button is pressed
-        def on_keyboard_cancel(e):
-            if e.get_code() == lv.EVENT.CANCEL:
-                # Restore original passphrase
-                self.pa_ta.set_text(self.original_passphrase)
-                # Remove focus from text area
-                self.pa_ta.remove_state(lv.STATE.FOCUSED)
-                # Delete keyboard
-                if self.keyboard:
-                    self.keyboard.delete()
-                    self.keyboard = None
-        
-        self.keyboard.add_event_cb(on_keyboard_ready, lv.EVENT.READY, None)
-        self.keyboard.add_event_cb(on_keyboard_cancel, lv.EVENT.CANCEL, None)
+        def _on_commit(value):
+            if value == "":
+                self.state.active_wallet.active_passphrase = None
+            else:
+                self.state.active_wallet.active_passphrase = value
+            self.parent.refresh_ui()
+            self.on_navigate(None)
+
+        self.parent.keyboard_manager.open(
+            self,
+            self.pa_ta,
+            PROFILE_PASSPHRASE_GENERAL,
+            on_commit=_on_commit,
+            hide_wallet_bar=True,
+        )
 
     def _on_defocus(self, e):
         """Handle text area losing focus - close keyboard and discard changes."""
         if e.get_code() != lv.EVENT.DEFOCUSED:
             return
-        
-        # If keyboard is open, close it and discard changes
-        if self.keyboard:
-            # Restore original passphrase
+
+        if self.parent.keyboard_manager.is_open_for(self):
             self.pa_ta.set_text(self.original_passphrase)
-            # Delete keyboard
-            self.keyboard.delete()
-            self.keyboard = None
+            self.parent.keyboard_manager.close()
+
+    def _on_screen_delete(self, e):
+        if e.get_code() == lv.EVENT.DELETE:
+            self.parent.keyboard_manager.on_owner_deleted(self)

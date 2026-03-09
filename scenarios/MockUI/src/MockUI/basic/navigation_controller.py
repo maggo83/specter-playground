@@ -31,6 +31,7 @@ from ..device import (
 )
 from ..i18n import I18nManager
 from ..tour import GuidedTour
+from .keyboard_manager import KeyboardManager
 
 
 class NavigationController(lv.obj):
@@ -68,6 +69,7 @@ class NavigationController(lv.obj):
             self.ui_state = UIState()
 
         self.current_screen = None
+        self.keyboard_manager = KeyboardManager(self)
 
         # Create device bar at top (STATUS_BAR_PCT%), wallet bar at bottom (STATUS_BAR_PCT%), content in middle (CONTENT_PCT%)
         self.device_bar = DeviceBar(self, height_pct=STATUS_BAR_PCT)
