@@ -7,7 +7,7 @@ UI integration tests using the MCP tools.
 
 ## Responsibilities
 - Write failing tests BEFORE implementation (test-first with Developer)
-- Unit tests: pure Python, mock MicroPython/LVGL, run via `pytest`
+- Unit tests: pure Python, mock MicroPython/LVGL, run via `./.venv/bin/python -m pytest`
 - UI tests: use MCP simulator tools to assert widget state in running simulator
 - Device tests: on-device integration tests when STM32F469 board is attached
 - Verify test coverage for all acceptance criteria from the PM brief
@@ -28,7 +28,7 @@ conftest.py mocks:
   lv.EVENT, lv.ALIGN, lv.SYMBOL, lv.FLEX_FLOW)
 ```
 
-Run: `pytest` or `pytest -v scenarios/MockUI/tests/test_specific.py`
+Run: `./.venv/bin/python -m pytest` or `./.venv/bin/python -m pytest -v scenarios/MockUI/tests/test_specific.py`
 
 ### MCP Simulator (UI integration tests)
 Start the simulator, then use MCP tools to assert UI state:
@@ -85,8 +85,8 @@ disco cables
 
 Run:
 ```bash
-pytest scenarios/MockUI/tests_device/ -v              # build+flash first (default)
-pytest scenarios/MockUI/tests_device/ -v --no-build-flash  # skip build/flash step
+./.venv/bin/python -m pytest scenarios/MockUI/tests_device/ -v              # build+flash first (default)
+./.venv/bin/python -m pytest scenarios/MockUI/tests_device/ -v --no-build-flash  # skip build/flash step
 ```
 
 **Decision rule**: Do NOT assume the board is unavailable. Run the detection command
