@@ -3,7 +3,7 @@ import lvgl as lv
 import urandom
 from ..basic import RED, ORANGE, GREEN, GenericMenu, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
 from ..basic.keyboard_manager import Layout
-from ..helpers import Wallet
+from ..stubs import Wallet
 
 
 class GenerateSeedMenu(GenericMenu):

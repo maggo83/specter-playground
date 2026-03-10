@@ -1,6 +1,6 @@
 import lvgl as lv
 
-from ..helpers import UIState, SpecterState
+from ..stubs import UIState, SpecterState
 from .device_bar import DeviceBar
 from .wallet_bar import WalletBar
 from .action_screen import ActionScreen

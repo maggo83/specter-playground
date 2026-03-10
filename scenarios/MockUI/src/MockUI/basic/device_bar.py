@@ -1,5 +1,5 @@
 import lvgl as lv
-from ..helpers import Battery
+from ..stubs import Battery
 from .ui_consts import BTC_ICON_WIDTH, GREEN_HEX, ORANGE_HEX, RED_HEX, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH
 from .symbol_lib import BTC_ICONS
 

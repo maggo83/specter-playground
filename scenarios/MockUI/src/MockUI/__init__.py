@@ -4,7 +4,7 @@ from .basic import MainMenu, LockedMenu, DeviceBar, WalletBar, ActionScreen, Gen
 from .basic import SpecterGui
 from .tour import UIExplainer, GuidedTour
 
-from .helpers import UIState, SpecterState, Wallet
+from .stubs import UIState, SpecterState, Wallet
 
 from .wallet import (
     WalletMenu,
