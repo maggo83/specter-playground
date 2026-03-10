@@ -47,10 +47,10 @@ class PassphraseMenu(GenericMenu):
                 self.state.active_wallet.active_passphrase = None
             else:
                 self.state.active_wallet.active_passphrase = value
-            self.parent.refresh_ui()
+            self.gui.refresh_ui()
             self.on_navigate(None)
 
-        keyboard_binder = lambda e: self.parent.keyboard_manager.bind(self.pa_ta, Layout.FULL, _on_commit, _sanitize_passphrase)
+        keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.pa_ta, Layout.FULL, _on_commit, _sanitize_passphrase)
         self.pa_ta.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         buttons_row = lv.obj(self.body)
@@ -82,4 +82,4 @@ class PassphraseMenu(GenericMenu):
         # Clear passphrase in state
         self.state.active_wallet.active_passphrase = None
         # Refresh UI
-        self.parent.refresh_ui()
+        self.gui.refresh_ui()

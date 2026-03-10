@@ -7,7 +7,7 @@ class InterfacesMenu(TitledScreen):
     """Menu to enable/disable hardware interfaces."""
 
     def __init__(self, parent):
-        # TitledScreen sets self.parent, self.state, self.i18n, self.on_navigate
+        # TitledScreen sets self.gui, self.state, self.i18n, self.on_navigate
         super().__init__(parent.i18n.t("MENU_ENABLE_DISABLE_INTERFACES"), parent)
 
         # Container for rows inside body
@@ -68,12 +68,11 @@ class InterfacesMenu(TitledScreen):
                 sw_obj = e.get_target_obj()
                 is_on = bool(sw_obj.has_state(lv.STATE.CHECKED))
 
-                # update specter_state stored on this menu instance and in SpecterGui
+                # update specter_state via shorthand
                 setattr(self.state, attr, is_on)
-                setattr(self.parent.specter_state, attr, is_on)
 
                 # refresh UI
-                self.parent.refresh_ui()
+                self.gui.refresh_ui()
 
 
             sw.add_event_cb(lambda e, a=state_attr: _handler(e, a), lv.EVENT.VALUE_CHANGED, None)

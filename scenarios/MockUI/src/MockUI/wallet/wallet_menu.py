@@ -70,9 +70,9 @@ class WalletMenu(GenericMenu):
         def _on_commit(new_name):
             if self.state and self.state.active_wallet:
                 self.state.active_wallet.name = new_name
-                self.parent.refresh_ui()
+                self.gui.refresh_ui()
 
-        keyboard_binder = lambda e: self.parent.keyboard_manager.bind(self.name_textarea, Layout.FULL, _on_commit)
+        keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.name_textarea, Layout.FULL, _on_commit)
         self.name_textarea.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         # Trash button navigates to delete confirmation

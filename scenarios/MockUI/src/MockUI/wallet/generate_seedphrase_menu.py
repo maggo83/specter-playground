@@ -39,7 +39,7 @@ class GenerateSeedMenu(GenericMenu):
         self.name_ta.set_height(50)
         self.name_ta.set_style_text_font(lv.font_montserrat_22, 0)
 
-        keyboard_binder = lambda e: self.parent.keyboard_manager.bind(self.name_ta, Layout.FULL)
+        keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.name_ta, Layout.FULL)
         self.name_ta.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         # MultiSig row: [SingleSig] [switch] [MultiSig]
@@ -149,7 +149,7 @@ class GenerateSeedMenu(GenericMenu):
         self.state.set_active_wallet(w)
 
         # go to main menu directly
-        if hasattr(self.parent, 'ui_state') and self.parent.ui_state:
-            self.parent.ui_state.clear_history()
-            self.parent.ui_state.current_menu_id = "main"
-        self.parent.show_menu(None)
+        if hasattr(self.gui, 'ui_state') and self.gui.ui_state:
+            self.gui.ui_state.clear_history()
+            self.gui.ui_state.current_menu_id = "main"
+        self.gui.show_menu(None)

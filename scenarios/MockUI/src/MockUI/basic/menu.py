@@ -23,7 +23,7 @@ class GenericMenu(TitledScreen):
     """
 
     def __init__(self, parent):
-        # TitledScreen sets self.parent, self.state, self.i18n, self.on_navigate, self.body, etc.
+        # TitledScreen sets self.gui, self.state, self.i18n, self.on_navigate, self.body, etc.
         super().__init__("", parent)
 
         title = self.get_title(self.i18n.t, self.state)

@@ -9,7 +9,7 @@ class SettingsMenu(GenericMenu):
 
     def get_menu_items(self, t, state):
         # Show current language code inline on the Language button
-        lang_code = self.parent.i18n.get_language()
+        lang_code = self.i18n.get_language()
         lang_label = t("MENU_LANGUAGE") + " (" + lang_code.upper() + ")"
 
         return [
