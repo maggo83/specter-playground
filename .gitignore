@@ -18,10 +18,11 @@ data/
 .rag/chroma_db/
 specter-diy-src
 
-# i18n generated files
+# i18n generated files (path-independent — matches any depth)
 build
-scenarios/MockUI/src/MockUI/i18n/translation_keys.py
-scenarios/MockUI/src/MockUI/i18n/language_config.json
+lang_*.bin
+language_config.json
+translation_keys.py
 
 # Simulator runtime state files (generated at runtime, not for version control)
 ui_state_config.json
