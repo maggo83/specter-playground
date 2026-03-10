@@ -68,7 +68,7 @@ class InterfacesMenu(TitledScreen):
                 sw_obj = e.get_target_obj()
                 is_on = bool(sw_obj.has_state(lv.STATE.CHECKED))
 
-                # update specter_state stored on this menu instance and in NavigationController
+                # update specter_state stored on this menu instance and in SpecterGui
                 setattr(self.state, attr, is_on)
                 setattr(self.parent.specter_state, attr, is_on)
 

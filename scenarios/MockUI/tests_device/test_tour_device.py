@@ -48,19 +48,19 @@ from conftest import (
 # ---------------------------------------------------------------------------
 
 _NAV_SRC = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), "..", "src", "MockUI", "basic", "navigation_controller.py"
+    os.path.dirname(__file__), "..", "src", "MockUI", "basic", "specter_gui.py"
 ))
 
 
 def _extract_intro_tour_steps(path: str) -> list:
-    """Parse INTRO_TOUR_STEPS from navigation_controller.py using ast (no imports)."""
+    """Parse INTRO_TOUR_STEPS from specter_gui.py using ast (no imports)."""
     tree = ast.parse(open(path).read())
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name) and target.id == "INTRO_TOUR_STEPS":
                     return ast.literal_eval(node.value)
-    raise RuntimeError("INTRO_TOUR_STEPS not found in navigation_controller.py")
+    raise RuntimeError("INTRO_TOUR_STEPS not found in specter_gui.py")
 
 
 STEP_KEYS = [step[1] for step in _extract_intro_tour_steps(_NAV_SRC)]

@@ -127,7 +127,7 @@ class DeviceBar(lv.obj):
                 # unlocking should be handled by the locked screen's PIN flow
                 return
             else:
-                # lock the device and force NavigationController to show the locked screen
+                # lock the device and force SpecterGui to show the locked screen
                 self.parent.specter_state.lock()
                 # show_menu will detect is_locked and show the locked screen
                 self.parent.show_menu(None)

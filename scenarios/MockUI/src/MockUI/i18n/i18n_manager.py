@@ -310,7 +310,7 @@ class I18nManager:
             return False
 
 
-# Global instance (will be initialized by NavigationController or main app)
+# Global instance (will be initialized by SpecterGui or main app)
 _global_i18n_manager = None
 
 
