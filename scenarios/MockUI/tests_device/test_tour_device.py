@@ -235,6 +235,7 @@ def test_tour_complete_scenario():
     skip_text  = _load_label("TOUR_SKIP_BTN", "en")[0]
 
     # --- restart tour from preferences, verify overlay appears ---
+    assert _tour_completed(), "Expected tour_completed=True at start of scenario 2 (left by scenario 1)"
     _restart_tour_from_preferences()
     assert intro_text in find_labels_overlay(), (
         f"Expected tour intro after restart. Got: {find_labels_overlay()}"
