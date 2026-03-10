@@ -49,6 +49,7 @@ class WalletMenu(GenericMenu):
         self.name_textarea.set_style_border_width(2, lv.PART.MAIN)
         self.name_textarea.set_style_border_color(WHITE_HEX, lv.PART.MAIN)
         self.name_textarea.align(lv.ALIGN.CENTER, 0, 0)
+        self.name_textarea.set_accepted_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~ ")  # No newlines
 
         # Set initial text from active wallet
         wallet_name = ""

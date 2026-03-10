@@ -68,10 +68,17 @@ class MockKeyboard:
     def set_map(self, *a):                 pass
 
 
+class _EventDsc:
+    """Descriptor returned by add_event_cb, consumed by remove_event_dsc."""
+    def __init__(self, cb, ev):
+        self.cb = cb
+        self.ev = ev
+
+
 class MockTextarea:
     def __init__(self, text="initial"):
         self._text        = text
-        self._event_cbs   = []
+        self._event_cbs   = []   # list of _EventDsc objects
         self._states      = set()
         self.set_text_calls = []
 
@@ -80,9 +87,15 @@ class MockTextarea:
         self.set_text_calls.append(t)
         self._text = t
     def add_state(self, s):           self._states.add(s)
-    def add_event_cb(self, cb, ev, ud): self._event_cbs.append((cb, ev))
-    def remove_event_cb(self, cb):
-        self._event_cbs = [(c, e) for c, e in self._event_cbs if c != cb]
+    def add_event_cb(self, cb, ev, ud):
+        dsc = _EventDsc(cb, ev)
+        self._event_cbs.append(dsc)
+        return dsc
+    def remove_event_dsc(self, dsc):
+        if dsc in self._event_cbs:
+            self._event_cbs.remove(dsc)
+            return True
+        return False
     def add_flag(self, *a):           pass
 
 
@@ -207,11 +220,16 @@ def test_cancel_on_delete_does_not_restore_text(manager, ta):
     assert len(ta.set_text_calls) == calls_before, "set_text must not be called during DELETE"
 
 
-def test_cancel_on_delete_still_calls_on_cancel(manager, ta):
+def test_cancel_on_delete_does_not_call_on_cancel(manager, ta):
+    """When the textarea is being destroyed, on_cancel must not be called.
+
+    Documented contract: neither text restore nor on_cancel are triggered
+    during lv.EVENT.DELETE because the object is being destroyed by LVGL.
+    """
     cancelled = []
     manager.bind(ta, 1, on_cancel=lambda: cancelled.append(True))
     manager._cancel(MockEvent(lv.EVENT.DELETE))
-    assert cancelled == [True]
+    assert cancelled == [], "on_cancel must not be called during DELETE"
 
 
 def test_cancel_on_delete_unbinds(manager, ta):

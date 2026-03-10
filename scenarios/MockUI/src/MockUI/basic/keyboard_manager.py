@@ -15,6 +15,8 @@ class KeyboardManager:
         self.keyboard = None
         self._reset_internals()
         self.textarea = None
+        self.defocus_cb = None
+        self.delete_cb = None
 
     def bind(self, textarea, layout_id, on_commit=None, sanitize=None, on_cancel=None):
         """Activate the on-screen keyboard for a textarea.
@@ -38,8 +40,10 @@ class KeyboardManager:
                 READY before ``on_commit``.
             on_cancel: Optional callback ``fn()`` invoked when input is
                 canceled/aborted. Original text is restored to the textarea
-                before the call. Note: text is NOT restored when the textarea
-                is being deleted (``lv.EVENT.DELETE``) — the object is dying.
+                before the call. Neither the text restore nor this callback
+                are triggered when the textarea fires ``lv.EVENT.DELETE``
+                (the object is being destroyed by LVGL; operating on it
+                or calling navigation logic at that point would be unsafe).
         """
         self._ensure_keyboard()
 
@@ -60,8 +64,8 @@ class KeyboardManager:
         self._set_internals(on_commit=on_commit, on_cancel=on_cancel, sanitize=sanitize, original_text=textarea.get_text())
 
         textarea.add_state(lv.STATE.FOCUSED)
-        textarea.add_event_cb(self._cancel, lv.EVENT.DEFOCUSED, None)
-        textarea.add_event_cb(self._cancel, lv.EVENT.DELETE, None)
+        self.defocus_cb = textarea.add_event_cb(self._cancel, lv.EVENT.DEFOCUSED, None)
+        self.delete_cb = textarea.add_event_cb(self._cancel, lv.EVENT.DELETE, None)
 
         self.keyboard.remove_flag(lv.obj.FLAG.HIDDEN)
         self.keyboard.set_textarea(textarea)
@@ -74,8 +78,12 @@ class KeyboardManager:
             return
         
         if not textarea_is_deleting:
-            self.textarea.remove_event_cb(self._cancel)
-            self.textarea.remove_event_cb(self._cancel)
+            if self.defocus_cb:
+                self.textarea.remove_event_dsc(self.defocus_cb)
+                self.defocus_cb = None
+            if self.delete_cb:
+                self.textarea.remove_event_dsc(self.delete_cb)
+                self.delete_cb = None
 
         self._reset_internals()
 
@@ -120,14 +128,14 @@ class KeyboardManager:
             return
         
         #first remove keyboard and callbacks, then call cancel callback (if any) to avoid potential reentrancy issues
+        cancel_cb = None
 
         is_deleting = (e is not None and e.get_code() == lv.EVENT.DELETE)
 
         if not is_deleting:
             # reset to initial value/text
             self.textarea.set_text(self._original_text)    
-
-        cancel_cb = self.on_cancel
+            cancel_cb = self.on_cancel
         
         self._unbind(is_deleting)
 
