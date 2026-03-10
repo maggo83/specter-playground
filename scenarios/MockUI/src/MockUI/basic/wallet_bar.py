@@ -6,10 +6,10 @@ from .symbol_lib import BTC_ICONS
 class WalletBar(lv.obj):
     """Wallet status bar showing wallet-related information. Designed to be ~5% of the screen height at the bottom."""
 
-    def __init__(self, parent, height_pct=5, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+    def __init__(self, gui, height_pct=5, *args, **kwargs):
+        super().__init__(gui, *args, **kwargs)
 
-        self.parent = parent  # for callback access
+        self.gui = gui  # for callback access
 
         self.set_width(lv.pct(100))
         self.set_height(lv.pct(height_pct))
@@ -65,21 +65,21 @@ class WalletBar(lv.obj):
 
     def wallet_name_ico_clicked(self, e):
         if e.get_code() == lv.EVENT.CLICKED:
-            if self.parent.specter_state.active_wallet is None:
-                if self.parent.ui_state.current_menu_id != "add_wallet":
-                    self.parent.show_menu("add_wallet")
+            if self.gui.specter_state.active_wallet is None:
+                if self.gui.ui_state.current_menu_id != "add_wallet":
+                    self.gui.show_menu("add_wallet")
             else:
-                if self.parent.ui_state.current_menu_id != "change_wallet":
-                    self.parent.show_menu("change_wallet")
+                if self.gui.ui_state.current_menu_id != "change_wallet":
+                    self.gui.show_menu("change_wallet")
 
     def wallet_config_ico_clicked(self, e):
         if e.get_code() == lv.EVENT.CLICKED:
-            if self.parent.specter_state.active_wallet is None:
-                if self.parent.ui_state.current_menu_id != "add_wallet":
-                    self.parent.show_menu("add_wallet")
+            if self.gui.specter_state.active_wallet is None:
+                if self.gui.ui_state.current_menu_id != "add_wallet":
+                    self.gui.show_menu("add_wallet")
             else:
-                if self.parent.ui_state.current_menu_id != "manage_wallet":
-                    self.parent.show_menu("manage_wallet")
+                if self.gui.ui_state.current_menu_id != "manage_wallet":
+                    self.gui.show_menu("manage_wallet")
 
     def refresh(self, state):
         """Update visual elements from a SpecterState-like object."""

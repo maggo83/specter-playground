@@ -123,7 +123,7 @@ class LockedMenu(TitledScreen):
             if self.gui.current_screen:
                 self.gui.current_screen.delete()
             self.gui.current_screen = None
-            self.gui.show_menu(None)
+            self.on_navigate(None)
         else:
             # clear buffer and indicate failure (simple UX)
             self.pin_buf = ""

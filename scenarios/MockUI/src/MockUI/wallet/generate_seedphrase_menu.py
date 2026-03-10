@@ -152,4 +152,4 @@ class GenerateSeedMenu(GenericMenu):
         if hasattr(self.gui, 'ui_state') and self.gui.ui_state:
             self.gui.ui_state.clear_history()
             self.gui.ui_state.current_menu_id = "main"
-        self.gui.show_menu(None)
+        self.on_navigate(None)
