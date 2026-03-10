@@ -1,20 +1,25 @@
 
 import lvgl as lv
 import urandom
-from ..basic import RED, ORANGE, GREEN, GenericMenu, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
+from ..basic import TitledScreen, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
 from ..basic.keyboard_manager import Layout
 from ..stubs import Wallet
 
 
-class GenerateSeedMenu(GenericMenu):
-    """Menu to generate a new seed and create a wallet.
+class GenerateSeedMenu(TitledScreen):
+    """Form to generate a new seed and create a wallet.
 
     menu_id: "generate_seedphrase"
     """
 
-    TITLE_KEY = "MENU_GENERATE_SEEDPHRASE"
+    def __init__(self, parent):
+        super().__init__(parent.i18n.t("MENU_GENERATE_SEEDPHRASE"), parent)
+        t = self.i18n.t
 
-    def post_init(self, t, state):
+        self.body.set_layout(lv.LAYOUT.FLEX)
+        self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+        self.body.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+
         # Wallet name row (bigger than children)
         name_row = lv.obj(self.body)
         name_row.set_width(lv.pct(100))

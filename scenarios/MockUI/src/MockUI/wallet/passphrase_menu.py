@@ -1,20 +1,25 @@
 import lvgl as lv
-from ..basic import GenericMenu, BTN_WIDTH, BTN_HEIGHT, PAD_SIZE
+from ..basic import TitledScreen, BTN_WIDTH, BTN_HEIGHT, PAD_SIZE
 from ..basic.keyboard_manager import Layout
 
 def _sanitize_passphrase(text):
     return text.strip()
 
 
-class PassphraseMenu(GenericMenu):
-    """Menu to enter/set the active wallet passphrase.
+class PassphraseMenu(TitledScreen):
+    """Form to enter/set the active wallet passphrase.
 
     menu_id: "set_passphrase"
     """
 
-    TITLE_KEY = "MENU_SET_PASSPHRASE"
+    def __init__(self, parent):
+        super().__init__(parent.i18n.t("MENU_SET_PASSPHRASE"), parent)
+        t = self.i18n.t
 
-    def post_init(self, t, state):
+        self.body.set_layout(lv.LAYOUT.FLEX)
+        self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+        self.body.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+
         # Row for passphrase input
         pa_row = lv.obj(self.body)
         pa_row.set_width(lv.pct(100))
