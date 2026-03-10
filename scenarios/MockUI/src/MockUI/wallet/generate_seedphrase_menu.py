@@ -1,7 +1,8 @@
+
 import lvgl as lv
 import urandom
 from ..basic import RED, ORANGE, GREEN, GenericMenu, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
-from ..basic.keyboard_text_rules import PROFILE_SEED_NAME
+from ..basic.keyboard_manager import Layout
 from ..helpers import Wallet
 
 
@@ -37,14 +38,9 @@ class GenerateSeedMenu(GenericMenu):
         self.name_ta.set_width(lv.pct(60))
         self.name_ta.set_height(50)
         self.name_ta.set_style_text_font(lv.font_montserrat_22, 0)
-        # Make the textarea clickable and attach an on-screen keyboard so it
-        # can be edited on touch/GUI environments. Use attribute checks rather
-        # than try/except to avoid swallowing real errors.
-        self.name_ta.add_flag(lv.obj.FLAG.CLICKABLE)
-        self.name_ta.add_event_cb(self._open_keyboard, lv.EVENT.CLICKED, None)
-        self.name_ta.add_event_cb(self._on_defocus, lv.EVENT.DEFOCUSED, None)
-        self.add_event_cb(lambda e: self._on_screen_delete(e), lv.EVENT.DELETE, None)
-  
+
+        keyboard_binder = lambda e: self.parent.keyboard_manager.bind(self.name_ta, Layout.FULL)
+        self.name_ta.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         # MultiSig row: [SingleSig] [switch] [MultiSig]
         ms_row = lv.obj(self.body)
@@ -122,33 +118,6 @@ class GenerateSeedMenu(GenericMenu):
         self.create_lbl.set_style_text_font(lv.font_montserrat_22, 0)
         self.create_lbl.center()
         self.create_btn.add_event_cb(lambda e: self._on_create(e), lv.EVENT.CLICKED, None)
-
-    def _open_keyboard(self, e):
-        """Show the on-screen keyboard and attach it to the textarea."""
-        if e.get_code() != lv.EVENT.CLICKED:
-            return
-        if self.parent.keyboard_manager.is_open_for(self):
-            return
-
-        self._original_name = self.name_ta.get_text()
-        self.parent.keyboard_manager.open(
-            self,
-            self.name_ta,
-            PROFILE_SEED_NAME,
-            on_commit=lambda value: setattr(self, "_original_name", value),
-            hide_wallet_bar=True,
-        )
-
-    def _on_defocus(self, e):
-        if e.get_code() != lv.EVENT.DEFOCUSED:
-            return
-        if self.parent.keyboard_manager.is_open_for(self):
-            self.name_ta.set_text(getattr(self, "_original_name", self.name_ta.get_text()))
-            self.parent.keyboard_manager.close()
-
-    def _on_screen_delete(self, e):
-        if e.get_code() == lv.EVENT.DELETE:
-            self.parent.keyboard_manager.on_owner_deleted(self)
 
     def _generate_dummy_xpub(self):
         try:

@@ -266,6 +266,70 @@ def click_by_partial_label(partial: str, delay: float = 1.0) -> None:
     time.sleep(delay)
 
 
+def screen_tree() -> list[dict]:
+    """Return the current LVGL widget tree as a list of root nodes."""
+    raw = disco_run("ui", "screen", "--json")
+    tree = json.loads(raw)
+    return tree if isinstance(tree, list) else [tree]
+
+
+def walk_with_path(nodes):
+    """Yield (path, node) pairs in breadth-first order for a screen tree."""
+    queue = [(str(i), n) for i, n in enumerate(nodes)]
+    while queue:
+        path, node = queue.pop(0)
+        yield path, node
+        for i, child in enumerate(node.get("children", [])):
+            queue.append((path + "." + str(i), child))
+
+
+def first_index_by_type(widget_type: str):
+    """Return first widget index for the given type, or None if absent."""
+    for path, node in walk_with_path(screen_tree()):
+        if node.get("type") == widget_type:
+            return path
+    return None
+
+
+def first_textarea_index_and_text() -> tuple[str, str]:
+    """Return (index, text) for the first textarea in the current screen."""
+    for path, node in walk_with_path(screen_tree()):
+        if node.get("type") == "textarea":
+            return path, node.get("text", "")
+    raise AssertionError("No textarea found on current screen")
+
+
+def obj_expr(index_str: str) -> str:
+    """Build a lv.screen_active().get_child(...) expression for a tree index."""
+    expr = "lv.screen_active()"
+    for part in index_str.split("."):
+        expr += ".get_child({})".format(part)
+    return expr
+
+
+def set_textarea_text(index_str: str, text: str) -> None:
+    """Set textarea text by index using REPL and assert success."""
+    code = "import lvgl as lv; ta={}; ta.set_text({!r}); print('OK')".format(obj_expr(index_str), text)
+    out = disco_run("repl", "exec", code)
+    assert out.strip().splitlines()[-1] == "OK", out
+
+
+def send_keyboard_event(index_str: str, event_name: str) -> None:
+    """Send a lv.EVENT.* to keyboard by index and assert success."""
+    code = "import lvgl as lv; kb={}; kb.send_event(lv.EVENT.{},None); print('OK')".format(
+        obj_expr(index_str), event_name
+    )
+    out = disco_run("repl", "exec", code)
+    assert out.strip().splitlines()[-1] == "OK", out
+
+
+def keyboard_is_hidden(index_str: str) -> bool:
+    """Return True if the keyboard at index has HIDDEN flag set."""
+    code = "import lvgl as lv; kb={}; print(kb.has_flag(lv.obj.FLAG.HIDDEN))".format(obj_expr(index_str))
+    out = disco_run("repl", "exec", code)
+    return out.strip().splitlines()[-1] == "True"
+
+
 def find_labels_overlay() -> list[str]:
     """Return all visible text labels (len > 1) from the LVGL layer_top (overlays)."""
     raw = disco_run("ui", "screen", "--layer", "top", "--json")

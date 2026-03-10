@@ -1,6 +1,6 @@
 from ..basic import RED_HEX, WHITE_HEX, GenericMenu, RED, ORANGE, TITLE_ROW_HEIGHT
 from ..basic.symbol_lib import BTC_ICONS
-from ..basic.keyboard_text_rules import PROFILE_WALLET_NAME
+from ..basic.keyboard_manager import Layout
 import lvgl as lv
 
 
@@ -66,55 +66,13 @@ class WalletMenu(GenericMenu):
         self.delete_ico.center()
         self.delete_btn.align_to(self.name_textarea, lv.ALIGN.OUT_RIGHT_MID, 6, 0)
 
-        self.original_name = ""
-
-        # Clicking the text area shows the keyboard
-        self.name_textarea.add_event_cb(lambda e: self.show_keyboard(e), lv.EVENT.CLICKED, None)
-
-        # Trash button navigates to delete confirmation
-        self.delete_btn.add_event_cb(self.make_callback("delete_wallet"), lv.EVENT.CLICKED, None)
-
-        # Add defocus handler to text area
-        self.name_textarea.add_event_cb(lambda e: self.on_defocus(e), lv.EVENT.DEFOCUSED, None)
-
-        # Clean up keyboard if navigating away while it is open
-        self.add_event_cb(lambda e: self._on_screen_delete(e), lv.EVENT.DELETE, None)
-
-    def _on_screen_delete(self, e):
-        if e.get_code() == lv.EVENT.DELETE:
-            self.parent.keyboard_manager.on_owner_deleted(self)
-
-    def show_keyboard(self, e):
-        """Show the keyboard for editing wallet name."""
-        if e.get_code() != lv.EVENT.CLICKED:
-            return
-        if self.parent.keyboard_manager.is_open_for(self):
-            return  # already open
-
-        self.original_name = self.name_textarea.get_text()
-
         def _on_commit(new_name):
             if self.state and self.state.active_wallet:
                 self.state.active_wallet.name = new_name
                 self.parent.refresh_ui()
-            self.original_name = new_name
 
-        self.parent.keyboard_manager.open(
-            self,
-            self.name_textarea,
-            PROFILE_WALLET_NAME,
-            on_commit=_on_commit,
-            hide_wallet_bar=True,
-        )
+        keyboard_binder = lambda e: self.parent.keyboard_manager.bind(self.name_textarea, Layout.FULL, _on_commit)
+        self.name_textarea.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
-    def _close_keyboard(self):
-        self.parent.keyboard_manager.close()
-
-    def on_defocus(self, e):
-        """Handle text area losing focus – hide keyboard and discard changes."""
-        if e.get_code() != lv.EVENT.DEFOCUSED:
-            return
-        if not self.parent.keyboard_manager.is_open_for(self):
-            return
-        self.name_textarea.set_text(self.original_name)
-        self._close_keyboard()
+        # Trash button navigates to delete confirmation
+        self.delete_btn.add_event_cb(self.make_callback("delete_wallet"), lv.EVENT.CLICKED, None)
