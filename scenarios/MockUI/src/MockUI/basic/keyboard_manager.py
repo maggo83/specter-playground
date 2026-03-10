@@ -1,123 +1,160 @@
 import lvgl as lv
 
-from .keyboard_text_rules import accepted_chars, sanitize_text
 
-
-LAYOUT_WALLET_FAVORITE = "wallet_favorite"
+class Layout:
+    ALNUM = 0
+    FULL = 1
 
 
 class KeyboardManager:
     """Shared on-screen keyboard controller for MockUI screens."""
 
     def __init__(self, nav_controller):
-        self.nav = nav_controller
+        self.gui = nav_controller
+
         self.keyboard = None
-        self.current_layout = None
-        self.active_owner = None
-        self.active_textarea = None
-        self.active_profile = None
-        self.original_text = ""
-        self.on_commit = None
-        self.on_cancel = None
-        self.hide_wallet_bar = False
+        self._reset_internals()
+        self.textarea = None
 
-    def open(self, owner, textarea, profile_id, on_commit=None, on_cancel=None, hide_wallet_bar=False):
-        """Open keyboard for a textarea using a configured profile."""
-        if self.active_owner and self.active_owner is not owner:
-            self.close()
+    def bind(self, textarea, layout_id, on_commit=None, sanitize=None, on_cancel=None):
+        """Activate the on-screen keyboard for a textarea.
 
+        Call this from the textarea's CLICKED event callback. The manager then
+        owns keyboard open/close handling until the user commits or cancels.
+
+        Invariant: only one binding is active at a time. If another textarea is
+        already bound, it is silently cancelled and replaced by the new one.
+        The binding is automatically cleared when the textarea emits
+        ``lv.EVENT.DELETE``.
+
+        Args:
+            textarea: The target ``lv.textarea`` to edit with the on-screen
+                keyboard. Must be an LVGL object that emits ``lv.EVENT.DELETE`` on destruction.
+            layout_id: Keyboard layout identifier (``Layout.ALNUM`` or
+                ``Layout.FULL``).
+            on_commit: Optional callback ``fn(new_text: str)`` invoked after the
+                user confirms with keyboard OK.
+            sanitize: Optional callback ``fn(text: str) -> str`` applied on
+                READY before ``on_commit``.
+            on_cancel: Optional callback ``fn()`` invoked when input is
+                canceled/aborted. Original text is restored to the textarea
+                before the call. Note: text is NOT restored when the textarea
+                is being deleted (``lv.EVENT.DELETE``) — the object is dying.
+        """
         self._ensure_keyboard()
 
-        self.active_owner = owner
-        self.active_textarea = textarea
-        self.active_profile = profile_id
-        self.original_text = textarea.get_text()
-        self.on_commit = on_commit
-        self.on_cancel = on_cancel
-        self.hide_wallet_bar = bool(hide_wallet_bar)
+        if self.textarea is not None:
+            if self.textarea == textarea:
+                # Already bound to this textarea, ignore
+                return
+            else:
+                # Bound to a different textarea, cancel this previous binding before proceeding
+                # This will also unbind
+                # Suppress calling the handed over cancel callback because we're immediately 
+                # rebinding to a new textarea, and don't want to trigger any intermediate 
+                # cancel logic in the old screen. The original text gets restored as usual
+                self._cancel(None, call_cb=False)
+        
+        self._apply_layout(layout_id)
 
-        textarea.set_accepted_chars(accepted_chars(profile_id))
+        self._set_internals(on_commit=on_commit, on_cancel=on_cancel, sanitize=sanitize, original_text=textarea.get_text())
+
         textarea.add_state(lv.STATE.FOCUSED)
+        textarea.add_event_cb(self._cancel, lv.EVENT.DEFOCUSED, None)
+        textarea.add_event_cb(self._cancel, lv.EVENT.DELETE, None)
 
-        self._apply_layout(LAYOUT_WALLET_FAVORITE)
-        self.keyboard.set_textarea(textarea)
         self.keyboard.remove_flag(lv.obj.FLAG.HIDDEN)
+        self.keyboard.set_textarea(textarea)
 
-        if self.hide_wallet_bar:
-            self.nav.set_wallet_bar_visible(False)
+        #Do this last to mark binding is complete
+        self.textarea = textarea
 
-    def close(self):
-        """Hide keyboard and clear active target."""
-        if self.keyboard:
-            self.keyboard.add_flag(lv.obj.FLAG.HIDDEN)
+    def _unbind(self, textarea_is_deleting=False):
+        if self.textarea is None:
+            return
+        
+        if not textarea_is_deleting:
+            self.textarea.remove_event_cb(self._cancel)
+            self.textarea.remove_event_cb(self._cancel)
 
-        if self.hide_wallet_bar:
-            self.nav.set_wallet_bar_visible(True)
+        self._reset_internals()
 
-        self.active_owner = None
-        self.active_textarea = None
-        self.active_profile = None
-        self.original_text = ""
+        self.keyboard.add_flag(lv.obj.FLAG.HIDDEN)
+        self.keyboard.set_textarea(None)
+
+        #Do this last to mark binding is cleared
+        self.textarea = None
+
+    def _reset_internals(self):
         self.on_commit = None
         self.on_cancel = None
-        self.hide_wallet_bar = False
+        self.sanitize = None
+        self._original_text = None
 
-    def is_open_for(self, owner):
-        return self.active_owner is owner
-
-    def on_owner_deleted(self, owner):
-        if self.active_owner is owner:
-            self.close()
+    def _set_internals(self, on_commit=None, on_cancel=None, sanitize=None, original_text=None):
+        self.on_commit = on_commit
+        self.on_cancel = on_cancel
+        self.sanitize = sanitize
+        self._original_text = original_text
 
     def _ensure_keyboard(self):
         if self.keyboard:
             return
 
-        self.keyboard = lv.keyboard(self.nav)
+        self.keyboard = lv.keyboard(self.gui)
         self.keyboard.add_flag(lv.obj.FLAG.HIDDEN)
         self.keyboard.set_style_text_font(lv.font_montserrat_22, lv.PART.ITEMS)
-        self.keyboard.add_event_cb(self._on_ready, lv.EVENT.READY, None)
-        self.keyboard.add_event_cb(self._on_cancel_event, lv.EVENT.CANCEL, None)
+        self.keyboard.add_event_cb(self._commit, lv.EVENT.READY, None)
+        self.keyboard.add_event_cb(self._cancel, lv.EVENT.CANCEL, None)
 
     def _apply_layout(self, layout_id):
-        if self.current_layout == layout_id:
-            return
+        builder = self._build_alnum_layout if layout_id == Layout.ALNUM else self._build_full_layout
+        map_lower, map_upper, map_special, ctrl_text, ctrl_special = builder()
 
-        map_lower, map_upper, map_special, ctrl_text, ctrl_special = self._build_wallet_favorite_layout()
         self.keyboard.set_map(lv.keyboard.MODE.TEXT_LOWER, map_lower, ctrl_text)
         self.keyboard.set_map(lv.keyboard.MODE.TEXT_UPPER, map_upper, ctrl_text)
         self.keyboard.set_map(lv.keyboard.MODE.SPECIAL, map_special, ctrl_special)
-        self.current_layout = layout_id
 
-    def _on_ready(self, e):
-        if e.get_code() != lv.EVENT.READY:
+    def _cancel(self, e, call_cb=True):
+        if self.textarea is None:
             return
-        if not self.active_textarea or not self.active_profile:
+        
+        #first remove keyboard and callbacks, then call cancel callback (if any) to avoid potential reentrancy issues
+
+        is_deleting = (e is not None and e.get_code() == lv.EVENT.DELETE)
+
+        if not is_deleting:
+            # reset to initial value/text
+            self.textarea.set_text(self._original_text)    
+
+        cancel_cb = self.on_cancel
+        
+        self._unbind(is_deleting)
+
+        if cancel_cb and call_cb:
+            cancel_cb()
+
+    def _commit(self, e):
+        if self.textarea is None:
             return
+        
+        #first remove keyboard and callbacks, then call sanitizer/commit callback (if any) to avoid potential reentrancy issues
+        sanitizer_cb = self.sanitize
+        commit_cb = self.on_commit
+        textarea = self.textarea
+        new_text = textarea.get_text()
+        
+        self._unbind()
 
-        new_text = sanitize_text(self.active_profile, self.active_textarea.get_text())
-        self.active_textarea.set_text(new_text)
+        if sanitizer_cb:
+            new_text = sanitizer_cb(new_text)
+        textarea.set_text(new_text)
 
-        if self.on_commit:
-            self.on_commit(new_text)
-
-        self.close()
-
-    def _on_cancel_event(self, e):
-        if e.get_code() != lv.EVENT.CANCEL:
-            return
-        if not self.active_textarea:
-            return
-
-        self.active_textarea.set_text(self.original_text)
-
-        if self.on_cancel:
-            self.on_cancel(self.original_text)
-
-        self.close()
+        if commit_cb:
+            commit_cb(new_text)
 
     @staticmethod
-    def _build_wallet_favorite_layout():
+    def _build_full_layout():
         ctrl_text = (
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -147,5 +184,37 @@ class KeyboardManager:
             "!", "@", "#", "$", "%", "&", "*", "(", ")", "_", "\n",
             "-", "+", "=", "?", "/", "[", "]", "{", lv.SYMBOL.BACKSPACE, "\n",
             "ABC", "abc", " ", lv.SYMBOL.LEFT, lv.SYMBOL.RIGHT, lv.SYMBOL.OK, "",
+        )
+        return map_lower, map_upper, map_special, ctrl_text, ctrl_special
+
+    @staticmethod
+    def _build_alnum_layout():
+        ctrl_text = (
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 3, 1, 1, 1,
+        )
+        map_lower = (
+            "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "\n",
+            "a", "s", "d", "f", "g", "h", "j", "k", "l", "\n",
+            "z", "x", "c", "v", "b", "n", "m", lv.SYMBOL.BACKSPACE, "\n",
+            "ABC", "123", " ", lv.SYMBOL.LEFT, lv.SYMBOL.RIGHT, lv.SYMBOL.OK, "",
+        )
+        map_upper = (
+            "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "\n",
+            "A", "S", "D", "F", "G", "H", "J", "K", "L", "\n",
+            "Z", "X", "C", "V", "B", "N", "M", lv.SYMBOL.BACKSPACE, "\n",
+            "abc", "123", " ", lv.SYMBOL.LEFT, lv.SYMBOL.RIGHT, lv.SYMBOL.OK, "",
+        )
+        ctrl_special = (
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1,
+            1, 3, 1, 1, 1,
+        )
+        map_special = (
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "\n",
+            "_", "-", lv.SYMBOL.BACKSPACE, lv.SYMBOL.LEFT, lv.SYMBOL.RIGHT, "\n",
+            "ABC", " ", lv.SYMBOL.LEFT, lv.SYMBOL.RIGHT, lv.SYMBOL.OK, "",
         )
         return map_lower, map_upper, map_special, ctrl_text, ctrl_special

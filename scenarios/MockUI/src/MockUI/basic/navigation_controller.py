@@ -120,13 +120,6 @@ class NavigationController(lv.obj):
         self.device_bar.refresh(self.specter_state)
         self.wallet_bar.refresh(self.specter_state)
 
-    def set_wallet_bar_visible(self, visible):
-        """Show or hide the wallet bar (e.g. while a full-screen keyboard is open)."""
-        if visible:
-            self.wallet_bar.remove_flag(lv.obj.FLAG.HIDDEN)
-        else:
-            self.wallet_bar.add_flag(lv.obj.FLAG.HIDDEN)
-
     def show_menu(self, target_menu_id=None):
         
         # Delete current screen (free memory)

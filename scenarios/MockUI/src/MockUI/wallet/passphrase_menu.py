@@ -1,6 +1,9 @@
 import lvgl as lv
 from ..basic import GenericMenu, BTN_WIDTH, BTN_HEIGHT, PAD_SIZE
-from ..basic.keyboard_text_rules import PROFILE_PASSPHRASE_GENERAL
+from ..basic.keyboard_manager import Layout
+
+def _sanitize_passphrase(text):
+    return text.strip()
 
 
 class PassphraseMenu(GenericMenu):
@@ -12,9 +15,6 @@ class PassphraseMenu(GenericMenu):
     TITLE_KEY = "MENU_SET_PASSPHRASE"
 
     def post_init(self, t, state):
-        # Track original value for cancel/defocus
-        self.original_passphrase = ""
-
         # Row for passphrase input
         pa_row = lv.obj(self.body)
         pa_row.set_width(lv.pct(100))
@@ -40,14 +40,18 @@ class PassphraseMenu(GenericMenu):
         self.pa_ta.set_width(lv.pct(60))
         self.pa_ta.set_height(50)
         self.pa_ta.set_style_text_font(lv.font_montserrat_22, 0)
+        self.pa_ta.set_accepted_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~ ")  # No newlines
 
-        # make textarea clickable
-        self.pa_ta.add_flag(lv.obj.FLAG.CLICKABLE)
-        self.pa_ta.add_event_cb(self._open_keyboard, lv.EVENT.CLICKED, None)
-        
-        # Add defocus handler
-        self.pa_ta.add_event_cb(self._on_defocus, lv.EVENT.DEFOCUSED, None)
-        self.add_event_cb(lambda e: self._on_screen_delete(e), lv.EVENT.DELETE, None)
+        def _on_commit(value):
+            if not value:
+                self.state.active_wallet.active_passphrase = None
+            else:
+                self.state.active_wallet.active_passphrase = value
+            self.parent.refresh_ui()
+            self.on_navigate(None)
+
+        keyboard_binder = lambda e: self.parent.keyboard_manager.bind(self.pa_ta, Layout.FULL, _on_commit, _sanitize_passphrase)
+        self.pa_ta.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         buttons_row = lv.obj(self.body)
         buttons_row.set_width(lv.pct(100))
@@ -79,42 +83,3 @@ class PassphraseMenu(GenericMenu):
         self.state.active_wallet.active_passphrase = None
         # Refresh UI
         self.parent.refresh_ui()
-
-    def _open_keyboard(self, e):
-        """Show keyboard for editing passphrase."""
-        if e.get_code() != lv.EVENT.CLICKED:
-            return
-        if self.parent.keyboard_manager.is_open_for(self):
-            return
-
-        # Store original passphrase for cancel/defocus
-        self.original_passphrase = self.pa_ta.get_text()
-
-        def _on_commit(value):
-            if value == "":
-                self.state.active_wallet.active_passphrase = None
-            else:
-                self.state.active_wallet.active_passphrase = value
-            self.parent.refresh_ui()
-            self.on_navigate(None)
-
-        self.parent.keyboard_manager.open(
-            self,
-            self.pa_ta,
-            PROFILE_PASSPHRASE_GENERAL,
-            on_commit=_on_commit,
-            hide_wallet_bar=True,
-        )
-
-    def _on_defocus(self, e):
-        """Handle text area losing focus - close keyboard and discard changes."""
-        if e.get_code() != lv.EVENT.DEFOCUSED:
-            return
-
-        if self.parent.keyboard_manager.is_open_for(self):
-            self.pa_ta.set_text(self.original_passphrase)
-            self.parent.keyboard_manager.close()
-
-    def _on_screen_delete(self, e):
-        if e.get_code() == lv.EVENT.DELETE:
-            self.parent.keyboard_manager.on_owner_deleted(self)
