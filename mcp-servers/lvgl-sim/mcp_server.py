@@ -259,46 +259,48 @@ async def call_tool(name: str, arguments: dict):
         return [TextContent(type="text", text=json.dumps(resp, indent=2))]
 
     elif name == "screenshot":
-        import struct
+        import time
 
         filename = arguments.get("filename", "/tmp/sim_screenshot.png")
 
-        # Ask the simulator to write a raw RGB565 screenshot to /tmp/sim_screenshot.raw
-        resp = send_command({"cmd": "screenshot"})
-        if not resp.get("ok"):
-            return [TextContent(type="text", text=f"Screenshot failed: {resp.get('error', 'unknown')}")]
-
-        raw_file = resp.get("file", "/tmp/sim_screenshot.raw")
-        width = resp.get("width", 480)
-        height = resp.get("height", 800)
-
+        # Use macOS screencapture to capture the LVGL window
+        # Find window by title "LVGL"
         try:
-            from PIL import Image
+            # Get window list and find LVGL window
+            result = subprocess.run(
+                ["osascript", "-e", 'tell application "System Events" to get name of every window of every process'],
+                capture_output=True, text=True, timeout=5
+            )
 
-            raw_path = Path(raw_file)
-            if not raw_path.exists():
-                return [TextContent(type="text", text=f"Screenshot failed: raw file not found at {raw_file}")]
+            # Use screencapture with window selection
+            # -l flag requires window ID, -w for interactive window select
+            # For automation, we'll capture by window title using -l
+            result = subprocess.run(
+                ["osascript", "-e",
+                 '''tell application "System Events"
+                    set lvglWindow to first window of (first process whose name contains "micropython")
+                    set winID to id of lvglWindow
+                    return winID
+                 end tell'''],
+                capture_output=True, text=True, timeout=5
+            )
 
-            raw_data = raw_path.read_bytes()
-            expected = width * height * 2
-            if len(raw_data) != expected:
-                return [TextContent(type="text", text=f"Screenshot failed: expected {expected} bytes, got {len(raw_data)}")]
+            if result.returncode == 0 and result.stdout.strip():
+                window_id = result.stdout.strip()
+                subprocess.run(
+                    ["screencapture", "-l", window_id, "-x", filename],
+                    timeout=5
+                )
+                return [TextContent(type="text", text=f"Screenshot saved to {filename}")]
 
-            # Convert RGB565 → RGB888
-            pixels = []
-            for i in range(0, len(raw_data), 2):
-                word = struct.unpack_from("<H", raw_data, i)[0]
-                r = ((word >> 11) & 0x1F) << 3
-                g = ((word >> 5) & 0x3F) << 2
-                b = (word & 0x1F) << 3
-                pixels.extend([r, g, b])
+            # Fallback: capture by clicking on LVGL window area
+            # Just capture entire screen region where simulator usually is
+            subprocess.run(
+                ["screencapture", "-R", "0,0,500,850", "-x", filename],
+                timeout=5
+            )
+            return [TextContent(type="text", text=f"Screenshot saved to {filename} (region capture)")]
 
-            img = Image.frombytes("RGB", (width, height), bytes(pixels))
-            img.save(filename)
-            return [TextContent(type="text", text=f"Screenshot saved to {filename}")]
-
-        except ImportError:
-            return [TextContent(type="text", text="Screenshot failed: Pillow not installed. Run: pip install Pillow in mcp-servers/lvgl-sim/.venv")]
         except Exception as e:
             return [TextContent(type="text", text=f"Screenshot failed: {e}")]
 

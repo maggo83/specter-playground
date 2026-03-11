@@ -1,12 +1,12 @@
 {
   "mcpServers": {
     "code-rag": {
-      "command": ".rag/.venv/bin/python",
-      "args": [".rag/mcp_server.py"]
+      "command": "/Users/kim/pubsrc/specter-playground/.rag/.venv/bin/python",
+      "args": ["/Users/kim/pubsrc/specter-playground/.rag/mcp_server.py"]
     },
     "lvgl-sim": {
-      "command": "mcp-servers/lvgl-sim/.venv/bin/python",
-      "args": ["mcp-servers/lvgl-sim/mcp_server.py"]
+      "command": "/Users/kim/pubsrc/specter-playground/mcp-servers/lvgl-sim/.venv/bin/python",
+      "args": ["/Users/kim/pubsrc/specter-playground/mcp-servers/lvgl-sim/mcp_server.py"]
     }
   }
 }
