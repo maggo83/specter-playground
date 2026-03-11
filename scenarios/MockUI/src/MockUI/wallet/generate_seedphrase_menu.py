@@ -1,18 +1,25 @@
+
 import lvgl as lv
 import urandom
-from ..basic import RED, ORANGE, GREEN, GenericMenu, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
-from ..helpers import Wallet
+from ..basic import TitledScreen, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
+from ..basic.keyboard_manager import Layout
+from ..stubs import Wallet
 
 
-class GenerateSeedMenu(GenericMenu):
-    """Menu to generate a new seed and create a wallet.
+class GenerateSeedMenu(TitledScreen):
+    """Form to generate a new seed and create a wallet.
 
     menu_id: "generate_seedphrase"
     """
 
-    TITLE_KEY = "MENU_GENERATE_SEEDPHRASE"
+    def __init__(self, parent):
+        super().__init__(parent.i18n.t("MENU_GENERATE_SEEDPHRASE"), parent)
+        t = self.i18n.t
 
-    def post_init(self, t, state):
+        self.body.set_layout(lv.LAYOUT.FLEX)
+        self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+        self.body.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+
         # Wallet name row (bigger than children)
         name_row = lv.obj(self.body)
         name_row.set_width(lv.pct(100))
@@ -32,22 +39,13 @@ class GenerateSeedMenu(GenericMenu):
         # editable text area
         self.name_ta = lv.textarea(name_row)
         self.name_ta.set_text(t("COMMON_WALLET") + str(urandom.randint(1, 10)) )
+        self._original_name = self.name_ta.get_text()
         self.name_ta.set_width(lv.pct(60))
         self.name_ta.set_height(50)
         self.name_ta.set_style_text_font(lv.font_montserrat_22, 0)
-        # Make the textarea clickable and attach an on-screen keyboard so it
-        # can be edited on touch/GUI environments. Use attribute checks rather
-        # than try/except to avoid swallowing real errors.
-        self.name_ta.add_flag(lv.obj.FLAG.CLICKABLE)
 
-        # Create an on-screen keyboard and keep it
-        # hidden until the textarea is clicked.
-        self._kb = lv.keyboard(self)
-        self._kb.add_flag(lv.obj.FLAG.HIDDEN)
-        # associate keyboard with textarea and show it on click
-        self._kb.set_textarea(self.name_ta)
-        self.name_ta.add_event_cb(self._open_keyboard, lv.EVENT.CLICKED, None)
-  
+        keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.name_ta, Layout.FULL)
+        self.name_ta.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         # MultiSig row: [SingleSig] [switch] [MultiSig]
         ms_row = lv.obj(self.body)
@@ -126,17 +124,6 @@ class GenerateSeedMenu(GenericMenu):
         self.create_lbl.center()
         self.create_btn.add_event_cb(lambda e: self._on_create(e), lv.EVENT.CLICKED, None)
 
-    def _open_keyboard(self, e):
-        """Show the on-screen keyboard and attach it to the textarea."""
-        if e.get_code() != lv.EVENT.CLICKED:
-            return
-
-        # ensure keyboard targets the textarea
-        self._kb.set_textarea(self.name_ta)
-
-        # make keyboard visible if the binding uses flags
-        self._kb.remove_flag(lv.obj.FLAG.HIDDEN)
-
     def _generate_dummy_xpub(self):
         try:
             r = urandom.getrandbits(64)
@@ -167,7 +154,7 @@ class GenerateSeedMenu(GenericMenu):
         self.state.set_active_wallet(w)
 
         # go to main menu directly
-        if hasattr(self.parent, 'ui_state') and self.parent.ui_state:
-            self.parent.ui_state.clear_history()
-            self.parent.ui_state.current_menu_id = "main"
-        self.parent.show_menu(None)
+        if hasattr(self.gui, 'ui_state') and self.gui.ui_state:
+            self.gui.ui_state.clear_history()
+            self.gui.ui_state.current_menu_id = "main"
+        self.on_navigate(None)

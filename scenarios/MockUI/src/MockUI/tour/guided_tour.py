@@ -16,16 +16,16 @@ class GuidedTour:
     Acts as the central controller - UIExplainer delegates navigation back here.
     
     Usage:
-        steps = GuidedTour.resolve_steps(NavigationController.INTRO_TOUR_STEPS, nav)
+        steps = GuidedTour.resolve_steps(SpecterGui.INTRO_TOUR_STEPS, nav)
         tour = GuidedTour(nav, steps)
         tour.start()
     """
     
     def __init__(self, nav_controller, steps):
-        """Initialize the tour with a NavigationController and resolved steps.
+        """Initialize the tour with a SpecterGui and resolved steps.
 
         Args:
-            nav_controller: The NavigationController instance (must be fully constructed)
+            nav_controller: The SpecterGui instance (must be fully constructed)
             steps: List of (element, text, position) tuples already resolved at runtime.
         """
         self.nav = nav_controller

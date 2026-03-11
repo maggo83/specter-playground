@@ -23,7 +23,7 @@ else:
     display.init()
 # --- End simulator setup ---
 
-from MockUI import NavigationController, SpecterState
+from MockUI import SpecterGui, SpecterState
 
 gc.collect()
 
@@ -56,7 +56,7 @@ specter_state.pin = "21"
 
 gc.collect()
 
-scr = NavigationController(specter_state)
+scr = SpecterGui(specter_state)
 lv.screen_load(scr)
 
 # Start TCP control server when --control flag is passed (simulator only)

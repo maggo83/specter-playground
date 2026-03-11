@@ -21,9 +21,9 @@ specter-diy-src
 # i18n generated files (path-independent — matches any depth)
 build
 lang_*.bin
-language_config.json
-translation_keys.py
+**/translation_keys.py
+**/language_config.json
 
 # Simulator runtime state files (generated at runtime, not for version control)
-ui_state_config.json
+**/ui_state_config.json
 

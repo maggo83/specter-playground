@@ -8,8 +8,8 @@ class ActionScreen(TitledScreen):
         # TitledScreen creates title_bar (with optional back_btn + title_lbl) and body
         super().__init__(title, parent)
 
-        # Get i18n manager from parent (always available via NavigationController)
-        self.t = parent.i18n.t
+        # Get i18n manager from shorthand (always available via SpecterGui)
+        self.t = self.i18n.t
 
         # Message – placed inside body
         self.msg = lv.label(self.body)

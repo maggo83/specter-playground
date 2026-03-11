@@ -7,13 +7,13 @@ class LanguageMenu(GenericMenu):
     TITLE_KEY = "MENU_LANGUAGE"
 
     def get_menu_items(self, t, state):
-        available_langs = self.parent.i18n.get_available_languages()
-        current_lang = self.parent.i18n.get_language()
+        available_langs = self.i18n.get_available_languages()
+        current_lang = self.i18n.get_language()
 
         menu_items = []
 
         for lang_code in available_langs:
-            label = self.parent.i18n.get_language_name(lang_code)
+            label = self.i18n.get_language_name(lang_code)
             # Add checkmark for currently selected language
             if lang_code == current_lang:
                 symbol = BTC_ICONS.CHECK
@@ -31,5 +31,5 @@ class LanguageMenu(GenericMenu):
     def _on_language_selected(self, e, lang_code):
         """Handle language selection: change language and go back."""
         if e.get_code() == lv.EVENT.CLICKED:
-            self.parent.change_language(lang_code)
-            self.parent.on_navigate(None)
+            self.gui.change_language(lang_code)
+            self.on_navigate(None)

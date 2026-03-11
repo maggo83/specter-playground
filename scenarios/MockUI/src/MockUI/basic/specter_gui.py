@@ -1,6 +1,6 @@
 import lvgl as lv
 
-from ..helpers import UIState, SpecterState
+from ..stubs import UIState, SpecterState
 from .device_bar import DeviceBar
 from .wallet_bar import WalletBar
 from .action_screen import ActionScreen
@@ -31,9 +31,10 @@ from ..device import (
 )
 from ..i18n import I18nManager
 from ..tour import GuidedTour
+from .keyboard_manager import KeyboardManager
 
 
-class NavigationController(lv.obj):
+class SpecterGui(lv.obj):
     # Static tour step definitions: (element_spec, i18n_key, position)
     # element_spec is None, a dotted attribute-path string, or a (x, y, w, h) tuple.
     # Resolved to runtime objects by GuidedTour.resolve_steps() before use.
@@ -68,6 +69,7 @@ class NavigationController(lv.obj):
             self.ui_state = UIState()
 
         self.current_screen = None
+        self.keyboard_manager = KeyboardManager(self)
 
         # Create device bar at top (STATUS_BAR_PCT%), wallet bar at bottom (STATUS_BAR_PCT%), content in middle (CONTENT_PCT%)
         self.device_bar = DeviceBar(self, height_pct=STATUS_BAR_PCT)
@@ -117,13 +119,6 @@ class NavigationController(lv.obj):
         """Centralized refresh method for all UI components."""
         self.device_bar.refresh(self.specter_state)
         self.wallet_bar.refresh(self.specter_state)
-
-    def set_wallet_bar_visible(self, visible):
-        """Show or hide the wallet bar (e.g. while a full-screen keyboard is open)."""
-        if visible:
-            self.wallet_bar.remove_flag(lv.obj.FLAG.HIDDEN)
-        else:
-            self.wallet_bar.add_flag(lv.obj.FLAG.HIDDEN)
 
     def show_menu(self, target_menu_id=None):
         

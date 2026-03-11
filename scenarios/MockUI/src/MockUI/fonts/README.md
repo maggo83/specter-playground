@@ -231,7 +231,7 @@ FontLoaderDE: Loaded 11/11 German umlaut fonts
 ## Next Steps
 
 1. **For simulator (current setup):**
-   - Integrate `font_loader_de` into `mock_ui.py` or `NavigationController`
+   - Integrate `font_loader_de` into `mock_ui.py` or `SpecterGui`
    - Update status bar and other components to use German fonts
    - Test German text rendering with umlauts
 
