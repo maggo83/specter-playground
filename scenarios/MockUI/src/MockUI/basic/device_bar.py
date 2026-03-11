@@ -1,5 +1,5 @@
 import lvgl as lv
-from ..helpers import Battery
+from ..stubs import Battery
 from .ui_consts import BTC_ICON_WIDTH, GREEN_HEX, ORANGE_HEX, RED_HEX, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH
 from .symbol_lib import BTC_ICONS
 
@@ -7,10 +7,10 @@ from .symbol_lib import BTC_ICONS
 class DeviceBar(lv.obj):
     """Device status bar showing system-level information. Designed to be ~5% of the screen height at the top."""
 
-    def __init__(self, parent, height_pct=5, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+    def __init__(self, gui, height_pct=5, *args, **kwargs):
+        super().__init__(gui, *args, **kwargs)
 
-        self.parent = parent  # for callback access
+        self.gui = gui  # for callback access
 
         self.set_width(lv.pct(100))
         self.set_height(lv.pct(height_pct))
@@ -87,7 +87,7 @@ class DeviceBar(lv.obj):
 
         # Battery icon
         self.batt_icon = Battery(self.right_container)
-        self.batt_icon.VALUE = parent.specter_state.battery_pct
+        self.batt_icon.VALUE = gui.specter_state.battery_pct
         self.batt_icon.update()
 
         # Settings button
@@ -114,40 +114,40 @@ class DeviceBar(lv.obj):
 
     def power_cb(self, e):
         if e.get_code() == lv.EVENT.CLICKED:
-            if self.parent.specter_state.battery_pct is None:
-                self.parent.specter_state.battery_pct = 50
-                self.parent.refresh_ui()
+            if self.gui.specter_state.battery_pct is None:
+                self.gui.specter_state.battery_pct = 50
+                self.gui.refresh_ui()
             else:
-                self.parent.specter_state.battery_pct = None
-                self.parent.refresh_ui()
+                self.gui.specter_state.battery_pct = None
+                self.gui.refresh_ui()
 
     def lock_cb(self, e):
         if e.get_code() == lv.EVENT.CLICKED:
-            if self.parent.specter_state.is_locked:
+            if self.gui.specter_state.is_locked:
                 # unlocking should be handled by the locked screen's PIN flow
                 return
             else:
-                # lock the device and force NavigationController to show the locked screen
-                self.parent.specter_state.lock()
-                # show_menu will detect is_locked and show the locked screen
-                self.parent.show_menu(None)
+                # lock the device and force SpecterGui to show the locked screen
+                self.gui.specter_state.lock()
+                # on_navigate will detect is_locked and show the locked screen
+                self.gui.on_navigate(None)
 
     def peripheral_ico_clicked(self, e):
         if e.get_code() == lv.EVENT.CLICKED:
-            if self.parent.ui_state.current_menu_id != "interfaces":
-                self.parent.show_menu("interfaces")
+            if self.gui.ui_state.current_menu_id != "interfaces":
+                self.gui.on_navigate("interfaces")
 
     def lang_clicked(self, e):
         """Navigate to language selection menu when language label is clicked."""
         if e.get_code() == lv.EVENT.CLICKED:
-            if self.parent.ui_state.current_menu_id != "select_language":
-                self.parent.show_menu("select_language")
+            if self.gui.ui_state.current_menu_id != "select_language":
+                self.gui.on_navigate("select_language")
 
     def settings_cb(self, e):
         """Navigate to settings menu when settings button is clicked."""
         if e.get_code() == lv.EVENT.CLICKED:
-            if self.parent.ui_state.current_menu_id != "manage_settings":
-                self.parent.show_menu("manage_settings")
+            if self.gui.ui_state.current_menu_id != "manage_settings":
+                self.gui.on_navigate("manage_settings")
 
     def refresh(self, state):
         """Update visual elements from a SpecterState-like object."""

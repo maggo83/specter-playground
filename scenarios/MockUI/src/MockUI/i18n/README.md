@@ -40,14 +40,14 @@ The i18n system provides:
 4. Binary (automatically) saved on device to `/flash/i18n/` → Persists across reboots
 5. SD card not needed after initial load
 
-#### Initialize in NavigationController
+#### Initialize in SpecterGui
 
-The i18n manager is automatically initialized in the NavigationController:
+The i18n manager is automatically initialized in the SpecterGui:
 
 ```python
 from ..i18n import I18nManager
 
-class NavigationController(lv.obj):
+class SpecterGui(lv.obj):
     def __init__(self, specter_state=None, ui_state=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.i18n = I18nManager()
@@ -69,7 +69,7 @@ Example:
 
 ```python
 def MyMenu(parent, *args, **kwargs):
-    # Get i18n manager from NavigationController
+    # Get i18n manager from SpecterGui
     i18n = parent.i18n
     t = i18n.t  # Optional: make t() method available for convenience
     

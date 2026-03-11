@@ -1,6 +1,6 @@
 import lvgl as lv
 
-from ..helpers import UIState, SpecterState
+from ..stubs import UIState, SpecterState
 from .device_bar import DeviceBar
 from .wallet_bar import WalletBar
 from .action_screen import ActionScreen
@@ -34,7 +34,7 @@ from ..tour import GuidedTour
 from .keyboard_manager import KeyboardManager
 
 
-class NavigationController(lv.obj):
+class SpecterGui(lv.obj):
     # Static tour step definitions: (element_spec, i18n_key, position)
     # element_spec is None, a dotted attribute-path string, or a (x, y, w, h) tuple.
     # Resolved to runtime objects by GuidedTour.resolve_steps() before use.

@@ -111,19 +111,19 @@ class LockedMenu(TitledScreen):
             return
         pin = self.pin_buf
         # attempt unlock; SpecterState.unlock will check PIN
-        unlocked = self.parent.specter_state.unlock(pin)
+        unlocked = self.state.unlock(pin)
         if unlocked:
             # reset UI history and show main menu
-            self.parent.ui_state.clear_history()
+            self.gui.ui_state.clear_history()
             # Ensure state updated
-            self.parent.specter_state.is_locked = False
+            self.state.is_locked = False
             # load main menu fresh
-            self.parent.ui_state.current_menu_id = "main"
+            self.gui.ui_state.current_menu_id = "main"
             # delete current and create main menu
-            if self.parent.current_screen:
-                self.parent.current_screen.delete()
-            self.parent.current_screen = None
-            self.parent.show_menu(None)
+            if self.gui.current_screen:
+                self.gui.current_screen.delete()
+            self.gui.current_screen = None
+            self.on_navigate(None)
         else:
             # clear buffer and indicate failure (simple UX)
             self.pin_buf = ""

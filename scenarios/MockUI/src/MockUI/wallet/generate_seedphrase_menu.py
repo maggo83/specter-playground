@@ -1,20 +1,25 @@
 
 import lvgl as lv
 import urandom
-from ..basic import RED, ORANGE, GREEN, GenericMenu, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
+from ..basic import TitledScreen, SWITCH_HEIGHT, SWITCH_WIDTH, BTN_HEIGHT, BTN_WIDTH
 from ..basic.keyboard_manager import Layout
-from ..helpers import Wallet
+from ..stubs import Wallet
 
 
-class GenerateSeedMenu(GenericMenu):
-    """Menu to generate a new seed and create a wallet.
+class GenerateSeedMenu(TitledScreen):
+    """Form to generate a new seed and create a wallet.
 
     menu_id: "generate_seedphrase"
     """
 
-    TITLE_KEY = "MENU_GENERATE_SEEDPHRASE"
+    def __init__(self, parent):
+        super().__init__(parent.i18n.t("MENU_GENERATE_SEEDPHRASE"), parent)
+        t = self.i18n.t
 
-    def post_init(self, t, state):
+        self.body.set_layout(lv.LAYOUT.FLEX)
+        self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+        self.body.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+
         # Wallet name row (bigger than children)
         name_row = lv.obj(self.body)
         name_row.set_width(lv.pct(100))
@@ -39,7 +44,7 @@ class GenerateSeedMenu(GenericMenu):
         self.name_ta.set_height(50)
         self.name_ta.set_style_text_font(lv.font_montserrat_22, 0)
 
-        keyboard_binder = lambda e: self.parent.keyboard_manager.bind(self.name_ta, Layout.FULL)
+        keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.name_ta, Layout.FULL)
         self.name_ta.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         # MultiSig row: [SingleSig] [switch] [MultiSig]
@@ -149,7 +154,7 @@ class GenerateSeedMenu(GenericMenu):
         self.state.set_active_wallet(w)
 
         # go to main menu directly
-        if hasattr(self.parent, 'ui_state') and self.parent.ui_state:
-            self.parent.ui_state.clear_history()
-            self.parent.ui_state.current_menu_id = "main"
-        self.parent.show_menu(None)
+        if hasattr(self.gui, 'ui_state') and self.gui.ui_state:
+            self.gui.ui_state.clear_history()
+            self.gui.ui_state.current_menu_id = "main"
+        self.on_navigate(None)

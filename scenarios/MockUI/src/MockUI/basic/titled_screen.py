@@ -24,10 +24,10 @@ class TitledScreen(lv.obj):
     """Base class for all full-screen views.
 
     Attributes available to subclasses:
-        self.parent     – the NavigationController that owns this screen
-        self.state      – parent.specter_state shorthand
-        self.i18n       – parent.i18n shorthand
-        self.on_navigate – navigation callback from parent NavigationController
+        self.gui        – the SpecterGui that owns this screen
+        self.state      – gui.specter_state shorthand
+        self.i18n       – gui.i18n shorthand
+        self.on_navigate – navigation callback from gui.on_navigate
         self.title_bar  – lv.obj strip at the top, TITLE_ROW_HEIGHT tall
         self.title_lbl  – lv.label centred inside title_bar  (alias: self.title)
         self.back_btn   – lv.button in title_bar (only when navigation history exists)
@@ -38,7 +38,7 @@ class TitledScreen(lv.obj):
         lv_parent = getattr(parent, "content", parent)
         super().__init__(lv_parent)
 
-        self.parent = parent
+        self.gui = parent
         self.state = getattr(parent, "specter_state", None)
         self.i18n = getattr(parent, "i18n", None)
         self.on_navigate = getattr(parent, "on_navigate", None)

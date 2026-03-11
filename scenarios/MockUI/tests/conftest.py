@@ -13,9 +13,9 @@ from pathlib import Path
 import pytest
 
 # Import state classes (micropython/lvgl already mocked by scenarios/conftest.py)
-from MockUI.helpers.device_state import SpecterState
-from MockUI.helpers.ui_state import UIState
-from MockUI.helpers.wallet import Wallet
+from MockUI.stubs.device_state import SpecterState
+from MockUI.stubs.ui_state import UIState
+from MockUI.stubs.wallet import Wallet
 
 # i18n imports
 from MockUI.i18n import I18nManager
