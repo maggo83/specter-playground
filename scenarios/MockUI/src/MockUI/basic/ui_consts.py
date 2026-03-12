@@ -4,8 +4,8 @@ import lvgl as lv
 # --- Menu / button sizes (1.5× scaled for 800×480 touch target) ---
 BTN_HEIGHT = const(75)           # menu button height (px)
 BTN_WIDTH = const(100)           # menu button width (percent of screen width)
-PIN_BTN_HEIGHT = const(75)       # lock screen PIN keypad button height (px)
-PIN_BTN_WIDTH = const(100)       # lock screen PIN keypad button width (px)
+PIN_BTN_HEIGHT = const(85)       # lock screen PIN keypad button height (px)
+PIN_BTN_WIDTH = const(115)       # lock screen PIN keypad button width (px)
 BACK_BTN_HEIGHT = const(70)      # back button height (px)
 BACK_BTN_WIDTH = const(48)       # back button width (px)
 MENU_PCT = const(100)

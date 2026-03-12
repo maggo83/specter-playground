@@ -83,7 +83,7 @@ class LockedMenu(TitledScreen):
                     lb = lv.label(b)
                     lb.center()
                     lb.set_text(k)
-                    lb.set_style_text_font(lv.font_montserrat_22, 0)
+                    lb.set_style_text_font(lv.font_montserrat_28, 0)
                     b.add_event_cb(lambda e, d=k: self._on_digit(e, d), lv.EVENT.CLICKED, None)
 
     def _update_mask(self):
