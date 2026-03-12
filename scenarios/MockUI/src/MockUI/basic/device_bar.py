@@ -1,6 +1,6 @@
 import lvgl as lv
 from ..stubs import Battery
-from .ui_consts import BTC_ICON_WIDTH, GREEN_HEX, ORANGE_HEX, RED_HEX, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH
+from .ui_consts import BTC_ICON_WIDTH, GREEN_HEX, ORANGE_HEX, RED_HEX, WHITE_HEX, GREY_HEX, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH
 from .symbol_lib import BTC_ICONS
 
 
@@ -129,25 +129,25 @@ class DeviceBar(lv.obj):
             else:
                 # lock the device and force SpecterGui to show the locked screen
                 self.gui.specter_state.lock()
-                # on_navigate will detect is_locked and show the locked screen
-                self.gui.on_navigate(None)
+                # show_menu will detect is_locked and show the locked screen
+                self.gui.show_menu(None)
 
     def peripheral_ico_clicked(self, e):
         if e.get_code() == lv.EVENT.CLICKED:
             if self.gui.ui_state.current_menu_id != "interfaces":
-                self.gui.on_navigate("interfaces")
+                self.gui.show_menu("interfaces")
 
     def lang_clicked(self, e):
         """Navigate to language selection menu when language label is clicked."""
         if e.get_code() == lv.EVENT.CLICKED:
             if self.gui.ui_state.current_menu_id != "select_language":
-                self.gui.on_navigate("select_language")
+                self.gui.show_menu("select_language")
 
     def settings_cb(self, e):
         """Navigate to settings menu when settings button is clicked."""
         if e.get_code() == lv.EVENT.CLICKED:
             if self.gui.ui_state.current_menu_id != "manage_settings":
-                self.gui.on_navigate("manage_settings")
+                self.gui.show_menu("manage_settings")
 
     def refresh(self, state):
         """Update visual elements from a SpecterState-like object."""
@@ -178,15 +178,15 @@ class DeviceBar(lv.obj):
                 if state.enabledQR:
                     BTC_ICONS.QR_CODE(GREEN_HEX).add_to_parent(self.qr_img)
                 else:
-                    BTC_ICONS.QR_CODE(ORANGE_HEX).add_to_parent(self.qr_img)
+                    BTC_ICONS.QR_CODE(GREY_HEX).add_to_parent(self.qr_img)
             else:
                 self.qr_img.set_src(None)
 
             if state.hasUSB:
                 if state.enabledUSB:
-                    BTC_ICONS.USB(GREEN_HEX).add_to_parent(self.usb_img)
+                    BTC_ICONS.USB(WHITE_HEX).add_to_parent(self.usb_img)
                 else:
-                    BTC_ICONS.USB(ORANGE_HEX).add_to_parent(self.usb_img)
+                    BTC_ICONS.USB(GREY_HEX).add_to_parent(self.usb_img)
             else:
                 self.usb_img.set_src(None)
 
@@ -195,9 +195,9 @@ class DeviceBar(lv.obj):
                     if state.detectedSD:
                         BTC_ICONS.SD_CARD(GREEN_HEX).add_to_parent(self.sd_img)
                     else:
-                        BTC_ICONS.SD_CARD(ORANGE_HEX).add_to_parent(self.sd_img)
+                        BTC_ICONS.SD_CARD(WHITE_HEX).add_to_parent(self.sd_img)
                 else:
-                    BTC_ICONS.SD_CARD(RED_HEX).add_to_parent(self.sd_img)
+                    BTC_ICONS.SD_CARD(GREY_HEX).add_to_parent(self.sd_img)
             else:
                 self.sd_img.set_src(None)
 
@@ -206,9 +206,9 @@ class DeviceBar(lv.obj):
                     if state.detectedSmartCard:
                         BTC_ICONS.SMARTCARD(GREEN_HEX).add_to_parent(self.smartcard_img)
                     else:
-                        BTC_ICONS.SMARTCARD(ORANGE_HEX).add_to_parent(self.smartcard_img)
+                        BTC_ICONS.SMARTCARD(WHITE_HEX).add_to_parent(self.smartcard_img)
                 else:
-                    BTC_ICONS.SMARTCARD(RED_HEX).add_to_parent(self.smartcard_img)
+                    BTC_ICONS.SMARTCARD(GREY_HEX).add_to_parent(self.smartcard_img)
             else:
                 self.smartcard_img.set_src(None)
 
