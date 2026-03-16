@@ -1,6 +1,10 @@
 from micropython import const
 import lvgl as lv
 
+
+SCREEN_WIDTH = const(480)
+SCREEN_HEIGHT = const(800)
+
 # --- Menu / button sizes (1.5× scaled for 800×480 touch target) ---
 BTN_HEIGHT = const(75)           # menu button height (px)
 BTN_WIDTH = const(100)           # menu button width (percent of screen width)

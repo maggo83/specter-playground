@@ -1,14 +1,14 @@
 import lvgl as lv
 from ..stubs import Battery
-from .ui_consts import BTC_ICON_WIDTH, GREEN_HEX, ORANGE_HEX, RED_HEX, WHITE_HEX, GREY_HEX, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH
+from .ui_consts import BTC_ICON_WIDTH, GREEN_HEX, WHITE_HEX, GREY_HEX, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH
 from .symbol_lib import BTC_ICONS
 
 
 class DeviceBar(lv.obj):
     """Device status bar showing system-level information. Designed to be ~5% of the screen height at the top."""
 
-    def __init__(self, gui, height_pct=5, *args, **kwargs):
-        super().__init__(gui, *args, **kwargs)
+    def __init__(self, gui, height_pct=5):
+        super().__init__(gui)
 
         self.gui = gui  # for callback access
 
@@ -137,12 +137,6 @@ class DeviceBar(lv.obj):
             if self.gui.ui_state.current_menu_id != "interfaces":
                 self.gui.show_menu("interfaces")
 
-    def lang_clicked(self, e):
-        """Navigate to language selection menu when language label is clicked."""
-        if e.get_code() == lv.EVENT.CLICKED:
-            if self.gui.ui_state.current_menu_id != "select_language":
-                self.gui.show_menu("select_language")
-
     def settings_cb(self, e):
         """Navigate to settings menu when settings button is clicked."""
         if e.get_code() == lv.EVENT.CLICKED:
@@ -174,25 +168,25 @@ class DeviceBar(lv.obj):
         else:
             BTC_ICONS.UNLOCK.add_to_parent(self.lock_ico)
             # Show peripheral indicators when unlocked
-            if state.hasQR:
-                if state.enabledQR:
+            if state.hasQR():
+                if state.QR_enabled():
                     BTC_ICONS.QR_CODE(GREEN_HEX).add_to_parent(self.qr_img)
                 else:
                     BTC_ICONS.QR_CODE(GREY_HEX).add_to_parent(self.qr_img)
             else:
                 self.qr_img.set_src(None)
 
-            if state.hasUSB:
-                if state.enabledUSB:
+            if state.hasUSB():
+                if state.USB_enabled():
                     BTC_ICONS.USB(WHITE_HEX).add_to_parent(self.usb_img)
                 else:
                     BTC_ICONS.USB(GREY_HEX).add_to_parent(self.usb_img)
             else:
                 self.usb_img.set_src(None)
 
-            if state.hasSD:
-                if state.enabledSD:
-                    if state.detectedSD:
+            if state.hasSD():
+                if state.SD_enabled():
+                    if state.SD_detected():
                         BTC_ICONS.SD_CARD(GREEN_HEX).add_to_parent(self.sd_img)
                     else:
                         BTC_ICONS.SD_CARD(WHITE_HEX).add_to_parent(self.sd_img)
@@ -201,9 +195,9 @@ class DeviceBar(lv.obj):
             else:
                 self.sd_img.set_src(None)
 
-            if state.hasSmartCard:
-                if state.enabledSmartCard:
-                    if state.detectedSmartCard:
+            if state.hasSmartCard():
+                if state.SmartCard_enabled():
+                    if state.SmartCard_detected():
                         BTC_ICONS.SMARTCARD(GREEN_HEX).add_to_parent(self.smartcard_img)
                     else:
                         BTC_ICONS.SMARTCARD(WHITE_HEX).add_to_parent(self.smartcard_img)
@@ -211,14 +205,3 @@ class DeviceBar(lv.obj):
                     BTC_ICONS.SMARTCARD(GREY_HEX).add_to_parent(self.smartcard_img)
             else:
                 self.smartcard_img.set_src(None)
-
-    def _truncate(self, text, max_chars):
-        """Return text truncated to max_chars."""
-        if not text:
-            return ""
-        s = str(text)
-        if len(s) <= max_chars:
-            return s
-        if max_chars <= 3:
-            return s[:3]
-        return s[:max_chars]

@@ -1,8 +1,5 @@
 from ..basic.menu import GenericMenu
-import lvgl as lv
-
 from ..basic.symbol_lib import BTC_ICONS
-
 
 class SettingsMenu(GenericMenu):
     TITLE_KEY = "MENU_MANAGE_SETTINGS"

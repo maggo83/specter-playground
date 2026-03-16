@@ -7,7 +7,7 @@ def _sanitize_passphrase(text):
 
 
 class PassphraseMenu(TitledScreen):
-    """Form to enter/set the active wallet passphrase.
+    """Form to enter/set the active seed's passphrase.
 
     menu_id: "set_passphrase"
     """
@@ -37,10 +37,10 @@ class PassphraseMenu(TitledScreen):
 
         # editable textarea
         self.pa_ta = lv.textarea(pa_row)
-        # prefill with active passphrase (might be empty)
+        # prefill with active passphrase from the seed (might be empty)
         val = ""
-        if self.state.active_wallet.active_passphrase is not None:
-            val = self.state.active_wallet.active_passphrase
+        if self.state.active_seed and self.state.active_seed.passphrase is not None:
+            val = self.state.active_seed.passphrase
         self.pa_ta.set_text(val)
         self.pa_ta.set_width(lv.pct(60))
         self.pa_ta.set_height(50)
@@ -48,10 +48,11 @@ class PassphraseMenu(TitledScreen):
         self.pa_ta.set_accepted_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~ ")  # No newlines
 
         def _on_commit(value):
-            if not value:
-                self.state.active_wallet.active_passphrase = None
-            else:
-                self.state.active_wallet.active_passphrase = value
+            if self.state.active_seed:
+                if not value:
+                    self.state.active_seed.passphrase = None
+                else:
+                    self.state.active_seed.passphrase = value
             self.gui.refresh_ui()
             self.on_navigate(None)
 
@@ -85,6 +86,7 @@ class PassphraseMenu(TitledScreen):
         # Clear text area
         self.pa_ta.set_text("")
         # Clear passphrase in state
-        self.state.active_wallet.active_passphrase = None
+        if self.state.active_seed:
+            self.state.active_seed.passphrase = None
         # Refresh UI
         self.gui.refresh_ui()

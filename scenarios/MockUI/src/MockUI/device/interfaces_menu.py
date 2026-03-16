@@ -17,14 +17,14 @@ class InterfacesMenu(TitledScreen):
 
         # Build interface rows: list of tuples (icon, label_text, state_attr)
         rows = []
-        if self.state.hasQR:
-            rows.append((BTC_ICONS.QR_CODE, self.i18n.t("HARDWARE_QR_CODE"), "enabledQR"))
-        if self.state.hasUSB:
-            rows.append((BTC_ICONS.USB, self.i18n.t("HARDWARE_USB"), "enabledUSB"))
-        if self.state.hasSD:
-            rows.append((BTC_ICONS.SD_CARD, self.i18n.t("HARDWARE_SD_CARD"), "enabledSD"))
-        if self.state.hasSmartCard:
-            rows.append((BTC_ICONS.SMARTCARD, self.i18n.t("HARDWARE_SMARTCARD"), "enabledSmartCard"))
+        if self.state.hasQR():
+            rows.append((BTC_ICONS.QR_CODE, self.i18n.t("HARDWARE_QR_CODE"), "_enabledQR"))
+        if self.state.hasUSB():
+            rows.append((BTC_ICONS.USB, self.i18n.t("HARDWARE_USB"), "_enabledUSB"))
+        if self.state.hasSD():
+            rows.append((BTC_ICONS.SD_CARD, self.i18n.t("HARDWARE_SD_CARD"), "_enabledSD"))
+        if self.state.hasSmartCard():
+            rows.append((BTC_ICONS.SMARTCARD, self.i18n.t("HARDWARE_SMARTCARD"), "_enabledSmartCard"))
 
         for icon, text, state_attr in rows:
             row = lv.obj(self.body)

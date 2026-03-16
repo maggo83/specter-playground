@@ -9,7 +9,6 @@ from .stubs import UIState, SpecterState, Wallet
 from .wallet import (
     WalletMenu,
     AddWalletMenu,
-    ChangeWalletMenu,
     ConnectWalletsMenu,
     SeedPhraseMenu,
     GenerateSeedMenu,
@@ -52,7 +51,6 @@ __all__ = [
     "BackupsMenu",
     "FirmwareMenu",
     "ConnectWalletsMenu",
-    "ChangeWalletMenu",
     "AddWalletMenu",
     "LockedMenu",
     "GenerateSeedMenu",

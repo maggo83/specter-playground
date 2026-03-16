@@ -10,13 +10,17 @@ from .ui_consts import STATUS_BAR_PCT, CONTENT_PCT
 from ..wallet import (
     WalletMenu,
     ConnectWalletsMenu,
-    ChangeWalletMenu,
+    SwitchAddSeedsMenu,
+    SwitchAddWalletsMenu,
+    AddSeedMenu,
     AddWalletMenu,
     SeedPhraseMenu,
     StoreSeedphraseMenu,
     ClearSeedphraseMenu,
     GenerateSeedMenu,
     PassphraseMenu,
+    ManageSeedsAndWalletsMenu,
+    CreateCustomWalletMenu,
 )
 from ..device import (
     SecuritySettingsMenu,
@@ -161,10 +165,14 @@ class SpecterGui(lv.obj):
             self.current_screen = FirmwareMenu(self)
         elif current == "connect_sw_wallet":
             self.current_screen = ConnectWalletsMenu(self)
-        elif current == "change_wallet":
-            self.current_screen = ChangeWalletMenu(self)
+        elif current == "add_seed":
+            self.current_screen = AddSeedMenu(self)               
         elif current == "add_wallet":
             self.current_screen = AddWalletMenu(self)
+        elif current == "switch_add_seeds":
+            self.current_screen = SwitchAddSeedsMenu(self)
+        elif current == "switch_add_wallets":
+            self.current_screen = SwitchAddWalletsMenu(self)                    
         elif current == "manage_security_features":
             self.current_screen = SecurityFeaturesMenu(self)
         elif current == "interfaces":
@@ -179,6 +187,10 @@ class SpecterGui(lv.obj):
             self.current_screen = GenerateSeedMenu(self)
         elif current == "set_passphrase":
             self.current_screen = PassphraseMenu(self)
+        elif current == "manage_seed_wallet":
+            self.current_screen = ManageSeedsAndWalletsMenu(self)
+        elif current == "create_custom_wallet":
+            self.current_screen = CreateCustomWalletMenu(self)
         elif current == "manage_storage":
             self.current_screen = StorageMenu(self)
         elif current == "select_language":

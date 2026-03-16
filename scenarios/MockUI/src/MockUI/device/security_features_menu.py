@@ -1,6 +1,5 @@
 from ..basic import GenericMenu
 from ..basic.symbol_lib import BTC_ICONS
-import lvgl as lv
 
 class SecurityFeaturesMenu(GenericMenu):
     TITLE_KEY = "MENU_MANAGE_SECURITY"

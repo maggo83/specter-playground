@@ -1,4 +1,4 @@
-"""Base class for all full-screen views (menus, action screens, etc.).
+"""Base class for all views (menus, action screens, etc.) that have a title.
 
 Provides a fixed-height title bar at the top (containing an optional back
 button and a centred title label) and a body area below it that fills the
@@ -21,7 +21,7 @@ from .symbol_lib import BTC_ICONS
 
 
 class TitledScreen(lv.obj):
-    """Base class for all full-screen views.
+    """Base class for all views that have a title.
 
     Attributes available to subclasses:
         self.gui        – the SpecterGui that owns this screen

@@ -10,16 +10,16 @@ class GenericMenu(TitledScreen):
 
     Subclasses override the three hooks:
         get_title(t, state)      -> str          title shown at the top
-        get_menu_items(t, state) -> list         list of (icon, text, target_behavior, color, size, help_key)
+        get_menu_items(t, state) -> list         list of (icon, text, target_behavior, color, size, help_key); will be used to create the actual menu
         post_init(t, state)      -> None         called after all LVGL widgets are built
 
     Each tuple element of menu_items:
         - icon: Icon object or lv.SYMBOL string
         - text: Display text for the menu item
         - target_behavior: None (creates label/spacer), string (menu_id to navigate to), or callable
-        - color: Optional color for the button
-        - size: Size multiplier for button height (default=1, minimum=1)
-        - help_key: Optional i18n key for a help popup
+        - color: (Optional) color for the button
+        - size: (Optional) size multiplier for button height (default=1, minimum=1)
+        - help_key: (Optional) i18n key for a help popup
     """
 
     def __init__(self, parent):
@@ -65,7 +65,7 @@ class GenericMenu(TitledScreen):
                     btn.set_style_bg_color(color, lv.PART.MAIN)
 
                 if icon:
-                    # Check if icon is an Icon (includes ColoredIcon subclass)
+                    # Check if icon is an Icon
                     if isinstance(icon, Icon):
                         icon_img = lv.image(btn)
                         icon.add_to_parent(icon_img)
