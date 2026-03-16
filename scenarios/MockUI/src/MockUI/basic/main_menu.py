@@ -42,33 +42,33 @@ class MainMenu(GenericMenu):
 
         # Generate New Key
         gen_size = 1.0+slots_remaining/slots_used if not Seed_detected else 1
-        menu_items.append((BTC_ICONS.MNEMONIC, t("MAIN_MENU_GENERATE_SEED"), "generate_seedphrase", None, gen_size, None))
+        menu_items.append((BTC_ICONS.MNEMONIC, t("ADD_SEED_GENERATE_SEED"), "generate_seedphrase", None, gen_size, None))
 
         menu_items.append((None, t("ADD_SEED_IMPORT_SECTION"), None, None, None, None))
 
         # SmartCard (highlighted exclusively when detected with key)
         if state.SmartCard_hasSeed():
             sc_size = 1.0 + slots_remaining
-            menu_items.append((BTC_ICONS.SMARTCARD, t("MAIN_MENU_ADD_FROM_SMARTCARD"), "import_from_smartcard", None, sc_size, None))
+            menu_items.append((BTC_ICONS.SMARTCARD, t("HARDWARE_SMARTCARD"), "import_from_smartcard", None, sc_size, None))
 
         # Scan QR
         qr_size = 1.0+slots_remaining/slots_used if not Seed_detected else 1
         if state.QR_enabled():
-            menu_items.append((BTC_ICONS.SCAN, t("MAIN_MENU_ADD_FROM_QR"), "import_from_qr", None, qr_size, None))
+            menu_items.append((BTC_ICONS.SCAN, t("HARDWARE_QR_CODE"), "import_from_qr", None, qr_size, None))
 
         # Keyboard
         kb_size = 1.0+slots_remaining/slots_used if not Seed_detected else 1
-        menu_items.append((lv.SYMBOL.KEYBOARD, t("MAIN_MENU_ADD_FROM_KEYBOARD"), "import_from_keyboard", None, kb_size, None))
+        menu_items.append((lv.SYMBOL.KEYBOARD, t("COMMON_KEYBOARD"), "import_from_keyboard", None, kb_size, None))
 
         # SD Card (only if key data detected)
         if state.SD_hasSeed():
             sd_size = 1.0 + slots_remaining if not state.SmartCard_hasSeed() else 1
-            menu_items.append((BTC_ICONS.SD_CARD, t("MAIN_MENU_ADD_FROM_SD"), "import_from_sd", None, sd_size, None))
+            menu_items.append((BTC_ICONS.SD_CARD, t("HARDWARE_SD_CARD"), "import_from_sd", None, sd_size, None))
 
         # Flash (only if key data in flash)
         if state.Flash_hasSeed():
             flash_size = 1.0 + slots_remaining if not (state.SmartCard_hasSeed() or state.SD_hasSeed()) else 1
-            menu_items.append((BTC_ICONS.FILE, t("MAIN_MENU_ADD_FROM_FLASH"), "import_from_flash", None, flash_size, None))
+            menu_items.append((BTC_ICONS.FILE, t("HARDWARE_INTERNAL_FLASH"), "import_from_flash", None, flash_size, None))
 
         return menu_items
 
@@ -87,11 +87,11 @@ class MainMenu(GenericMenu):
         # ── Actions section ─────────────────────────────────────────────────
 
         if has_controlled_input or can_sign_msg:
-            menu_items.append((None, t("MAIN_MENU_ACTIONS"), None, None, None, None))
+            menu_items.append((None, t("MAIN_MENU_PROCESS_INPUT"), None, None, None, None))
             if state.QR_enabled():
                 menu_items.append((BTC_ICONS.SCAN, t("MAIN_MENU_SCAN_QR"), "scan_qr", None, 1.3, "HELP_SCAN_QR"))
             if state.SD_detected():
-                menu_items.append((BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_SD"), "load_sd", None, 1, None))
+                menu_items.append((BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_FROM_SD"), "load_sd", None, 1, None))
             if can_sign_msg:
                 menu_items.append((BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message", None, 1, None))
 

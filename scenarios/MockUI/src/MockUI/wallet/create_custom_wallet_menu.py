@@ -28,12 +28,12 @@ class CreateCustomWalletMenu(TitledScreen):
         # ── Wallet name ──────────────────────────────────────────────
         name_row = self._make_row(ROW_H)
         name_lbl = lv.label(name_row)
-        name_lbl.set_text("Name")
+        name_lbl.set_text(t("COMMON_NAME"))
         name_lbl.set_width(lv.pct(25))
         name_lbl.set_style_text_font(lv.font_montserrat_22, 0)
 
         self.name_ta = lv.textarea(name_row)
-        self.name_ta.set_text("Wallet " + str(urandom.randint(1, 99)))
+        self.name_ta.set_text(t("COMMON_WALLET") + " " + str(urandom.randint(1, 99)))
         self.name_ta.set_width(lv.pct(65))
         self.name_ta.set_height(46)
         self.name_ta.set_style_text_font(lv.font_montserrat_22, 0)
@@ -43,7 +43,7 @@ class CreateCustomWalletMenu(TitledScreen):
         # ── Multisig toggle ──────────────────────────────────────────
         ms_row = self._make_row(ROW_H)
         ms_lbl = lv.label(ms_row)
-        ms_lbl.set_text("Multisig")
+        ms_lbl.set_text(t("COMMON_MULTISIG"))
         ms_lbl.set_width(lv.pct(50))
         ms_lbl.set_style_text_font(lv.font_montserrat_22, 0)
 
@@ -54,7 +54,7 @@ class CreateCustomWalletMenu(TitledScreen):
         # ── Threshold (visible only for multisig) ────────────────────
         self.thresh_row = self._make_row(ROW_H)
         th_lbl = lv.label(self.thresh_row)
-        th_lbl.set_text("Threshold")
+        th_lbl.set_text(t("ADD_WALLET_THRESHOLD"))
         th_lbl.set_width(lv.pct(50))
         th_lbl.set_style_text_font(lv.font_montserrat_22, 0)
 
@@ -71,7 +71,7 @@ class CreateCustomWalletMenu(TitledScreen):
         # ── Extra fingerprints (for multisig cosigners) ──────────────
         self.fp_row = self._make_row(ROW_H)
         fp_lbl = lv.label(self.fp_row)
-        fp_lbl.set_text("Cosigner FPs")
+        fp_lbl.set_text(t("ADD_WALLET_SIGNERS"))
         fp_lbl.set_width(lv.pct(35))
         fp_lbl.set_style_text_font(lv.font_montserrat_16, 0)
 
@@ -98,7 +98,7 @@ class CreateCustomWalletMenu(TitledScreen):
         # ── Custom toggle ───────────────────────────────────────────
         custom_row = self._make_row(ROW_H)
         custom_lbl = lv.label(custom_row)
-        custom_lbl.set_text("Custom")
+        custom_lbl.set_text(t("ADD_WALLET_CUSTOM"))
         custom_lbl.set_width(lv.pct(50))
         custom_lbl.set_style_text_font(lv.font_montserrat_22, 0)
 
@@ -111,7 +111,7 @@ class CreateCustomWalletMenu(TitledScreen):
         self.create_btn.set_width(lv.pct(BTN_WIDTH))
         self.create_btn.set_height(BTN_HEIGHT)
         clbl = lv.label(self.create_btn)
-        clbl.set_text("Create Wallet")
+        clbl.set_text(t("COMMON_CREATE"))
         clbl.set_style_text_font(lv.font_montserrat_22, 0)
         clbl.center()
         self.create_btn.add_event_cb(lambda e: self._on_create(e), lv.EVENT.CLICKED, None)
