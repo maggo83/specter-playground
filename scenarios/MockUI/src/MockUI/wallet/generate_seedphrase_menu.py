@@ -34,7 +34,7 @@ class GenerateSeedMenu(TitledScreen):
         name_row.set_style_pad_all(0, 0)
 
         name_lbl = lv.label(name_row)
-        name_lbl.set_text(t("GENERATE_SEED_KEY_NAME"))
+        name_lbl.set_text(t("COMMON_NAME"))
         name_lbl.set_width(lv.pct(30))
         name_lbl.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
         name_lbl.set_style_text_font(lv.font_montserrat_22, 0)
@@ -80,7 +80,7 @@ class GenerateSeedMenu(TitledScreen):
         self.create_btn.set_width(lv.pct(BTN_WIDTH))
         self.create_btn.set_height(BTN_HEIGHT)
         self.create_lbl = lv.label(self.create_btn)
-        self.create_lbl.set_text(t("GENERATE_SEED_CREATE"))
+        self.create_lbl.set_text(t("COMMON_CREATE"))
         self.create_lbl.set_style_text_font(lv.font_montserrat_22, 0)
         self.create_lbl.center()
         self.create_btn.add_event_cb(lambda e: self._on_create(e), lv.EVENT.CLICKED, None)

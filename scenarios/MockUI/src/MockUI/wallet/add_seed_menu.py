@@ -16,7 +16,7 @@ class AddSeedMenu(GenericMenu):
 
         # Generate section
         menu_items.append((None, t("ADD_SEED_GENERATE_SECTION"), None, None, None, None))
-        menu_items.append((BTC_ICONS.MNEMONIC, t("MAIN_MENU_GENERATE_SEED"), "generate_seedphrase", None, None, None))
+        menu_items.append((BTC_ICONS.MNEMONIC, t("ADD_SEED_GENERATE_SEED"), "generate_seedphrase", None, None, None))
 
         # Import section
         menu_items.append((None, t("ADD_SEED_IMPORT_SECTION"), None, None, None, None))
@@ -30,7 +30,7 @@ class AddSeedMenu(GenericMenu):
             menu_items.append((BTC_ICONS.SCAN, t("HARDWARE_QR_CODE"), "import_from_qr", None, None, None))
 
         # Keyboard (always available)
-        menu_items.append((lv.SYMBOL.KEYBOARD, t("ADD_WALLET_KEYBOARD"), "import_from_keyboard", None, None, None))
+        menu_items.append((lv.SYMBOL.KEYBOARD, t("COMMON_KEYBOARD"), "import_from_keyboard", None, None, None))
 
         # SD Card (only if key data detected)
         if state.SD_hasSeed():
