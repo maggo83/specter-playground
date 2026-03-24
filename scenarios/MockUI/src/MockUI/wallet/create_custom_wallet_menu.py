@@ -76,10 +76,24 @@ class CreateCustomWalletMenu(TitledScreen):
         fp_lbl.set_style_text_font(lv.font_montserrat_16, 0)
 
         self.fp_ta = lv.textarea(self.fp_row)
-        self.fp_ta.set_text("aabbccdd,11223344")
+        sig_text = ""
+        if self.state and self.state.active_seed:
+            # Pre-fill with active seed's fingerprint for convenience
+            fp1 = self.state.active_seed.fingerprint
+            sig_text = fp1[:]
+            if self.state.loaded_seeds and len(self.state.loaded_seeds) > 1:
+                # If multiple seeds are loaded, add a second fingerprint for testing
+                fps = [s.fingerprint[:] for s in self.state.loaded_seeds if s.fingerprint != fp1]
+                sig_text += f",{fps[0][:]}"
+            else:
+                sig_text += ",0xabcd"
+        else:
+            sig_text = "0x0123,0xabcd"
+
+        self.fp_ta.set_text(sig_text)
         self.fp_ta.set_width(lv.pct(55))
         self.fp_ta.set_height(46)
-        self.fp_ta.set_accepted_chars("0123456789abcdef,")
+        self.fp_ta.set_accepted_chars("0123456789abcdefx,")
         self.fp_ta.set_style_text_font(lv.font_montserrat_16, 0)
         kb3 = lambda e: self.gui.keyboard_manager.bind(self.fp_ta, Layout.FULL)
         self.fp_ta.add_event_cb(kb3, lv.EVENT.CLICKED, None)
@@ -149,11 +163,7 @@ class CreateCustomWalletMenu(TitledScreen):
 
         # Build fingerprint list
         fps = []
-        # Always include the active seed's fingerprint
-        if self.state and self.state.active_seed:
-            fps.append(self.state.active_seed.fingerprint)
-
-        threshold = None
+        threshold = int(self.thresh_ta.get_text())
         if is_multi:
             # Parse extra cosigner fingerprints
             raw = self.fp_ta.get_text().strip()
@@ -162,10 +172,6 @@ class CreateCustomWalletMenu(TitledScreen):
                     fp = fp.strip()
                     if fp and fp not in fps:
                         fps.append(fp)
-            try:
-                threshold = int(self.thresh_ta.get_text())
-            except Exception:
-                threshold = 2
 
         # Build a dummy descriptor string
         if is_custom:

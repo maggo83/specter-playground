@@ -111,6 +111,24 @@ class SpecterState:
         if self.active_seed is seed:
             self.active_seed = self.loaded_seeds[0] if self.loaded_seeds else None
 
+    def wallets_for_seed(self, seed):
+        """Return wallets that match this seed (including the shared Default Wallet)."""
+        if seed is None:
+            return None
+        fp = seed.fingerprint
+        return [wallet for wallet in self.registered_wallets
+                if wallet.is_default_wallet() or fp in wallet.required_fingerprints]
+
+    def seed_matches_wallet(self, seed=None, wallet=None):
+        """Check if a seed's fingerprint is in the wallet's required signers."""
+        if not seed:
+            seed=self.active_seed
+        if not wallet:
+            wallet=self.active_wallet
+        if not seed or not wallet:
+            return False
+        return wallet in self.wallets_for_seed(seed)
+
     # ── Wallet helpers ───────────────────────────────────────────────
     def register_wallet(self, wallet, imported=False):
         """Register a wallet descriptor.
@@ -158,23 +176,17 @@ class SpecterState:
         self.registered_wallets.append(wallet)
         return wallet
 
-    def wallets_for_seed(self, seed):
-        """Return wallets that match this seed (including the shared Default Wallet)."""
-        if seed is None:
+    def seeds_for_wallet(self, wallet):
+        """Return seeds that match this wallet (including the shared Default Wallet)."""
+        if wallet is None:
             return None
-        fp = seed.fingerprint
-        return [wallet for wallet in self.registered_wallets
-                if wallet.is_default_wallet() or fp in wallet.required_fingerprints]
-
-    def seed_matches_wallet(self, seed=None, wallet=None):
-        """Check if a seed's fingerprint is in the wallet's required signers."""
-        if not seed:
-            seed=self.active_seed
-        if not wallet:
-            wallet=self.active_wallet
-        if not seed or not wallet:
-            return False
-        return wallet in self.wallets_for_seed(seed)
+        if wallet.is_default_wallet():
+            # Default wallet matches any seed
+            return self.loaded_seeds
+        
+        fps = set(wallet.required_fingerprints)
+        return [seed for seed in self.loaded_seeds
+                if seed.fingerprint in fps] 
 
     def signing_match_count(self, wallet = None):
         """Return (matched_count, required_count) for the given wallet (default: active wallet)."""

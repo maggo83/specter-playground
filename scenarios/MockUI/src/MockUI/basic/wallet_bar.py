@@ -251,7 +251,8 @@ class WalletBar(lv.obj):
             self.seed_name_lbl.set_text(seed.label[:(seed_name_w // self.LETTER_W)])
 
             self._show_img(self.fingerprint_img)
-            self.fingerprint_lbl.set_text(seed.fingerprint[:4])
+            #do not show "0x" hex prefix in fingerprint
+            self.fingerprint_lbl.set_text(seed.fingerprint[2:])
     
 
         # ── Right side: Wallet (conditional) ────────────────────────────────
@@ -290,9 +291,10 @@ class WalletBar(lv.obj):
             # Key icon with signing-readiness color coding
             matched, total = state.signing_match_count()
             if wallet.isMultiSig:
-                # Two-keys icon; green when threshold met, white otherwise
+                # Two-keys icon; green when threshold met, and matches active seed, white otherwise
                 threshold_met = wallet.threshold and matched >= wallet.threshold
-                color = GREEN_HEX if threshold_met else WHITE_HEX
+                seed_wallet_match = self.state.seed_matches_wallet()
+                color = GREEN_HEX if threshold_met and seed_wallet_match else WHITE_HEX
                 self._show_img(self.key1_img, BTC_ICONS.TWO_KEYS(color))
             else:
                 # Single KEY icon

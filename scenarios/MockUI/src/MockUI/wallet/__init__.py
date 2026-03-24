@@ -11,6 +11,7 @@ from .generate_seedphrase_menu import GenerateSeedMenu
 from .passphrase_menu import PassphraseMenu
 from .manage_key_wallet_menu import ManageSeedsAndWalletsMenu
 from .create_custom_wallet_menu import CreateCustomWalletMenu
+from .view_signers_screen import ViewSignersScreen
 
 __all__ = [
     "WalletMenu",
@@ -26,4 +27,5 @@ __all__ = [
     "PassphraseMenu",
     "ManageSeedsAndWalletsMenu",
     "CreateCustomWalletMenu",
+    "ViewSignersScreen",
 ]

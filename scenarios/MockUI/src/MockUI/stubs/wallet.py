@@ -25,8 +25,10 @@ class Wallet:
         self.descriptor = descriptor
         self.isMultiSig = isMultiSig
         self.net = net
-        self.required_fingerprints = required_fingerprints or []
         self.threshold = threshold
+        self.required_fingerprints = required_fingerprints or []
+        assert (not isMultiSig) or (threshold and len(self.required_fingerprints) >= threshold), "Invalid multisig config"
+
         # True when wallet was imported from companion app (QR/SD) or
         # explicitly exported via Connect Companion App flow.
         self.has_been_exported = has_been_exported

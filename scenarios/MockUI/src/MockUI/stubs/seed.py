@@ -3,7 +3,7 @@
 Represents a loaded MasterKey (seedphrase) in memory.
 Ephemeral — never persisted across power cycles in working memory.
 """
-
+import urandom
 
 class Seed:
     """Tiny seed placeholder used by SpecterState.
@@ -16,16 +16,16 @@ class Seed:
 
     def __init__(self, label, fingerprint=None, passphrase=None):
         self.label = label
-        self.fingerprint = fingerprint or self._generate_dummy_fingerprint()
+        self.fingerprint = fingerprint or self.generate_dummy_fingerprint()
         self.passphrase = passphrase
 
-    def _generate_dummy_fingerprint(self):
+    @staticmethod
+    def generate_dummy_fingerprint():
         """Generate a fake fingerprint for mock purposes."""
-        try:
-            import urandom
-            h = hex(urandom.getrandbits(32))[2:]
-            return "0" * (8 - len(h)) + h
-        except ImportError:
-            import random
-            h = hex(random.getrandbits(32))[2:]
-            return "0" * (8 - len(h)) + h
+        h = hex(urandom.getrandbits(16))[:]
+        return h
+    
+    @staticmethod
+    def get_fingerprints(seeds):
+        """Return list of fingerprints for a list of seeds."""
+        return [seed.fingerprint for seed in seeds]

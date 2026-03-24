@@ -110,6 +110,14 @@
       "text": "Eigenes",
       "ref_en": "Custom"
     },
+    "ADD_SWITCH_WALLET_MENU_WALLETS_FOR_SEED": {
+      "text": "Wallets für aktiven Seed",
+      "ref_en": "Wallets for active seed"
+    },
+    "ADD_SWITCH_WALLET_MENU_OTHER_WALLETS": {
+      "text": "Andere Wallets",
+      "ref_en": "Other wallets"
+    },
     "GENERATE_SEED_FINGERPRINT": {
       "text": "Fingerprint:",
       "ref_en": "Fingerprint: "

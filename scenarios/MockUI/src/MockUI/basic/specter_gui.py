@@ -21,6 +21,7 @@ from ..wallet import (
     PassphraseMenu,
     ManageSeedsAndWalletsMenu,
     CreateCustomWalletMenu,
+    ViewSignersScreen,
 )
 from ..device import (
     SecuritySettingsMenu,
@@ -157,6 +158,8 @@ class SpecterGui(lv.obj):
             self.current_screen = MainMenu(self)
         elif current == "manage_wallet":
             self.current_screen = WalletMenu(self)
+        elif current == "view_signers":
+            self.current_screen = ViewSignersScreen(self)
         elif current == "manage_security_settings":
             self.current_screen = SecuritySettingsMenu(self)
         elif current == "manage_backups":

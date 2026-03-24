@@ -39,6 +39,9 @@
     "ADD_WALLET_SIGNERS": "Signers: ",
     "ADD_WALLET_CUSTOM" : "Custom",
     
+    "ADD_SWITCH_WALLET_MENU_WALLETS_FOR_SEED": "Wallets for active seed",
+    "ADD_SWITCH_WALLET_MENU_OTHER_WALLETS": "Other wallets",
+
     "GENERATE_SEED_FINGERPRINT": "Fingerprint: ",
     "GENERATE_SEED_INFO": "A new 24-word seed will be generated. You can back it up after creation.",
     
