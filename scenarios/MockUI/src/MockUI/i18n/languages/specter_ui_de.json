@@ -118,6 +118,14 @@
       "text": "Andere Wallets",
       "ref_en": "Other wallets"
     },
+    "ADD_SWITCH_SEED_MENU_SEEDS_FOR_WALLET": {
+      "text": "Seeds für aktive Wallet",
+      "ref_en": "Seeds for active wallet"
+    },
+    "ADD_SWITCH_SEED_MENU_OTHER_SEEDS": {
+      "text": "Andere Seeds",
+      "ref_en": "Other seeds"
+    },
     "GENERATE_SEED_FINGERPRINT": {
       "text": "Fingerprint:",
       "ref_en": "Fingerprint: "

@@ -42,6 +42,9 @@
     "ADD_SWITCH_WALLET_MENU_WALLETS_FOR_SEED": "Wallets for active seed",
     "ADD_SWITCH_WALLET_MENU_OTHER_WALLETS": "Other wallets",
 
+    "ADD_SWITCH_SEED_MENU_SEEDS_FOR_WALLET": "Seeds for active wallet",
+    "ADD_SWITCH_SEED_MENU_OTHER_SEEDS": "Other seeds",
+
     "GENERATE_SEED_FINGERPRINT": "Fingerprint: ",
     "GENERATE_SEED_INFO": "A new 24-word seed will be generated. You can back it up after creation.",
     
