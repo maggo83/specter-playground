@@ -10,13 +10,21 @@ class SwitchAddMenu(GenericMenu):
     Should never be used directly, only via subclasses.
     """
 
-    def get_menu_items(self, t, state, elements, label_creation_cb, active_element, activation_cb, add_target_behavior=None, add_string=None):
+    def get_menu_items(self, t, state, elements, label_creation_cb, active_element, activation_cb,
+                       add_target_behavior=None, add_string=None, show_check=None):
+        """Build a flat item list for *elements*.
+
+        *show_check* – if None, a checkmark is shown only when len(elements) > 1
+        (auto-detect).  Pass an explicit bool to override, e.g. when the caller
+        assembles a multi-section list via two separate super() calls.
+        """
+        if show_check is None:
+            show_check = len(elements) > 1
 
         menu_items = []
         for item in elements:
-            is_active = item is active_element
             menu_items.append((
-                BTC_ICONS.CHECK if is_active and len(elements) > 1 else None,
+                BTC_ICONS.CHECK if show_check and item is active_element else None,
                 label_creation_cb(item),
                 self._make_select_cb(activation_cb, item),
                 None, None, None
@@ -24,7 +32,7 @@ class SwitchAddMenu(GenericMenu):
 
         if add_string and add_target_behavior:
             menu_items.append((BTC_ICONS.PLUS, add_string, add_target_behavior, None, None, None))
-            
+
         return menu_items
 
     def _make_select_cb(self, activation_cb, item):
