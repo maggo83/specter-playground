@@ -5,6 +5,7 @@ from .symbol_lib import Icon, BTC_ICONS
 from .modal_overlay import ModalOverlay
 
 
+
 class GenericMenu(TitledScreen):
     """Reusable menu builder — template method pattern.
 
@@ -37,6 +38,41 @@ class GenericMenu(TitledScreen):
 
         self._build_menu_items(menu_items)
         self.post_init(self.i18n.t, self.state)
+        self._configure_scroll()
+
+    def _configure_scroll(self):
+        """Enable vertical scrolling only when content overflows the visible body.
+
+        Forces a layout pass first so child positions are accurate, then scans
+        all children to find the actual content extent. This way post_init
+        additions are automatically included and no manual height tracking is
+        needed. Also zeroes pad_bottom to prevent the theme’s default 13 px
+        bottom padding from creating a phantom over-drag zone.
+        """
+        self.body.update_layout()
+        content_h = 0
+        for i in range(self.body.get_child_count()):
+            child = self.body.get_child(i)
+            bottom = child.get_y() + child.get_height()
+            if bottom > content_h:
+                content_h = bottom
+        available_h = (self.body.get_height()
+                       - self.body.get_style_pad_top(0)
+                       - self.body.get_style_pad_bottom(0))
+        if content_h > available_h:
+            self.body.set_scroll_dir(lv.DIR.VER)
+            self.body.set_scrollbar_mode(lv.SCROLLBAR_MODE.AUTO)
+            self.body.remove_flag(lv.obj.FLAG.SCROLL_ELASTIC)
+            self.body.remove_flag(lv.obj.FLAG.SCROLL_MOMENTUM)
+            # Zero pad_bottom so LVGL's scroll_bottom formula
+            # (last_child_bottom + pad_bottom - body_bottom) gives the exact
+            # overflow. Then force a second layout pass so LVGL recalculates
+            # scroll_bottom with the updated padding value.
+            self.body.set_style_pad_bottom(0, 0)
+            self.body.update_layout()
+        else:
+            self.body.set_scroll_dir(lv.DIR.NONE)
+            self.body.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
 
     def _build_menu_items(self, menu_items):
         """Build LVGL widgets for each item in the menu_items list."""
@@ -58,9 +94,7 @@ class GenericMenu(TitledScreen):
             else:
                 btn = lv.button(self.body)
                 btn.set_width(lv.pct(BTN_WIDTH))
-                # Apply size scaling to button height
-                scaled_height = int(BTN_HEIGHT * size)
-                btn.set_height(scaled_height)
+                btn.set_height(int(BTN_HEIGHT * size))
                 if color:
                     btn.set_style_bg_color(color, lv.PART.MAIN)
 

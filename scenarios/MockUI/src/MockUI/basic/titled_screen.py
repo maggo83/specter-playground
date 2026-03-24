@@ -16,7 +16,7 @@ Layout (absolute, no flex on root):
 """
 
 import lvgl as lv
-from .ui_consts import BACK_BTN_HEIGHT, BACK_BTN_WIDTH, TITLE_ROW_HEIGHT, TITLE_PADDING
+from .ui_consts import BACK_BTN_HEIGHT, BACK_BTN_WIDTH, TITLE_ROW_HEIGHT, TITLE_PADDING, SCREEN_HEIGHT, CONTENT_PCT
 from .symbol_lib import BTC_ICONS
 
 
@@ -80,11 +80,13 @@ class TitledScreen(lv.obj):
         self.title = self.title_lbl
 
         # ── Body ─────────────────────────────────────────────────────────────
-        # Sits below the title bar.  Height = 100% of root so LVGL clips
-        # anything that falls below the parent edge – no pixel arithmetic needed.
+        # Height = content area height minus the title bar and padding, so
+        # the body matches the actual visible space. This lets LVGL's scroll
+        # detection work correctly: content taller than this value scrolls.
+        _body_height = SCREEN_HEIGHT * CONTENT_PCT // 100 - TITLE_ROW_HEIGHT - TITLE_PADDING
         self.body = lv.obj(self)
         self.body.set_width(lv.pct(100))
-        self.body.set_height(lv.pct(100))
+        self.body.set_height(_body_height)
         self.body.set_style_pad_all(0, 0)
         self.body.set_style_border_width(0, 0)
         self.body.set_style_radius(0, 0)
