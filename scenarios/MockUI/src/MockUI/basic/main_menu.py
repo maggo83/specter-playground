@@ -20,13 +20,13 @@ class MainMenu(GenericMenu):
         has_seed = state and state.active_seed is not None    
 
         if has_seed:
-            title = self.title.get_text()
-            title += "\n" + (state.active_seed.label)
+            menu_title = self.title.get_text()
+            seed_wallet_title = state.active_seed.label
 
             if not state.active_wallet.is_default_wallet():
-                title += " - " + state.active_wallet.label
+                seed_wallet_title += " - " + state.active_wallet.label
 
-            self.title.set_text(title)
+            self.title.set_text(seed_wallet_title)
         
 
     def _items_no_seed(self, t, state):
