@@ -350,6 +350,10 @@
       "text": "Passphrase eingeben/setzen",
       "ref_en": "Set Passphrase"
     },
+    "MENU_CHANGE_CLEAR_PASSPHRASE": {
+      "text": "Passphrase ändern / löschen",
+      "ref_en": "Change / Clear Passphrase"
+    },    
     "MENU_CONNECT_SW_WALLET": {
       "text": "Companion App verbinden",
       "ref_en": "Connect Companion App"

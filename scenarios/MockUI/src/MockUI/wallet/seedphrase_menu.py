@@ -18,9 +18,11 @@ class SeedPhraseMenu(GenericMenu):
         menu_items.append((BTC_ICONS.VISIBLE, t("SEEDPHRASE_MENU_SHOW"), "show_seedphrase", ORANGE_HEX, None, None))
 
         # Passphrase
-        pp_label = t("MENU_SET_PASSPHRASE")
-        if state and state.active_seed and state.active_seed.passphrase:
-            pp_label += " (active)"
+        pp_label = ""
+        if state.active_seed.passphrase:
+            pp_label = t("MENU_CHANGE_CLEAR_PASSPHRASE")
+        else:
+            pp_label = t("MENU_SET_PASSPHRASE")
         menu_items.append((BTC_ICONS.PASSWORD, pp_label, "set_passphrase", None, None, None))
 
         # Storage sub-menus

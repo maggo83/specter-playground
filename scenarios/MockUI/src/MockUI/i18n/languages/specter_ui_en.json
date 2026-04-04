@@ -115,6 +115,7 @@
     "MENU_MANAGE_WALLET": "Manage Wallet",
     "MENU_MANAGE_SEED": "Manage Seed",
     "MENU_SET_PASSPHRASE": "Set Passphrase",
+    "MENU_CHANGE_CLEAR_PASSPHRASE": "Change / Clear Passphrase",
     "MENU_CONNECT_SW_WALLET": "Connect Companion App",
     "MENU_SWITCH_ADD_SEED": "Switch / Add Seed",
     "MENU_SWITCH_ADD_WALLET": "Switch / Add Wallet",    
