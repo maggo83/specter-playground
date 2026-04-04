@@ -4,7 +4,7 @@ from .symbol_lib import BTC_ICONS
 
 
 class SwitchAddMenu(GenericMenu):
-    """Base class for any menu that elt's the user choose an active element from a list and optionally add a new element.
+    """Base class for any menu that let's the user choose an active element from a list and optionally add a new element.
     E.g. switch/add MasterKeys and/or Wallets.
 
     Should never be used directly, only via subclasses.
@@ -14,7 +14,7 @@ class SwitchAddMenu(GenericMenu):
                        add_target_behavior=None, add_string=None, show_check=None):
         """Build a flat item list for *elements*.
 
-        *show_check* – if None, a checkmark is shown only when len(elements) > 1
+        *show_check* - if None, a checkmark is shown only when len(elements) > 1
         (auto-detect).  Pass an explicit bool to override, e.g. when the caller
         assembles a multi-section list via two separate super() calls.
         """
