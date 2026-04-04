@@ -16,25 +16,32 @@ class SwitchAddSeedsMenu(SwitchAddMenu):
     def get_menu_items(self, t, state):
         wallet_seeds = self.state.seeds_for_wallet(state.active_wallet) or []
         other_seeds = [s for s in state.loaded_seeds if s not in wallet_seeds]
-        common = dict(
-            label_creation_cb=lambda s: s.label,
-            active_element=state.active_seed,
-            activation_cb=self.state.set_active_seed,
-            show_check=len(wallet_seeds) + len(other_seeds) > 1,
-        )
+        show_check = len(wallet_seeds) + len(other_seeds) > 1
 
-        if not other_seeds:
-            return super().get_menu_items(
-                t, state, elements=wallet_seeds, **common,
-                add_target_behavior="add_seed", add_string=t("MENU_ADD_SEED"),
+        def items(seeds, add_behavior=None, add_str=None):
+            return super(SwitchAddSeedsMenu, self).get_menu_items(
+                elements=seeds,
+                label_creation_cb=lambda s: s.label,
+                active_element=state.active_seed,
+                activation_cb=self.state.set_active_seed,
+                show_check=show_check,
+                add_target_behavior=add_behavior,
+                add_string=add_str,
             )
 
-        return (
-            [(None, t("ADD_SWITCH_SEED_MENU_SEEDS_FOR_WALLET"), None, None, None, None)]
-            + super().get_menu_items(t, state, elements=wallet_seeds, **common)
-            + [(None, t("ADD_SWITCH_SEED_MENU_OTHER_SEEDS"), None, None, None, None)]
-            + super().get_menu_items(
-                t, state, elements=other_seeds, **common,
-                add_target_behavior="add_seed", add_string=t("MENU_ADD_SEED"),
-            )
-        )
+        if wallet_seeds:
+            if other_seeds:
+                return (
+                    [(None, t("ADD_SWITCH_SEED_MENU_SEEDS_FOR_WALLET"), None, None, None, None)]
+                    + items(wallet_seeds)
+                    + [(None, t("ADD_SWITCH_SEED_MENU_OTHER_SEEDS"), None, None, None, None)]
+                    + items(other_seeds, "add_seed", t("MENU_ADD_SEED"))
+                )
+            else:
+                return items(wallet_seeds, "add_seed", t("MENU_ADD_SEED"))
+        else:
+            if other_seeds:
+                return items(other_seeds, "add_seed", t("MENU_ADD_SEED"))
+            else:
+                return []
+        
