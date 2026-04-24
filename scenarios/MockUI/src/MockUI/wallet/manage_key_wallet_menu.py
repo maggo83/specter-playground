@@ -1,5 +1,6 @@
 from ..basic import GenericMenu
 from ..basic.symbol_lib import BTC_ICONS
+from ..basic.widgets import MenuItem
 
 
 class ManageSeedsAndWalletsMenu(GenericMenu):
@@ -23,20 +24,20 @@ class ManageSeedsAndWalletsMenu(GenericMenu):
         num_wallets = len(state.registered_wallets)
 
         # ── Seed / MasterKey section ────────────────────────────────────────
-        menu_items.append((None, t("MANAGE_SW_SEED_SECTION_TITLE"), None, None, None, None))
-        menu_items.append((BTC_ICONS.MNEMONIC, t("MENU_MANAGE_SEED"), "manage_seedphrase", None, None, None))
+        menu_items.append(MenuItem(text=t("MANAGE_SW_SEED_SECTION_TITLE")))
+        menu_items.append(MenuItem(BTC_ICONS.MNEMONIC, t("MENU_MANAGE_SEED"), "manage_seedphrase"))
         if num_seeds > 1:
-            menu_items.append((BTC_ICONS.REFRESH, t("MENU_SWITCH_ADD_SEED"), "switch_add_seeds", None, None, None))
+            menu_items.append(MenuItem(BTC_ICONS.REFRESH, t("MENU_SWITCH_ADD_SEED"), "switch_add_seeds"))
         else:
-            menu_items.append((BTC_ICONS.PLUS, t("MENU_ADD_SEED"), "add_seed", None, None, None))
+            menu_items.append(MenuItem(BTC_ICONS.PLUS, t("MENU_ADD_SEED"), "add_seed"))
 
         # ── Wallet section ──────────────────────────────────────────────────
-        menu_items.append((None, t("MANAGE_SW_WALLET_SECTION_TITLE"), None, None, None, None))
+        menu_items.append(MenuItem(text=t("MANAGE_SW_WALLET_SECTION_TITLE")))
         if state and state.active_wallet is not None:
-            menu_items.append((BTC_ICONS.WALLET, t("MENU_MANAGE_WALLET"), "manage_wallet", None, None, None))
+            menu_items.append(MenuItem(BTC_ICONS.WALLET, t("MENU_MANAGE_WALLET"), "manage_wallet"))
         if num_wallets > 1:
-            menu_items.append((BTC_ICONS.REFRESH, t("MENU_SWITCH_ADD_WALLET"), "switch_add_wallets", None, None, None))
+            menu_items.append(MenuItem(BTC_ICONS.REFRESH, t("MENU_SWITCH_ADD_WALLET"), "switch_add_wallets"))
         else:
-            menu_items.append((BTC_ICONS.PLUS, t("MENU_ADD_WALLET"), "add_wallet", None, None, None))
+            menu_items.append(MenuItem(BTC_ICONS.PLUS, t("MENU_ADD_WALLET"), "add_wallet"))
 
         return menu_items

@@ -1,5 +1,6 @@
 from ..basic import GenericMenu
 from ..basic.symbol_lib import BTC_ICONS
+from ..basic.widgets import MenuItem
 from ..stubs import Seed
 
 class ViewSignersScreen(GenericMenu):
@@ -23,8 +24,8 @@ class ViewSignersScreen(GenericMenu):
             if s4w and fp in loaded_fp4w:
                 signer_name += " (" + s4w[loaded_fp4w.index(fp)].label + ")"
                 icon = BTC_ICONS.CHECK
-            
-            menu_items.append((icon, signer_name, None, None, None, None))
+
+            menu_items.append(MenuItem(icon, signer_name))
         return menu_items
     
     def post_init(self, t, state):

@@ -1,5 +1,6 @@
 from ..basic import GenericMenu
 from ..basic.symbol_lib import BTC_ICONS
+from ..basic.widgets import MenuItem
 
 class AddWalletMenu(GenericMenu):
     """Menu to import or create a custom wallet/descriptor.
@@ -16,16 +17,16 @@ class AddWalletMenu(GenericMenu):
         menu_items = []
 
         # Import section
-        menu_items.append((None, t("ADD_WALLET_IMPORT_FROM"), None, None, None, None))
+        menu_items.append(MenuItem(text=t("ADD_WALLET_IMPORT_FROM")))
 
         if state.QR_enabled():
-            menu_items.append((BTC_ICONS.SCAN, t("HARDWARE_QR_CODE"), "import_from_qr", None, None, None))
+            menu_items.append(MenuItem(BTC_ICONS.SCAN, t("HARDWARE_QR_CODE"), "import_from_qr"))
 
         if state.SD_detected():
-            menu_items.append((BTC_ICONS.SD_CARD, t("HARDWARE_SD_CARD"), "import_from_sd", None, None, None))
+            menu_items.append(MenuItem(BTC_ICONS.SD_CARD, t("HARDWARE_SD_CARD"), "import_from_sd"))
 
         # Customize section
-        menu_items.append((None, t("ADD_WALLET_CUSTOMIZE"), None, None, None, None))
-        menu_items.append((BTC_ICONS.CONSOLE, t("ADD_WALLET_CREATE_CUSTOM"), "create_custom_wallet", None, None, None))
+        menu_items.append(MenuItem(text=t("ADD_WALLET_CUSTOMIZE")))
+        menu_items.append(MenuItem(BTC_ICONS.CONSOLE, t("ADD_WALLET_CREATE_CUSTOM"), "create_custom_wallet"))
 
         return menu_items

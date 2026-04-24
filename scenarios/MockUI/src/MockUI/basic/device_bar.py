@@ -2,6 +2,8 @@ import lvgl as lv
 from ..stubs import Battery
 from .ui_consts import BTC_ICON_WIDTH, GREEN_HEX, WHITE_HEX, GREY_HEX, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH
 from .symbol_lib import BTC_ICONS
+from .widgets.btn import Btn
+from .widgets.containers import flex_row
 
 
 class DeviceBar(lv.obj):
@@ -25,31 +27,22 @@ class DeviceBar(lv.obj):
         self.set_style_border_width(0, 0)
 
         # LEFT SECTION: Lock button
-        self.left_container = lv.obj(self)
-        self.left_container.set_width(STATUS_BTN_WIDTH)
-        self.left_container.set_height(lv.pct(100))
-        self.left_container.set_layout(lv.LAYOUT.FLEX)
-        self.left_container.set_flex_flow(lv.FLEX_FLOW.ROW)
-        self.left_container.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        self.left_container.set_style_pad_all(0, 0)
-        self.left_container.set_style_border_width(0, 0)
-
-        self.lock_btn = lv.button(self.left_container)
-        self.lock_btn.set_size(STATUS_BTN_WIDTH, STATUS_BTN_HEIGHT)
-        self.lock_ico = lv.image(self.lock_btn)
-        BTC_ICONS.UNLOCK.add_to_parent(self.lock_ico)
-        self.lock_ico.center()
-        self.lock_btn.add_event_cb(self.lock_cb, lv.EVENT.CLICKED, None)
+        self.left_container = flex_row(
+            self, width=STATUS_BTN_WIDTH, height=lv.pct(100),
+            main_align=lv.FLEX_ALIGN.START,
+        )
+        self.lock_btn = Btn(
+            self.left_container,
+            icon=BTC_ICONS.UNLOCK,
+            size=(STATUS_BTN_WIDTH, STATUS_BTN_HEIGHT),
+            callback=self.lock_cb,
+        )
 
         # CENTER SECTION: Peripheral indicators
-        self.center_container = lv.obj(self)
-        self.center_container.set_width(BTC_ICON_WIDTH * 4 + 30)
-        self.center_container.set_height(lv.pct(100))
-        self.center_container.set_layout(lv.LAYOUT.FLEX)
-        self.center_container.set_flex_flow(lv.FLEX_FLOW.ROW)
-        self.center_container.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        self.center_container.set_style_pad_all(0, 0)
-        self.center_container.set_style_border_width(0, 0)
+        self.center_container = flex_row(
+            self, width=BTC_ICON_WIDTH * 4 + 30, height=lv.pct(100),
+            main_align=lv.FLEX_ALIGN.CENTER,
+        )
 
         # Peripheral indicators (only visible when unlocked)
         self.qr_img = lv.image(self.center_container)
@@ -76,14 +69,10 @@ class DeviceBar(lv.obj):
             ico.add_event_cb(self.peripheral_ico_clicked, lv.EVENT.CLICKED, None)
 
         # RIGHT SECTION: Battery, Settings, Power (in that order)
-        self.right_container = lv.obj(self)
-        self.right_container.set_width(STATUS_BTN_WIDTH * 3)
-        self.right_container.set_height(lv.pct(100))
-        self.right_container.set_layout(lv.LAYOUT.FLEX)
-        self.right_container.set_flex_flow(lv.FLEX_FLOW.ROW)
-        self.right_container.set_flex_align(lv.FLEX_ALIGN.END, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        self.right_container.set_style_pad_all(0, 0)
-        self.right_container.set_style_border_width(0, 0)
+        self.right_container = flex_row(
+            self, width=STATUS_BTN_WIDTH * 3, height=lv.pct(100),
+            main_align=lv.FLEX_ALIGN.END,
+        )
 
         # Battery icon
         self.batt_icon = Battery(self.right_container)
@@ -91,26 +80,21 @@ class DeviceBar(lv.obj):
         self.batt_icon.update()
 
         # Settings button
-        self.settings_btn = lv.button(self.right_container)
-        self.settings_btn.set_size(STATUS_BTN_WIDTH, STATUS_BTN_HEIGHT)
-        self.settings_ico = lv.image(self.settings_btn)
-        BTC_ICONS.GEAR.add_to_parent(self.settings_ico)
-        self.settings_ico.center()
-        self.settings_btn.add_event_cb(self.settings_cb, lv.EVENT.CLICKED, None)
+        self.settings_btn = Btn(
+            self.right_container,
+            icon=BTC_ICONS.GEAR,
+            size=(STATUS_BTN_WIDTH, STATUS_BTN_HEIGHT),
+            callback=self.settings_cb,
+        )
 
-        # Power button
-        self.power_btn = lv.button(self.right_container)
-        self.power_btn.set_size(STATUS_BTN_WIDTH, STATUS_BTN_HEIGHT)
-        self.power_lbl = lv.label(self.power_btn)
-        self.power_lbl.set_text(lv.SYMBOL.POWER)
-        self.power_lbl.center()
-        self.power_btn.add_event_cb(self.power_cb, lv.EVENT.CLICKED, None)
-
-        # Apply smaller font to labels
-        self.font = lv.font_montserrat_16
-        labels = [self.power_lbl]
-        for lbl in labels:
-            lbl.set_style_text_font(self.font, 0)
+        # Power button (uses lv.SYMBOL string, not a custom Icon)
+        self.power_btn = Btn(
+            self.right_container,
+            text=lv.SYMBOL.POWER,
+            size=(STATUS_BTN_WIDTH, STATUS_BTN_HEIGHT),
+            font=lv.font_montserrat_16,
+            callback=self.power_cb,
+        )
 
     def power_cb(self, e):
         if e.get_code() == lv.EVENT.CLICKED:
@@ -159,14 +143,14 @@ class DeviceBar(lv.obj):
 
         # Lock icon (always visible, but changes based on state)
         if locked:
-            BTC_ICONS.LOCK.add_to_parent(self.lock_ico)
+            self.lock_btn.update_icon(BTC_ICONS.LOCK)
             # Hide peripheral indicators when locked
             self.qr_img.set_src(None)
             self.usb_img.set_src(None)
             self.sd_img.set_src(None)
             self.smartcard_img.set_src(None)
         else:
-            BTC_ICONS.UNLOCK.add_to_parent(self.lock_ico)
+            self.lock_btn.update_icon(BTC_ICONS.UNLOCK)
             # Show peripheral indicators when unlocked
             if state.hasQR():
                 if state.QR_enabled():

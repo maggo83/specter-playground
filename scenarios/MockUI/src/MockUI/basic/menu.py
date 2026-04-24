@@ -2,7 +2,10 @@ import lvgl as lv
 from .ui_consts import BTN_HEIGHT, BTN_WIDTH, MODAL_HEIGHT_PCT, MODAL_WIDTH_PCT, PAD_SIZE
 from .titled_screen import TitledScreen
 from .symbol_lib import Icon, BTC_ICONS
-from .modal_overlay import ModalOverlay
+from .widgets.modal_overlay import ModalOverlay
+from .widgets.btn import Btn
+from .widgets.containers import flex_col, dialog_card
+from .widgets.labels import body_label, section_header
 
 
 
@@ -77,62 +80,47 @@ class GenericMenu(TitledScreen):
     def _build_menu_items(self, menu_items):
         """Build LVGL widgets for each item in the menu_items list."""
         for item in menu_items:
-            # Extract tuple elements: (icon, text, target_behavior, color, size, help_key)
-            icon, text, target_behavior, color, size, help_key = item
+            icon = item.icon
+            text = item.text
+            target_behavior = item.target
+            color = item.color
+            size = item.size
+            help_key = item.help_key
 
             # Normalize size: default to 1, ensure minimum of 1
             if size is None or size < 1:
                 size = 1
 
             if target_behavior is None:
-                spacer = lv.label(self.body)
-                spacer.set_recolor(True)
-                spacer.set_text(text or "")
-                spacer.set_width(lv.pct(BTN_WIDTH))
-                spacer.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
-                spacer.set_style_text_font(lv.font_montserrat_22, 0)
+                section_header(self.body, text, recolor=(text is not None and "#" in text))
             else:
-                btn = lv.button(self.body)
-                btn.set_width(lv.pct(BTN_WIDTH))
-                btn.set_height(int(BTN_HEIGHT * size))
-                if color:
-                    btn.set_style_bg_color(color, lv.PART.MAIN)
-
-                if icon:
-                    # Check if icon is an Icon
-                    if isinstance(icon, Icon):
-                        icon_img = lv.image(btn)
-                        icon.add_to_parent(icon_img)
-                        icon_img.align(lv.ALIGN.LEFT_MID, 8, 0)
-                    else:
-                        # Traditional string icon (lv.SYMBOL.*)
-                        ico = lv.label(btn)
-                        ico.set_recolor(True)
-                        ico.set_text(icon or "")
-                        ico.align(lv.ALIGN.LEFT_MID, 8, 0)
-
-                # Add text label centered
-                lbl = lv.label(btn)
-                lbl.set_recolor(True)
-                lbl.set_text(text)
-                lbl.set_style_text_font(lv.font_montserrat_22, 0)
-                lbl.center()
+                # Text-only Btn: icon is positioned manually at LEFT_MID so it
+                # stays left-aligned regardless of text length (not using flex).
+                btn = Btn(
+                    self.body,
+                    text=text,
+                    color=color if color else None,
+                    size=(lv.pct(BTN_WIDTH), int(BTN_HEIGHT * size)),
+                )
+                # Icon instance (BTC_ICONS.*) — add as image at left edge
+                if icon and isinstance(icon, Icon):
+                    ico_img = lv.image(btn._btn)
+                    icon.add_to_parent(ico_img)
+                    ico_img.align(lv.ALIGN.LEFT_MID, 8, 0)
+                # String symbols (lv.SYMBOL.*) — add as recolor label at left edge
+                elif icon and not isinstance(icon, Icon):
+                    ico = body_label(btn._btn, icon or "", recolor=True, width=lv.SIZE_CONTENT)
+                    ico.align(lv.ALIGN.LEFT_MID, 8, 0)
 
                 # Add help icon on right side if help_key is provided
                 if help_key:
-                    help_btn = lv.button(btn)
-                    help_btn.set_size(int(BTN_HEIGHT), int(BTN_HEIGHT * size))
-                    # Make the help button transparent (no background)
-                    help_btn.set_style_bg_opa(lv.OPA.TRANSP, 0)
-                    help_btn.set_style_shadow_width(0, 0)
-                    help_btn.set_style_border_width(0, 0)
+                    help_btn = Btn(
+                        btn._btn,
+                        icon=BTC_ICONS.QUESTION_CIRCLE,
+                        size=(int(BTN_HEIGHT), int(BTN_HEIGHT * size)),
+                    )
+                    help_btn.make_transparent()
                     help_btn.align(lv.ALIGN.RIGHT_MID, -4, 0)
-
-                    help_icon_img = lv.image(help_btn)
-                    BTC_ICONS.QUESTION_CIRCLE.add_to_parent(help_icon_img)
-                    help_icon_img.center()
-
-                    # Create help popup callback
                     help_btn.add_event_cb(self.make_help_callback(text, help_key), lv.EVENT.CLICKED, None)
 
                 btn.add_event_cb(self.make_callback(target_behavior), lv.EVENT.CLICKED, None)
@@ -188,44 +176,16 @@ class GenericMenu(TitledScreen):
                 dx = (sw - dw) // 2
                 dy = (sh - dh) // 2
 
-                dialog = lv.obj(modal.overlay)
-                dialog.set_size(dw, dh)
-                dialog.set_pos(dx, dy)
-                dialog.set_style_radius(8, 0)
-                dialog.set_style_border_width(0, 0)
-                dialog.set_style_pad_all(12, 0)
-                dialog.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
-                dialog.set_layout(lv.LAYOUT.FLEX)
-                dialog.set_flex_flow(lv.FLEX_FLOW.COLUMN)
-                dialog.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+                dialog = dialog_card(modal.overlay, dw, dh, dx, dy)
 
-                # title
-                title_lbl = lv.label(dialog)
-                title_lbl.set_text(title_text)
-                title_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-                title_lbl.set_style_text_font(lv.font_montserrat_22, 0)
-                title_lbl.set_width(lv.pct(100))
+                body_label(dialog, title_text)
+                body_label(dialog, help_text)
 
-                # body text
-                text_lbl = lv.label(dialog)
-                text_lbl.set_text(help_text)
-                text_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-                text_lbl.set_style_text_font(lv.font_montserrat_22, 0)
-                text_lbl.set_width(lv.pct(100))
-                text_lbl.set_long_mode(lv.label.LONG_MODE.WRAP)
-
-                # close button
-                close_btn = lv.button(dialog)
-                close_lbl = lv.label(close_btn)
-                close_lbl.set_text(self.i18n.t("MODAL_CLOSE_BTN"))
-                close_lbl.set_style_text_font(lv.font_montserrat_22, 0)
-                close_lbl.center()
-
-                def _close(ev):
-                    if ev.get_code() == lv.EVENT.CLICKED:
-                        modal.close()
-
-                close_btn.add_event_cb(_close, lv.EVENT.CLICKED, None)
+                close_btn = Btn(
+                    dialog,
+                    text=self.i18n.t("MODAL_CLOSE_BTN"),
+                    callback=lambda ev: modal.close() if ev.get_code() == lv.EVENT.CLICKED else None,
+                )
 
                 # stop the underlying button from firing too
                 e.stop_bubbling = 1

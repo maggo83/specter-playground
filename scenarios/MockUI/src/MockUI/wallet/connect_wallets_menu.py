@@ -1,4 +1,5 @@
 from ..basic import GenericMenu
+from ..basic.widgets import MenuItem
 import lvgl as lv
 
 class ConnectWalletsMenu(GenericMenu):
@@ -12,14 +13,10 @@ class ConnectWalletsMenu(GenericMenu):
 
     def get_menu_items(self, t, state):
         return [
-            (None, t("CONNECT_WALLETS_SPARROW"),
-             self._mark_exported_and_navigate("connect_sparrow"), None, None, None),
-            (None, t("CONNECT_WALLETS_NUNCHUCK"),
-             self._mark_exported_and_navigate("connect_nunchuck"), None, None, None),
-            (None, t("CONNECT_WALLETS_BLUEWALLET"),
-             self._mark_exported_and_navigate("connect_bluewallet"), None, None, None),
-            (None, t("CONNECT_WALLETS_OTHER"),
-             self._mark_exported_and_navigate("connect_other"), None, None, None),
+            MenuItem(text=t("CONNECT_WALLETS_SPARROW"),    target=self._mark_exported_and_navigate("connect_sparrow")),
+            MenuItem(text=t("CONNECT_WALLETS_NUNCHUCK"),   target=self._mark_exported_and_navigate("connect_nunchuck")),
+            MenuItem(text=t("CONNECT_WALLETS_BLUEWALLET"), target=self._mark_exported_and_navigate("connect_bluewallet")),
+            MenuItem(text=t("CONNECT_WALLETS_OTHER"),      target=self._mark_exported_and_navigate("connect_other")),
         ]
 
     def _mark_exported_and_navigate(self, target):

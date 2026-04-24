@@ -42,6 +42,8 @@ MENU_ITEM_FONT_SIZE = const(20)   # menu item labels and status bar labels
 # Modal/popup dimensions (percentage of screen)
 MODAL_WIDTH_PCT = const(75)
 MODAL_HEIGHT_PCT = const(75)
+DIALOG_RADIUS = const(8)     # corner radius for dialog cards
+DIALOG_PAD = const(12)       # inner padding for dialog cards
 
 # UIExplainer dimensions and style
 EXPLAINER_WIDTH_PCT = const(70)   # Width of explainer text box (percentage of screen)

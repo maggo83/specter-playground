@@ -2,6 +2,7 @@ from .menu import GenericMenu
 import lvgl as lv
 from .symbol_lib import BTC_ICONS
 from .ui_consts import GREEN_HEX, RED_HEX, WHITE_HEX
+from .widgets import MenuItem
 
 
 class MainMenu(GenericMenu):
@@ -38,37 +39,37 @@ class MainMenu(GenericMenu):
 
         Seed_detected = (state.SmartCard_hasSeed() or state.SD_hasSeed() or state.Flash_hasSeed())
 
-        menu_items.append((None, t("ADD_SEED_GENERATE_SECTION"), None, None, None, None))
+        menu_items.append(MenuItem(text=t("ADD_SEED_GENERATE_SECTION")))
 
         # Generate New Key
         gen_size = 1.0+slots_remaining/slots_used if not Seed_detected else 1
-        menu_items.append((BTC_ICONS.MNEMONIC, t("ADD_SEED_GENERATE_SEED"), "generate_seedphrase", None, gen_size, None))
+        menu_items.append(MenuItem(BTC_ICONS.MNEMONIC, t("ADD_SEED_GENERATE_SEED"), "generate_seedphrase", size=gen_size))
 
-        menu_items.append((None, t("ADD_SEED_IMPORT_SECTION"), None, None, None, None))
+        menu_items.append(MenuItem(text=t("ADD_SEED_IMPORT_SECTION")))
 
         # SmartCard (highlighted exclusively when detected with key)
         if state.SmartCard_hasSeed():
             sc_size = 1.0 + slots_remaining
-            menu_items.append((BTC_ICONS.SMARTCARD, t("HARDWARE_SMARTCARD"), "import_from_smartcard", None, sc_size, None))
+            menu_items.append(MenuItem(BTC_ICONS.SMARTCARD, t("HARDWARE_SMARTCARD"), "import_from_smartcard", size=sc_size))
 
         # Scan QR
         qr_size = 1.0+slots_remaining/slots_used if not Seed_detected else 1
         if state.QR_enabled():
-            menu_items.append((BTC_ICONS.SCAN, t("HARDWARE_QR_CODE"), "import_from_qr", None, qr_size, None))
+            menu_items.append(MenuItem(BTC_ICONS.SCAN, t("HARDWARE_QR_CODE"), "import_from_qr", size=qr_size))
 
         # Keyboard
         kb_size = 1.0+slots_remaining/slots_used if not Seed_detected else 1
-        menu_items.append((lv.SYMBOL.KEYBOARD, t("COMMON_KEYBOARD"), "import_from_keyboard", None, kb_size, None))
+        menu_items.append(MenuItem(lv.SYMBOL.KEYBOARD, t("COMMON_KEYBOARD"), "import_from_keyboard", size=kb_size))
 
         # SD Card (only if key data detected)
         if state.SD_hasSeed():
             sd_size = 1.0 + slots_remaining if not state.SmartCard_hasSeed() else 1
-            menu_items.append((BTC_ICONS.SD_CARD, t("HARDWARE_SD_CARD"), "import_from_sd", None, sd_size, None))
+            menu_items.append(MenuItem(BTC_ICONS.SD_CARD, t("HARDWARE_SD_CARD"), "import_from_sd", size=sd_size))
 
         # Flash (only if key data in flash)
         if state.Flash_hasSeed():
             flash_size = 1.0 + slots_remaining if not (state.SmartCard_hasSeed() or state.SD_hasSeed()) else 1
-            menu_items.append((BTC_ICONS.FILE, t("HARDWARE_INTERNAL_FLASH"), "import_from_flash", None, flash_size, None))
+            menu_items.append(MenuItem(BTC_ICONS.FILE, t("HARDWARE_INTERNAL_FLASH"), "import_from_flash", size=flash_size))
 
         return menu_items
 
@@ -87,21 +88,21 @@ class MainMenu(GenericMenu):
         # ── Actions section ─────────────────────────────────────────────────
 
         if has_controlled_input or can_sign_msg:
-            menu_items.append((None, t("MAIN_MENU_PROCESS_INPUT"), None, None, None, None))
+            menu_items.append(MenuItem(text=t("MAIN_MENU_PROCESS_INPUT")))
             if state.QR_enabled():
-                menu_items.append((BTC_ICONS.SCAN, t("MAIN_MENU_SCAN_QR"), "scan_qr", None, 1.3, "HELP_SCAN_QR"))
+                menu_items.append(MenuItem(BTC_ICONS.SCAN, t("MAIN_MENU_SCAN_QR"), "scan_qr", size=1.3, help_key="HELP_SCAN_QR"))
             if state.SD_detected():
-                menu_items.append((BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_FROM_SD"), "load_sd", None, 1, None))
+                menu_items.append(MenuItem(BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_FROM_SD"), "load_sd"))
             if can_sign_msg:
-                menu_items.append((BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message", None, 1, None))
+                menu_items.append(MenuItem(BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message"))
 
         # ── Seed & Wallet section ───────────────────────────────────────────
-        menu_items.append((None, t("MAIN_MENU_SEED_AND_WALLET"), None, None, None, None))
-        menu_items.append((BTC_ICONS.MNEMONIC, t("MAIN_MENU_MANAGE_SEED_WALLET"), "manage_seed_wallet", None, 1, None))
+        menu_items.append(MenuItem(text=t("MAIN_MENU_SEED_AND_WALLET")))
+        menu_items.append(MenuItem(BTC_ICONS.MNEMONIC, t("MAIN_MENU_MANAGE_SEED_WALLET"), "manage_seed_wallet"))
 
         # ── Connect Companion App (only if wallet not yet exported) ─────────
         if active_wallet_was_never_exported:
-            menu_items.append((None, t("MAIN_MENU_CONNECT_SECTION"), None, None, None, None))
-            menu_items.append((BTC_ICONS.LINK, t("MAIN_MENU_CONNECT_COMPANION"), "connect_sw_wallet", None, 1.5, None))
+            menu_items.append(MenuItem(text=t("MAIN_MENU_CONNECT_SECTION")))
+            menu_items.append(MenuItem(BTC_ICONS.LINK, t("MAIN_MENU_CONNECT_COMPANION"), "connect_sw_wallet", size=1.5))
 
         return menu_items

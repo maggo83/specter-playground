@@ -3,6 +3,9 @@ import rng  # TODO: clarify if this should be encapsulated in a general HW/GUI i
 from .titled_screen import TitledScreen
 from .symbol_lib import BTC_ICONS
 from .ui_consts import PIN_BTN_WIDTH, PIN_BTN_HEIGHT
+from .widgets.btn import Btn
+from .widgets.containers import flex_row
+from .widgets.labels import body_label
 
 
 def _shuffle(items_or_count):
@@ -56,26 +59,14 @@ class LockedMenu(TitledScreen):
 
         # Firmware version – shown as a subtitle directly under the title bar,
         # inside the TITLE_PADDING gap so it doesn't push body content down.
-        fw_ver = lv.label(self)
-        fw_ver.set_text(t("LOCKED_MENU_FW_VERSION") + str(self.state.fw_version))
-        fw_ver.set_width(lv.pct(100))
-        fw_ver.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        fw_ver.set_style_text_font(lv.font_montserrat_16, 0)
+        fw_ver = body_label(self, t("LOCKED_MENU_FW_VERSION") + str(self.state.fw_version), font=lv.font_montserrat_16)
         fw_ver.align_to(self.title_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 1)
 
         # Instruction label
-        instr = lv.label(self.body)
-        instr.set_text(t("LOCKED_MENU_ENTER_PIN"))
-        instr.set_width(320)
-        instr.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        instr.set_style_text_font(lv.font_montserrat_28, 0)
+        instr = body_label(self.body, t("LOCKED_MENU_ENTER_PIN"), font=lv.font_montserrat_28, width=320)
 
         # masked PIN display
-        self.mask_lbl = lv.label(self.body)
-        self.mask_lbl.set_text("")
-        self.mask_lbl.set_width(320)
-        self.mask_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        self.mask_lbl.set_style_text_font(lv.font_montserrat_28, 0)
+        self.mask_lbl = body_label(self.body, "", font=lv.font_montserrat_28, width=320)
 
         # keypad layout (3x4): digits in randomised order, Del, and OK
         chars = list("0123456789")
@@ -89,40 +80,35 @@ class LockedMenu(TitledScreen):
         ]
 
         for row in keys:
-            row_cont = lv.obj(self.body)
-            # make the row container slightly taller than the buttons so they fit
-            row_cont.set_layout(lv.LAYOUT.FLEX)
-            row_cont.set_flex_flow(lv.FLEX_FLOW.ROW)
-            row_cont.set_width(lv.pct(100))
-            row_cont.set_height(lv.SIZE_CONTENT)
-            # center buttons in the row and remove visible backgrounds/borders
-            row_cont.set_flex_align(
-                lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER
+            row_cont = flex_row(
+                self.body,
+                width=lv.pct(100),
+                height=lv.SIZE_CONTENT,
+                main_align=lv.FLEX_ALIGN.CENTER,
             )
-            row_cont.set_style_border_width(0, 0)
-            row_cont.set_style_pad_all(0, 0)
-
             for k in row:
-                b = lv.button(row_cont)
-                b.set_width(PIN_BTN_WIDTH)
-                b.set_height(PIN_BTN_HEIGHT)
                 if k == "Del":
-                    im = lv.image(b)
-                    BTC_ICONS.CLEAR_CHARACTER.add_to_parent(im)
-                    im.center()
-                    b.add_event_cb(lambda e: self._on_del(e), lv.EVENT.CLICKED, None)
+                    b = Btn(
+                        row_cont,
+                        icon=BTC_ICONS.CLEAR_CHARACTER,
+                        size=(PIN_BTN_WIDTH, PIN_BTN_HEIGHT),
+                        callback=lambda e: self._on_del(e),
+                    )
                 elif k == "OK":
-                    im = lv.image(b)
-                    BTC_ICONS.CHECK.add_to_parent(im)
-                    im.center()
-                    b.add_event_cb(lambda e: self._on_ok(e), lv.EVENT.CLICKED, None)
+                    b = Btn(
+                        row_cont,
+                        icon=BTC_ICONS.CHECK,
+                        size=(PIN_BTN_WIDTH, PIN_BTN_HEIGHT),
+                        callback=lambda e: self._on_ok(e),
+                    )
                 else:
-                    # capture digit in default arg
-                    lb = lv.label(b)
-                    lb.center()
-                    lb.set_text(k)
-                    lb.set_style_text_font(lv.font_montserrat_28, 0)
-                    b.add_event_cb(lambda e, d=k: self._on_digit(e, d), lv.EVENT.CLICKED, None)
+                    b = Btn(
+                        row_cont,
+                        text=k,
+                        size=(PIN_BTN_WIDTH, PIN_BTN_HEIGHT),
+                        font=lv.font_montserrat_28,
+                        callback=lambda e, d=k: self._on_digit(e, d),
+                    )
 
     def _update_mask(self):
         self.mask_lbl.set_text("*" * len(self.pin_buf))

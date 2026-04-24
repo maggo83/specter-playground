@@ -3,6 +3,7 @@ import lvgl as lv
 import urandom
 from ..basic import TitledScreen, BTN_HEIGHT, BTN_WIDTH, SWITCH_HEIGHT, SWITCH_WIDTH
 from ..basic.keyboard_manager import Layout
+from ..basic.widgets import Btn, form_label, form_textarea, flex_row
 from ..stubs import Wallet
 
 
@@ -27,25 +28,15 @@ class CreateCustomWalletMenu(TitledScreen):
 
         # ── Wallet name ──────────────────────────────────────────────
         name_row = self._make_row(ROW_H)
-        name_lbl = lv.label(name_row)
-        name_lbl.set_text(t("COMMON_NAME"))
-        name_lbl.set_width(lv.pct(25))
-        name_lbl.set_style_text_font(lv.font_montserrat_22, 0)
-
-        self.name_ta = lv.textarea(name_row)
+        form_label(name_row, t("COMMON_NAME"), width=lv.pct(25))
+        self.name_ta = form_textarea(name_row, width=lv.pct(65))
         self.name_ta.set_text(t("COMMON_WALLET") + " " + str(urandom.randint(1, 99)))
-        self.name_ta.set_width(lv.pct(65))
-        self.name_ta.set_height(46)
-        self.name_ta.set_style_text_font(lv.font_montserrat_22, 0)
         kb = lambda e: self.gui.keyboard_manager.bind(self.name_ta, Layout.FULL)
         self.name_ta.add_event_cb(kb, lv.EVENT.CLICKED, None)
 
         # ── Multisig toggle ──────────────────────────────────────────
         ms_row = self._make_row(ROW_H)
-        ms_lbl = lv.label(ms_row)
-        ms_lbl.set_text(t("COMMON_MULTISIG"))
-        ms_lbl.set_width(lv.pct(50))
-        ms_lbl.set_style_text_font(lv.font_montserrat_22, 0)
+        form_label(ms_row, t("COMMON_MULTISIG"), width=lv.pct(50))
 
         self.ms_sw = lv.switch(ms_row)
         self.ms_sw.set_size(SWITCH_HEIGHT, SWITCH_WIDTH)
@@ -53,29 +44,19 @@ class CreateCustomWalletMenu(TitledScreen):
 
         # ── Threshold (visible only for multisig) ────────────────────
         self.thresh_row = self._make_row(ROW_H)
-        th_lbl = lv.label(self.thresh_row)
-        th_lbl.set_text(t("ADD_WALLET_THRESHOLD"))
-        th_lbl.set_width(lv.pct(50))
-        th_lbl.set_style_text_font(lv.font_montserrat_22, 0)
-
-        self.thresh_ta = lv.textarea(self.thresh_row)
+        form_label(self.thresh_row, t("ADD_WALLET_THRESHOLD"), width=lv.pct(50))
+        self.thresh_ta = form_textarea(self.thresh_row, width=lv.pct(30))
         self.thresh_ta.set_text("2")
-        self.thresh_ta.set_width(lv.pct(30))
-        self.thresh_ta.set_height(46)
         self.thresh_ta.set_accepted_chars("0123456789")
-        self.thresh_ta.set_style_text_font(lv.font_montserrat_22, 0)
         kb2 = lambda e: self.gui.keyboard_manager.bind(self.thresh_ta, Layout.FULL)
         self.thresh_ta.add_event_cb(kb2, lv.EVENT.CLICKED, None)
         self.thresh_row.add_flag(lv.obj.FLAG.HIDDEN)  # hidden until multisig
 
         # ── Extra fingerprints (for multisig cosigners) ──────────────
         self.fp_row = self._make_row(ROW_H)
-        fp_lbl = lv.label(self.fp_row)
-        fp_lbl.set_text(t("ADD_WALLET_SIGNERS"))
-        fp_lbl.set_width(lv.pct(35))
-        fp_lbl.set_style_text_font(lv.font_montserrat_16, 0)
+        form_label(self.fp_row, t("ADD_WALLET_SIGNERS"), width=lv.pct(35), font=lv.font_montserrat_16)
 
-        self.fp_ta = lv.textarea(self.fp_row)
+        self.fp_ta = form_textarea(self.fp_row, width=lv.pct(55), font=lv.font_montserrat_16)
         sig_text = ""
         if self.state and self.state.active_seed:
             # Pre-fill with active seed's fingerprint for convenience
@@ -91,56 +72,38 @@ class CreateCustomWalletMenu(TitledScreen):
             sig_text = "0x0123,0xabcd"
 
         self.fp_ta.set_text(sig_text)
-        self.fp_ta.set_width(lv.pct(55))
-        self.fp_ta.set_height(46)
         self.fp_ta.set_accepted_chars("0123456789abcdefx,")
-        self.fp_ta.set_style_text_font(lv.font_montserrat_16, 0)
         kb3 = lambda e: self.gui.keyboard_manager.bind(self.fp_ta, Layout.FULL)
         self.fp_ta.add_event_cb(kb3, lv.EVENT.CLICKED, None)
         self.fp_row.add_flag(lv.obj.FLAG.HIDDEN)
 
         # ── Network toggle ───────────────────────────────────────────
         net_row = self._make_row(ROW_H)
-        net_lbl = lv.label(net_row)
-        net_lbl.set_text("Testnet")
-        net_lbl.set_width(lv.pct(50))
-        net_lbl.set_style_text_font(lv.font_montserrat_22, 0)
+        form_label(net_row, "Testnet", width=lv.pct(50))
 
         self.net_sw = lv.switch(net_row)
         self.net_sw.set_size(SWITCH_HEIGHT, SWITCH_WIDTH)
 
         # ── Custom toggle ───────────────────────────────────────────
         custom_row = self._make_row(ROW_H)
-        custom_lbl = lv.label(custom_row)
-        custom_lbl.set_text(t("ADD_WALLET_CUSTOM"))
-        custom_lbl.set_width(lv.pct(50))
-        custom_lbl.set_style_text_font(lv.font_montserrat_22, 0)
+        form_label(custom_row, t("ADD_WALLET_CUSTOM"), width=lv.pct(50))
 
         self.custom_sw = lv.switch(custom_row)
         self.custom_sw.set_size(SWITCH_HEIGHT, SWITCH_WIDTH)
 
         # ── Create button ────────────────────────────────────────────
         btn_row = self._make_row(80)
-        self.create_btn = lv.button(btn_row)
-        self.create_btn.set_width(lv.pct(BTN_WIDTH))
-        self.create_btn.set_height(BTN_HEIGHT)
-        clbl = lv.label(self.create_btn)
-        clbl.set_text(t("COMMON_CREATE"))
-        clbl.set_style_text_font(lv.font_montserrat_22, 0)
-        clbl.center()
-        self.create_btn.add_event_cb(lambda e: self._on_create(e), lv.EVENT.CLICKED, None)
+        self.create_btn = Btn(
+            btn_row,
+            text=t("COMMON_CREATE"),
+            size=(lv.pct(BTN_WIDTH), BTN_HEIGHT),
+            callback=lambda e: self._on_create(e),
+        )
 
     # ── helpers ──────────────────────────────────────────────────────
 
     def _make_row(self, height):
-        row = lv.obj(self.body)
-        row.set_width(lv.pct(100))
-        row.set_height(height)
-        row.set_layout(lv.LAYOUT.FLEX)
-        row.set_flex_flow(lv.FLEX_FLOW.ROW)
-        row.set_flex_align(lv.FLEX_ALIGN.SPACE_BETWEEN, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        row.set_style_border_width(0, 0)
-        row.set_style_pad_all(4, 0)
+        row = flex_row(self.body, height=height, pad=4, main_align=lv.FLEX_ALIGN.SPACE_BETWEEN)
         row.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
         return row
 

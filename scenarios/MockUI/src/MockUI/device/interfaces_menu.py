@@ -2,6 +2,7 @@ import lvgl as lv
 from ..basic import SWITCH_HEIGHT, SWITCH_WIDTH
 from ..basic.titled_screen import TitledScreen
 from ..basic.symbol_lib import BTC_ICONS
+from ..basic.widgets import flex_row, form_label
 
 class InterfacesMenu(TitledScreen):
     """Menu to enable/disable hardware interfaces."""
@@ -27,15 +28,7 @@ class InterfacesMenu(TitledScreen):
             rows.append((BTC_ICONS.SMARTCARD, self.i18n.t("HARDWARE_SMARTCARD"), "_enabledSmartCard"))
 
         for icon, text, state_attr in rows:
-            row = lv.obj(self.body)
-            row.set_style_border_width(0, 0)
-
-            row.set_width(lv.pct(100))
-            row.set_height(SWITCH_HEIGHT+2)
-            row.set_layout(lv.LAYOUT.FLEX)
-            row.set_flex_flow(lv.FLEX_FLOW.ROW)
-            row.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-            row.set_style_pad_row(0, 0)
+            row = flex_row(self.body, height=SWITCH_HEIGHT + 2, main_align=lv.FLEX_ALIGN.START)
             row.set_style_pad_column(8, 0)  # Space between icon and text
 
             # Left icon
@@ -43,10 +36,7 @@ class InterfacesMenu(TitledScreen):
             icon.add_to_parent(icon_img)
 
             # Text label
-            lbl = lv.label(row)
-            lbl.set_text(text)
-            lbl.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
-            lbl.set_style_text_font(lv.font_montserrat_22, 0)
+            lbl = form_label(row, text, width=None)
             lbl.set_flex_grow(1)  # Take remaining space
 
             # Right toggle button

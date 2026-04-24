@@ -1,7 +1,8 @@
 from ..basic import RED_HEX, WHITE_HEX, GenericMenu, RED, ORANGE, TITLE_ROW_HEIGHT
 from ..basic.symbol_lib import BTC_ICONS
 from ..basic.keyboard_manager import Layout
-from ..basic.action_modal import ActionModal
+from ..basic.widgets.action_modal import ActionModal
+from ..basic.widgets import Btn, title_textarea, MenuItem
 import lvgl as lv
 
 
@@ -13,19 +14,19 @@ class WalletMenu(GenericMenu):
     def get_menu_items(self, t, state):
         menu_items = []
 
-        menu_items.append((None, t("WALLET_MENU_EXPLORE"), None, None, None, None))
-        menu_items.append((BTC_ICONS.MENU, t("WALLET_MENU_VIEW_ADDRESSES"), "view_addresses", None, None, None))
+        menu_items.append(MenuItem(text=t("WALLET_MENU_EXPLORE")))
+        menu_items.append(MenuItem(BTC_ICONS.MENU, t("WALLET_MENU_VIEW_ADDRESSES"), "view_addresses"))
         if (state.active_wallet and state.active_wallet.isMultiSig):
-            menu_items.append((BTC_ICONS.ADDRESS_BOOK, t("WALLET_MENU_VIEW_SIGNERS"), "view_signers", None, None, None))
+            menu_items.append(MenuItem(BTC_ICONS.ADDRESS_BOOK, t("WALLET_MENU_VIEW_SIGNERS"), "view_signers"))
 
-        menu_items.append((None, t("WALLET_MENU_MANAGE"), None, None, None, None))
-        menu_items.append((BTC_ICONS.CONSOLE, t("WALLET_MENU_MANAGE_DESCRIPTOR"), "manage_wallet_descriptor", None, None, None))
-        menu_items.append((BTC_ICONS.BITCOIN, t("WALLET_MENU_CHANGE_NETWORK"), "change_network", None, None, None))
+        menu_items.append(MenuItem(text=t("WALLET_MENU_MANAGE")))
+        menu_items.append(MenuItem(BTC_ICONS.CONSOLE, t("WALLET_MENU_MANAGE_DESCRIPTOR"), "manage_wallet_descriptor"))
+        menu_items.append(MenuItem(BTC_ICONS.BITCOIN, t("WALLET_MENU_CHANGE_NETWORK"), "change_network"))
 
         menu_items += [
-            (None, t("WALLET_MENU_CONNECT_EXPORT"), None, None, None, None),
-            (BTC_ICONS.LINK, t("MENU_CONNECT_SW_WALLET"), "connect_sw_wallet", None, None, None),
-            (BTC_ICONS.EXPORT, t("WALLET_MENU_EXPORT_DATA"), "export_wallet", None, None, None)
+            MenuItem(text=t("WALLET_MENU_CONNECT_EXPORT")),
+            MenuItem(BTC_ICONS.LINK, t("MENU_CONNECT_SW_WALLET"), "connect_sw_wallet"),
+            MenuItem(BTC_ICONS.EXPORT, t("WALLET_MENU_EXPORT_DATA"), "export_wallet"),
         ]
 
         return menu_items
@@ -41,26 +42,17 @@ class WalletMenu(GenericMenu):
             # Remove the default title label and replace with editable text area
             self.title.delete()
 
-            self.name_textarea = lv.textarea(self.title_bar)
-            self.name_textarea.set_width(270)
-            self.name_textarea.set_height(TITLE_ROW_HEIGHT)
-            self.name_textarea.set_style_text_font(lv.font_montserrat_28, 0)
-            self.name_textarea.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-            self.name_textarea.set_style_border_width(2, lv.PART.MAIN)
-            self.name_textarea.set_style_border_color(WHITE_HEX, lv.PART.MAIN)
-            self.name_textarea.align(lv.ALIGN.CENTER, 0, 0)
-            self.name_textarea.set_accepted_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~ ")
-
+            self.name_textarea = title_textarea(self.title_bar)
             self.name_textarea.set_text(state.active_wallet.label)
 
             # Red trash button
             textarea_height = self.name_textarea.get_height()
-            self.delete_btn = lv.button(self.title_bar)
-            self.delete_btn.set_size(textarea_height, textarea_height)
-            self.delete_btn.set_style_bg_color(RED_HEX, lv.PART.MAIN)
-            self.delete_ico = lv.image(self.delete_btn)
-            BTC_ICONS.TRASH.add_to_parent(self.delete_ico)
-            self.delete_ico.center()
+            self.delete_btn = Btn(
+                self.title_bar,
+                icon=BTC_ICONS.TRASH,
+                color=RED_HEX,
+                size=(textarea_height, textarea_height),
+            )
             self.delete_btn.align_to(self.name_textarea, lv.ALIGN.OUT_RIGHT_MID, 6, 0)
 
             def _on_commit(new_name):

@@ -2,6 +2,7 @@
 import lvgl as lv
 from ..basic import GREY_HEX, TitledScreen, BTN_HEIGHT, BTN_WIDTH
 from ..basic.keyboard_manager import Layout
+from ..basic.widgets import flex_row, form_label, form_textarea, Btn, body_label
 from ..stubs import Seed
 import urandom
 
@@ -24,66 +25,38 @@ class GenerateSeedMenu(TitledScreen):
         self.body.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
 
         # Key name row
-        name_row = lv.obj(self.body)
-        name_row.set_width(lv.pct(100))
-        name_row.set_height(70)
-        name_row.set_layout(lv.LAYOUT.FLEX)
-        name_row.set_flex_flow(lv.FLEX_FLOW.ROW)
-        name_row.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        name_row.set_style_border_width(0, 0)
-        name_row.set_style_pad_all(0, 0)
+        name_row = flex_row(self.body, height=70, main_align=lv.FLEX_ALIGN.START)
 
-        name_lbl = lv.label(name_row)
-        name_lbl.set_text(t("COMMON_NAME"))
-        name_lbl.set_width(lv.pct(30))
-        name_lbl.set_style_text_align(lv.TEXT_ALIGN.LEFT, 0)
-        name_lbl.set_style_text_font(lv.font_montserrat_22, 0)
+        form_label(name_row, t("COMMON_NAME"))
 
         # editable text area
-        self.name_ta = lv.textarea(name_row)
+        self.name_ta = form_textarea(name_row)
         self.name_ta.set_text("Key " + str(urandom.randint(1, 99)))
-        self._original_name = self.name_ta.get_text()
-        self.name_ta.set_width(lv.pct(60))
-        self.name_ta.set_height(50)
-        self.name_ta.set_style_text_font(lv.font_montserrat_22, 0)
 
         keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.name_ta, Layout.FULL)
         self.name_ta.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         # Fingerprint preview
         self.generated_fp = Seed.generate_dummy_fingerprint()
-        fp_lbl = lv.label(self.body)
-        fp_lbl.set_text(t("GENERATE_SEED_FINGERPRINT") + self.generated_fp)
-        fp_lbl.set_width(lv.pct(100))
-        fp_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        fp_lbl.set_style_text_font(lv.font_montserrat_16, 0)
+        body_label(self.body,
+                   t("GENERATE_SEED_FINGERPRINT") + self.generated_fp,
+                   font=lv.font_montserrat_16)
 
         # Info text
-        info_lbl = lv.label(self.body)
-        info_lbl.set_text(t("GENERATE_SEED_INFO"))
-        info_lbl.set_width(lv.pct(90))
-        info_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        info_lbl.set_style_text_font(lv.font_montserrat_16, 0)
-        info_lbl.set_style_text_color(GREY_HEX, 0)
+        body_label(self.body, t("GENERATE_SEED_INFO"),
+                   font=lv.font_montserrat_16,
+                   width=lv.pct(90),
+                   color=GREY_HEX)
 
         # Create button row
-        create_row = lv.obj(self.body)
-        create_row.set_width(lv.pct(100))
-        create_row.set_height(80)
-        create_row.set_layout(lv.LAYOUT.FLEX)
-        create_row.set_flex_flow(lv.FLEX_FLOW.ROW)
-        create_row.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        create_row.set_style_border_width(0, 0)
-        create_row.set_style_pad_all(0, 0)
+        create_row = flex_row(self.body, height=80)
 
-        self.create_btn = lv.button(create_row)
-        self.create_btn.set_width(lv.pct(BTN_WIDTH))
-        self.create_btn.set_height(BTN_HEIGHT)
-        self.create_lbl = lv.label(self.create_btn)
-        self.create_lbl.set_text(t("COMMON_CREATE"))
-        self.create_lbl.set_style_text_font(lv.font_montserrat_22, 0)
-        self.create_lbl.center()
-        self.create_btn.add_event_cb(lambda e: self._on_create(e), lv.EVENT.CLICKED, None)
+        self.create_btn = Btn(
+            create_row,
+            text=t("COMMON_CREATE"),
+            size=(lv.pct(BTN_WIDTH), BTN_HEIGHT),
+            callback=lambda e: self._on_create(e),
+        )
 
     def _on_create(self, e):
         if e.get_code() != lv.EVENT.CLICKED:

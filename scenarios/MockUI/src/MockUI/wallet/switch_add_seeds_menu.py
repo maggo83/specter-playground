@@ -1,4 +1,5 @@
 from ..basic import SwitchAddMenu
+from ..basic.widgets import MenuItem
 
 
 class SwitchAddSeedsMenu(SwitchAddMenu):
@@ -32,9 +33,9 @@ class SwitchAddSeedsMenu(SwitchAddMenu):
         if wallet_seeds:
             if other_seeds:
                 return (
-                    [(None, t("ADD_SWITCH_SEED_MENU_SEEDS_FOR_WALLET"), None, None, None, None)]
+                    [MenuItem(text=t("ADD_SWITCH_SEED_MENU_SEEDS_FOR_WALLET"))]
                     + items(wallet_seeds)
-                    + [(None, t("ADD_SWITCH_SEED_MENU_OTHER_SEEDS"), None, None, None, None)]
+                    + [MenuItem(text=t("ADD_SWITCH_SEED_MENU_OTHER_SEEDS"))]
                     + items(other_seeds, "add_seed", t("MENU_ADD_SEED"))
                 )
             else:

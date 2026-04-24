@@ -18,6 +18,8 @@ Layout (absolute, no flex on root):
 import lvgl as lv
 from .ui_consts import BACK_BTN_HEIGHT, BACK_BTN_WIDTH, TITLE_ROW_HEIGHT, TITLE_PADDING, SCREEN_HEIGHT, CONTENT_PCT
 from .symbol_lib import BTC_ICONS
+from .widgets.btn import Btn
+from .widgets.labels import body_label
 
 
 class TitledScreen(lv.obj):
@@ -62,19 +64,16 @@ class TitledScreen(lv.obj):
 
         # Back button – only shown when there is navigation history
         if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
-            self.back_btn = lv.button(self.title_bar)
-            self.back_btn.set_size(BACK_BTN_HEIGHT, BACK_BTN_WIDTH)
+            self.back_btn = Btn(
+                self.title_bar,
+                icon=BTC_ICONS.CARET_LEFT,
+                size=(BACK_BTN_HEIGHT, BACK_BTN_WIDTH),
+                callback=lambda e: self.on_back(e),
+            )
             self.back_btn.align(lv.ALIGN.LEFT_MID, 8, 0)
-            self.back_ico = lv.image(self.back_btn)
-            BTC_ICONS.CARET_LEFT.add_to_parent(self.back_ico)
-            self.back_ico.center()
-            self.back_btn.add_event_cb(lambda e: self.on_back(e), lv.EVENT.CLICKED, None)
 
         # Title label – centred in the title bar
-        self.title_lbl = lv.label(self.title_bar)
-        self.title_lbl.set_text(title)
-        self.title_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        self.title_lbl.set_style_text_font(lv.font_montserrat_28, 0)
+        self.title_lbl = body_label(self.title_bar, title, font=lv.font_montserrat_28)
         self.title_lbl.align(lv.ALIGN.CENTER, 0, 0)
         # Backward-compat alias (WalletMenu and tests reference self.title)
         self.title = self.title_lbl

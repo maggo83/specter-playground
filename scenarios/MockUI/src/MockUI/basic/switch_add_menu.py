@@ -1,6 +1,7 @@
 import lvgl as lv
 from . import GenericMenu, BTN_HEIGHT, BTN_WIDTH
 from .symbol_lib import BTC_ICONS
+from .widgets import MenuItem
 
 
 class SwitchAddMenu(GenericMenu):
@@ -23,15 +24,14 @@ class SwitchAddMenu(GenericMenu):
 
         menu_items = []
         for item in elements:
-            menu_items.append((
+            menu_items.append(MenuItem(
                 BTC_ICONS.CHECK if show_check and item is active_element else None,
                 label_creation_cb(item),
                 self._make_select_cb(activation_cb, item),
-                None, None, None
             ))
 
         if add_string and add_target_behavior:
-            menu_items.append((BTC_ICONS.PLUS, add_string, add_target_behavior, None, None, None))
+            menu_items.append(MenuItem(BTC_ICONS.PLUS, add_string, add_target_behavior))
 
         return menu_items
 
