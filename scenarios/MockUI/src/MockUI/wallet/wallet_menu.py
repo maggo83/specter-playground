@@ -79,9 +79,8 @@ class WalletMenu(GenericMenu):
         def _on_delete(e):
             if e.get_code() != lv.EVENT.CLICKED:
                 return
-            wallet = self.state.active_wallet if self.state else None
-            if not wallet:
-                return
+            
+            wallet = self.state.active_wallet
 
             modal = ModalOverlay(bg_opa=180)
             sw = modal.screen_width
@@ -104,7 +103,7 @@ class WalletMenu(GenericMenu):
             dialog.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
 
             warn_lbl = lv.label(dialog)
-            warn_lbl.set_text("Delete wallet \"%s\"?\nThis cannot be undone." % wallet.name)
+            warn_lbl.set_text("Delete wallet \"%s\"?\nThis cannot be undone." % wallet.label)
             warn_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
             warn_lbl.set_style_text_font(lv.font_montserrat_22, 0)
             warn_lbl.set_width(lv.pct(100))

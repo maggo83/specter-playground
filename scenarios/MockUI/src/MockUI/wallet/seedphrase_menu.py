@@ -80,9 +80,7 @@ class SeedPhraseMenu(GenericMenu):
         def _on_delete(e):
             if e.get_code() != lv.EVENT.CLICKED:
                 return
-            seed = self.state.active_seed if self.state else None
-            if not seed:
-                return
+            seed = self.state.active_seed
 
             modal = ModalOverlay(bg_opa=180)
             sw = modal.screen_width
