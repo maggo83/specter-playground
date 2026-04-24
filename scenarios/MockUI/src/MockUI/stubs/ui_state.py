@@ -9,6 +9,7 @@ simulator environment.
 
 import json
 
+from ..basic.ui_consts import MAX_HISTORY_DEPTH
 
 CONFIG_FILE = "/flash/ui_state_config.json"
 
@@ -67,7 +68,11 @@ class UIState:
     # Navigation helpers
     def push_menu(self, menu_id):
         """Navigate to a new menu and push the old one on the history stack."""
+        if menu_id == self.current_menu_id:
+            return  # already on this menu — refresh only, don't grow history
         if self.current_menu_id is not None:
+            if len(self.history) >= MAX_HISTORY_DEPTH:
+                self.history.pop(0)  # drop oldest before appending to stay within cap
             self.history.append(self.current_menu_id)
         self.current_menu_id = menu_id
 

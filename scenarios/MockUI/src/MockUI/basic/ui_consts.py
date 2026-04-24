@@ -25,6 +25,9 @@ PAD_SIZE = const(5)
 STATUS_BAR_PCT = const(8)        # each bar (top + bottom), % of screen height
 CONTENT_PCT = const(84)          # 100 - 2 * STATUS_BAR_PCT
 
+# --- Navigation history ---
+MAX_HISTORY_DEPTH = const(10)      # maximum number of entries in the back-navigation stack
+
 # --- Icon sizes ---
 BTC_ICON_WIDTH = const(42)            # layout space per icon (native bitmap size)
 BTC_ICON_ZOOM = const(256)            # LVGL zoom: 256=100% — bitmap is already 42×42, no scaling needed
