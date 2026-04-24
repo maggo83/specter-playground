@@ -314,6 +314,14 @@
       "text": "Schließen",
       "ref_en": "Close"
     },
+    "MODAL_DELETE_WALLET_TEXT": {
+      "text": "Wallet \"%s\" löschen?\nDies kann nicht rückgängig gemacht werden.",
+      "ref_en": "Delete wallet \"%s\"?\nThis cannot be undone."
+    },
+    "MODAL_DELETE_SEED_TEXT": {
+      "text": "Seed \"%s\" löschen?\nDer Schlüssel wird aus dem Speicher entfernt.",
+      "ref_en": "Delete seed \"%s\"?\nThis will remove the key from memory."
+    },
     "COMMON_WALLET": {
       "text": "Wallet",
       "ref_en": "Wallet"
@@ -337,6 +345,14 @@
     "COMMON_NAME": {
       "text": "Name",
       "ref_en": "Name"
+    },
+    "COMMON_CANCEL": {
+      "text": "Abbrechen",
+      "ref_en": "Cancel"
+    },
+    "COMMON_DELETE": {
+      "text": "Löschen",
+      "ref_en": "Delete"
     },
     "MENU_MANAGE_WALLET": {
       "text": "Wallet verwalten",

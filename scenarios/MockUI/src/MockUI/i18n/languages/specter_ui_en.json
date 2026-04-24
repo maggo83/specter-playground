@@ -104,6 +104,8 @@
     "ACTION_SCREEN_PREFIX": "Action: ",
     "ACTION_SCREEN_BACK": "Back",
     "MODAL_CLOSE_BTN": "Close",
+    "MODAL_DELETE_WALLET_TEXT": "Delete wallet \"%s\"?\nThis cannot be undone.",
+    "MODAL_DELETE_SEED_TEXT": "Delete seed \"%s\"?\nThis will remove the key from memory.",
     
     "COMMON_WALLET": "Wallet",
     "COMMON_SINGLESIG": "SingleSig",
@@ -111,6 +113,8 @@
     "COMMON_KEYBOARD": "Keyboard",
     "COMMON_CREATE": "Create",
     "COMMON_NAME": "Name",
+    "COMMON_CANCEL": "Cancel",
+    "COMMON_DELETE": "Delete",
     
     "MENU_MANAGE_WALLET": "Manage Wallet",
     "MENU_MANAGE_SEED": "Manage Seed",
