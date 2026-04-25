@@ -16,9 +16,7 @@ Layout (absolute, no flex on root):
 """
 
 import lvgl as lv
-from .ui_consts import BACK_BTN_HEIGHT, BACK_BTN_WIDTH, TITLE_ROW_HEIGHT, TITLE_PADDING, SCREEN_HEIGHT, CONTENT_PCT
-from .symbol_lib import BTC_ICONS
-from .widgets.btn import Btn
+from .ui_consts import TITLE_ROW_HEIGHT, TITLE_PADDING, SCREEN_HEIGHT
 from .widgets.labels import body_label
 
 
@@ -32,7 +30,6 @@ class TitledScreen(lv.obj):
         self.on_navigate – navigation callback from gui.on_navigate
         self.title_bar  – lv.obj strip at the top, TITLE_ROW_HEIGHT tall
         self.title_lbl  – lv.label centred inside title_bar  (alias: self.title)
-        self.back_btn   – lv.button in title_bar (only when navigation history exists)
         self.body       – lv.obj below the title bar; put content here
     """
 
@@ -62,16 +59,6 @@ class TitledScreen(lv.obj):
         self.title_bar.set_style_radius(0, 0)
         self.title_bar.align(lv.ALIGN.TOP_MID, 0, 0)
 
-        # Back button – only shown when there is navigation history
-        if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
-            self.back_btn = Btn(
-                self.title_bar,
-                icon=BTC_ICONS.CARET_LEFT,
-                size=(BACK_BTN_HEIGHT, BACK_BTN_WIDTH),
-                callback=lambda e: self.on_back(e),
-            )
-            self.back_btn.align(lv.ALIGN.LEFT_MID, 8, 0)
-
         # Title label – centred in the title bar
         self.title_lbl = body_label(self.title_bar, title, font=lv.font_montserrat_28)
         self.title_lbl.align(lv.ALIGN.CENTER, 0, 0)
@@ -79,17 +66,18 @@ class TitledScreen(lv.obj):
         self.title = self.title_lbl
 
         # ── Body ─────────────────────────────────────────────────────────────
-        # Height = content area height minus the title bar and padding, so
-        # the body matches the actual visible space. This lets LVGL's scroll
-        # detection work correctly: content taller than this value scrolls.
-        _body_height = SCREEN_HEIGHT * CONTENT_PCT // 100 - TITLE_ROW_HEIGHT - TITLE_PADDING
+        # Use lv.pct(100) so the body always fills the actual (dynamic) content
+        # area height rather than a fixed CONTENT_PCT approximation.  The
+        # content area height is set in SpecterGui.refresh_ui() before this
+        # screen is instantiated, so the percentage resolves to the correct
+        # value after update_layout().
         self.body = lv.obj(self)
         self.body.set_width(lv.pct(100))
-        self.body.set_height(_body_height)
+        self.body.set_height(lv.pct(100))
         self.body.set_style_pad_all(0, 0)
         self.body.set_style_border_width(0, 0)
         self.body.set_style_radius(0, 0)
-        self.body.align(lv.ALIGN.TOP_MID, 0, TITLE_ROW_HEIGHT + TITLE_PADDING)
+        self.body.align(lv.ALIGN.TOP_MID, 0, 0)
         # Disable all scrolling on body; subclasses can re-enable with set_scroll_dir if needed
         self.body.set_scroll_dir(lv.DIR.NONE)
 

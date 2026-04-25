@@ -17,6 +17,9 @@ def _flex_container(parent, flow, default_main_align, width, height, pad, main_a
     cont.set_flex_align(_ma, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
     cont.set_style_border_width(0, 0)
     cont.set_style_pad_all(pad, 0)
+    cont.set_style_pad_column(0, 0)
+    cont.set_style_pad_row(0, 0)
+    cont.set_scroll_dir(lv.DIR.NONE)
     return cont
 
 

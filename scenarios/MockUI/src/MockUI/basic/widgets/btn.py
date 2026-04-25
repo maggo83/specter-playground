@@ -4,7 +4,7 @@ A single class that handles all button variants:
   - icon-only:        Btn(parent, icon=BTC_ICONS.CARET_LEFT, size=(60, 50), callback=cb)
   - text-only:        Btn(parent, text="Cancel", size=(lv.pct(100), BTN_HEIGHT), callback=cb)
   - icon + text:      Btn(parent, icon=BTC_ICONS.TRASH, text="Delete", color=RED_HEX, callback=cb)
-  - make_transparent: Btn(parent, size=(60, 50)).make_transparent()
+  - transparent/ghost: Btn(parent, size=(60, 50), callback=cb).make_transparent()
   - placeholder:      Btn(parent, size=(60, 50)).placeholder()
 
 Size parameter is a (width, height) tuple; either element may be None to skip setting it.
@@ -72,10 +72,18 @@ class Btn:
         if callback is not None:
             self._btn.add_event_cb(callback, lv.EVENT.CLICKED, None)
 
-    def update_icon(self, icon):
-        """Replace the displayed icon (must have been created with an icon)."""
+    def update_icon(self, icon, color=None):
+        """Replace the displayed icon (must have been created with an icon).
+
+        Args:
+            icon:  BTC_ICONS entry to display.
+            color: Optional lv.color to recolour the icon; None keeps default.
+        """
         if self._ico_img is not None:
-            icon.add_to_parent(self._ico_img)
+            if color is not None:
+                icon(color).add_to_parent(self._ico_img)
+            else:
+                icon.add_to_parent(self._ico_img)
 
     def make_transparent(self):
         """Remove button background, border and shadow.
@@ -86,6 +94,9 @@ class Btn:
         self._btn.set_style_bg_opa(lv.OPA.TRANSP, 0)
         self._btn.set_style_shadow_width(0, 0)
         self._btn.set_style_border_width(0, 0)
+        self._btn.set_style_radius(0, 0)
+        self._btn.set_style_pad_all(0, 0)
+        self._btn.set_style_margin_all(0, 0)
         return self
 
     def placeholder(self):

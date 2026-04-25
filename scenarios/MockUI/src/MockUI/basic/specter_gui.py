@@ -2,11 +2,11 @@ import lvgl as lv
 
 from ..stubs import UIState, SpecterState
 from .device_bar import DeviceBar
-from .wallet_bar import WalletBar
+from .select_and_manage_bar import SelectAndManageSeedsBar, SelectAndManageWalletsBar
 from .action_screen import ActionScreen
 from .main_menu import MainMenu
 from .locked_menu import LockedMenu
-from .ui_consts import STATUS_BAR_PCT, CONTENT_PCT
+from .ui_consts import STATUS_BAR_PCT, SELECT_BAR_PCT, CONTENT_PCT, SCREEN_HEIGHT
 from ..wallet import (
     WalletMenu,
     ConnectWalletsMenu,
@@ -44,13 +44,13 @@ class SpecterGui(lv.obj):
     # element_spec is None, a dotted attribute-path string, or a (x, y, w, h) tuple.
     # Resolved to runtime objects by GuidedTour.resolve_steps() before use.
     INTRO_TOUR_STEPS = [
-        (None,                          "TOUR_INTRO",       "center"),
-        ("device_bar.lock_btn",         "TOUR_LOCK",        "below"),
-        ("device_bar.center_container", "TOUR_INTERFACES",  "below"),
-        ("device_bar.batt_icon",        "TOUR_BATTERY",     "below"),
-        ("device_bar.power_btn",        "TOUR_POWER",       "below"),
-        ("wallet_bar",                  "TOUR_WALLET_BAR",  "above"),
-        ((435, 143, 28, 28),            "TOUR_HELP_ICON",   "left"),
+        (None,                              "TOUR_INTRO",        "center"),
+        ("device_bar.home_btn",             "TOUR_HOME",         "below"),
+        ("device_bar.settings_btn",         "TOUR_SETTINGS",     "below"),
+        ("device_bar.batt_icon",            "TOUR_BATTERY",      "below"),
+        ("seeds_bar",                       "TOUR_SEEDS_BAR",    "below"),
+        ("wallets_bar",                     "TOUR_WALLETS_BAR",  "below"),
+        ((435, 143, 28, 28),                "TOUR_HELP_ICON",    "left"),
     ]
 
     def __init__(self, specter_state=None, ui_state=None, *args, **kwargs):
@@ -76,25 +76,28 @@ class SpecterGui(lv.obj):
         self.current_screen = None
         self.keyboard_manager = KeyboardManager(self)
 
-        # Create device bar at top (STATUS_BAR_PCT%), wallet bar at bottom (STATUS_BAR_PCT%), content in middle (CONTENT_PCT%)
+        # ── Bar layout ────────────────────────────────────────────────────────
+        # Top: Seeds select-and-manage bar (SELECT_BAR_PCT%)
+        self.seeds_bar = SelectAndManageSeedsBar(self, height_pct=SELECT_BAR_PCT)
+        self.seeds_bar.align(lv.ALIGN.TOP_MID, 0, 0)
+
+        # Below seeds: Wallets select-and-manage bar (SELECT_BAR_PCT%)
+        self.wallets_bar = SelectAndManageWalletsBar(self, height_pct=SELECT_BAR_PCT)
+        self.wallets_bar.align_to(self.seeds_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 0)
+
+        # Bottom: Device / navigation bar (STATUS_BAR_PCT%) — always visible
         self.device_bar = DeviceBar(self, height_pct=STATUS_BAR_PCT)
-        self.device_bar.align(lv.ALIGN.TOP_MID, 0, 0)
+        self.device_bar.align(lv.ALIGN.BOTTOM_MID, 0, 0)
 
-        # Wallet bar at bottom
-        self.wallet_bar = WalletBar(self, height_pct=STATUS_BAR_PCT)
-        self.wallet_bar.align(lv.ALIGN.BOTTOM_MID, 0, 0)
-
-        # Content area in middle (scrollable)
+        # Content area between top bars and device bar (positioned by refresh_ui)
         self.content = lv.obj(self)
         self.content.set_width(lv.pct(100))
-        self.content.set_height(lv.pct(CONTENT_PCT))
+        self.content.set_height(lv.pct(CONTENT_PCT))  # overridden by refresh_ui
         self.content.set_layout(lv.LAYOUT.FLEX)
         self.content.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self.content.set_style_pad_all(0, 0)
         self.content.set_style_radius(0, 0)
         self.content.set_style_border_width(0, 0)
-        self.content.align_to(self.device_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 0)
-        # TitledScreen always fills content 100% so no scrolling is needed here
         self.content.set_scroll_dir(lv.DIR.NONE)
 
         # initially show the main menu
@@ -120,40 +123,73 @@ class SpecterGui(lv.obj):
         # Switch language in i18n manager
         self.i18n.set_language(lang_code)
 
-    def refresh_ui(self):
-        """Centralized refresh method for all UI components."""
-        self.device_bar.refresh(self.specter_state)
-        self.wallet_bar.refresh(self.specter_state)
+    # ── Menu categories for bar visibility ──────────────────────────────────
+    # Device menus: both select bars hidden
+    _DEVICE_MENUS = frozenset([
+        "manage_settings", "manage_security_settings", "manage_backups",
+        "manage_firmware", "interfaces", "manage_storage", "select_language",
+        "manage_preferences", "manage_security_features",
+    ])
+    # Seed menus: wallet bar hidden (seeds bar may still be useful for context)
+    _SEED_MENUS = frozenset([
+        "switch_add_seeds", "add_seed", "generate_seedphrase",
+        "manage_seedphrase", "store_seedphrase", "clear_seedphrase",
+        "set_passphrase",
+    ])
 
-    def show_menu(self, target_menu_id=None):
-        
-        # Delete current screen (free memory)
+    def refresh_ui(self):
+        """Refresh all bars, bar visibility, layout, and current screen content."""
+        state = self.specter_state
+        current = self.ui_state.current_menu_id if self.ui_state else None
+
+        self.device_bar.refresh(state)
+        self.seeds_bar.refresh(state)
+        self.wallets_bar.refresh(state)
+
+        # ── Bar visibility rules ──────────────────────────────────────────────
+        seed_loaded = state.active_seed is not None
+        has_extra_wallet = any(
+            not w.is_default_wallet() for w in state.registered_wallets
+        )
+
+        seeds_visible = (seed_loaded
+                         and current not in self._DEVICE_MENUS)
+        wallets_visible = (seed_loaded
+                           and has_extra_wallet
+                           and current not in self._DEVICE_MENUS
+                           and current not in self._SEED_MENUS)
+
+        self.seeds_bar.set_style_opa(lv.OPA.COVER if seeds_visible else lv.OPA.TRANSP, 0)
+        self.wallets_bar.set_style_opa(lv.OPA.COVER if wallets_visible else lv.OPA.TRANSP, 0)
+
+        # Reposition and resize content between visible top bars and device bar
+        device_h = SCREEN_HEIGHT * STATUS_BAR_PCT // 100
+        select_h = SCREEN_HEIGHT * SELECT_BAR_PCT // 100
+        content_y = 0
+        if seeds_visible:
+            content_y += select_h
+        if wallets_visible:
+            content_y += select_h
+        self.content.set_height(SCREEN_HEIGHT - device_h - content_y)
+        self.content.align(lv.ALIGN.TOP_MID, 0, content_y)
+
+        # ── Rebuild current screen so its content reflects latest state ───────
         if self.current_screen:
             self.current_screen.delete()
+        self._build_screen(current)
 
-        # Update UIState navigation history
-        if target_menu_id is None:
-            # navigating up/back: pop previous menu from history
-            self.ui_state.pop_menu()
-        elif target_menu_id == "start_intro_tour":
-            # special action: clear history and set current directly, no push
-            self.ui_state.clear_history()
-            self.ui_state.current_menu_id = target_menu_id
-        else:
-            # navigating down into a new menu
-            self.ui_state.push_menu(target_menu_id)
-
+    def _build_screen(self, current):
+        """Instantiate the correct screen class for *current* menu_id."""
         # If the device is locked, always show the locked screen
         if self.specter_state.is_locked:
-            # ensure the ui history is cleared when locking
             self.ui_state.clear_history()
             self.ui_state.current_menu_id = "locked"
             self.current_screen = LockedMenu(self)
-            self.refresh_ui()
             return
 
-        # Create new screen (micropython doesn't support match/case)
-        current = self.ui_state.current_menu_id
+        if current is None:
+            current = self.ui_state.current_menu_id
+
         if current in ("main", "start_intro_tour"):
             self.current_screen = MainMenu(self)
         elif current == "manage_wallet":
@@ -169,13 +205,13 @@ class SpecterGui(lv.obj):
         elif current == "connect_sw_wallet":
             self.current_screen = ConnectWalletsMenu(self)
         elif current == "add_seed":
-            self.current_screen = AddSeedMenu(self)               
+            self.current_screen = AddSeedMenu(self)
         elif current == "add_wallet":
             self.current_screen = AddWalletMenu(self)
         elif current == "switch_add_seeds":
             self.current_screen = SwitchAddSeedsMenu(self)
         elif current == "switch_add_wallets":
-            self.current_screen = SwitchAddWalletsMenu(self)                    
+            self.current_screen = SwitchAddWalletsMenu(self)
         elif current == "manage_security_features":
             self.current_screen = SecurityFeaturesMenu(self)
         elif current == "interfaces":
@@ -204,19 +240,30 @@ class SpecterGui(lv.obj):
             self.current_screen = SettingsMenu(self)
         else:
             # For all other actions, show a generic action screen
-            title = (target_menu_id or "").replace("_", " ")
+            title = current.replace("_", " ")
             title = title[0].upper() + title[1:] if title else ""
             self.current_screen = ActionScreen(title, self)
 
-        # refresh the UI
+    def show_menu(self, target_menu_id=None):
+
+        # Update UIState navigation history (before building screen)
+        if target_menu_id is None:
+            # navigating up/back: pop previous menu from history
+            self.ui_state.pop_menu()
+        elif target_menu_id == "start_intro_tour":
+            # special action: clear history and set current directly, no push
+            self.ui_state.clear_history()
+            self.ui_state.current_menu_id = target_menu_id
+        else:
+            # navigating down into a new menu
+            self.ui_state.push_menu(target_menu_id)
+
+        # refresh_ui rebuilds current_screen + bars + layout
         self.refresh_ui()
 
         # If this was a start_intro_tour action, launch the tour overlay now.
         # Reset current_menu_id to "main" BEFORE starting the tour so that
-        # "start_intro_tour" is never left in the history stack.  Without this,
-        # navigating away from the main menu (e.g. into WalletMenu) pushes
-        # "start_intro_tour" onto history, and popping back triggers the tour
-        # again even if the user already skipped it.
+        # "start_intro_tour" is never left in the history stack.
         if self.ui_state.current_menu_id == "start_intro_tour":
             self.ui_state.current_menu_id = "main"
             GuidedTour(self, GuidedTour.resolve_steps(self.INTRO_TOUR_STEPS, self)).start()

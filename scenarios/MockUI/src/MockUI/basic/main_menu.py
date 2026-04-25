@@ -7,6 +7,7 @@ from .widgets import MenuItem
 
 class MainMenu(GenericMenu):
     TITLE_KEY = "MAIN_MENU_TITLE"
+    _SHOW_SUBMENU_CARETS = False
 
     def get_menu_items(self, t, state):
         has_seed = state and state.active_seed is not None
@@ -93,16 +94,25 @@ class MainMenu(GenericMenu):
                 menu_items.append(MenuItem(BTC_ICONS.SCAN, t("MAIN_MENU_SCAN_QR"), "scan_qr", size=1.3, help_key="HELP_SCAN_QR"))
             if state.SD_detected():
                 menu_items.append(MenuItem(BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_FROM_SD"), "load_sd"))
-            if can_sign_msg:
-                menu_items.append(MenuItem(BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message"))
+            #if can_sign_msg:
+            #    menu_items.append(MenuItem(BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message"))
 
-        # ── Seed & Wallet section ───────────────────────────────────────────
-        menu_items.append(MenuItem(text=t("MAIN_MENU_SEED_AND_WALLET")))
-        menu_items.append(MenuItem(BTC_ICONS.MNEMONIC, t("MAIN_MENU_MANAGE_SEED_WALLET"), "manage_seed_wallet"))
+        # ── Explore section (always visible once a seed is loaded) ───────────
+        menu_items.append(MenuItem(text=t("WALLET_MENU_EXPLORE")))
+        menu_items.append(MenuItem(BTC_ICONS.MENU, t("WALLET_MENU_VIEW_ADDRESSES"), "view_addresses"))
+
 
         # ── Connect Companion App (only if wallet not yet exported) ─────────
         if active_wallet_was_never_exported:
             menu_items.append(MenuItem(text=t("MAIN_MENU_CONNECT_SECTION")))
             menu_items.append(MenuItem(BTC_ICONS.LINK, t("MAIN_MENU_CONNECT_COMPANION"), "connect_sw_wallet", size=1.5))
+
+        # ── Add Wallet (shown while no non-default wallet is registered) ────
+        has_extra_wallet = any(
+            not w.is_default_wallet() for w in state.registered_wallets
+        )
+        if not has_extra_wallet:
+            menu_items.append(MenuItem(text=t("MAIN_MENU_WALLET_SECTION")))
+            menu_items.append(MenuItem(BTC_ICONS.WALLET, t("MAIN_MENU_ADD_WALLET"), "add_wallet", size=1))
 
         return menu_items

@@ -1,4 +1,4 @@
-"""Bitcoin icon library aggregator — 126 icons at 42×42 px.
+"""Bitcoin icon library aggregator — 129 icons at 42×42 px.
 
 AUTO-GENERATED — do not edit directly.
 Regenerate with:
@@ -53,6 +53,7 @@ from .icons.credit_card import CREDIT_CARD
 from .icons.cross import CROSS
 from .icons.devices import DEVICES
 from .icons.edit import EDIT
+from .icons.edit_outline import EDIT_OUTLINE
 from .icons.ellipsis import ELLIPSIS
 from .icons.exchange import EXCHANGE
 from .icons.exit import EXIT
@@ -61,11 +62,13 @@ from .icons.file import FILE
 from .icons.flip_horizontal import FLIP_HORIZONTAL
 from .icons.flip_vertical import FLIP_VERTICAL
 from .icons.gear import GEAR
+from .icons.gear_outline import GEAR_OUTLINE
 from .icons.globe import GLOBE
 from .icons.graph import GRAPH
 from .icons.grid import GRID
 from .icons.hidden import HIDDEN
 from .icons.home import HOME
+from .icons.home_outline import HOME_OUTLINE
 from .icons.info import INFO
 from .icons.info_circle import INFO_CIRCLE
 from .icons.invoice import INVOICE
@@ -141,7 +144,7 @@ from .icons.wallet import WALLET
 
 class BTC_ICONS:
     """
-    Library of Bitcoin-themed icons (126 total, 42×42 px).
+    Library of Bitcoin-themed icons (129 total, 42×42 px).
 
     Icons default to white; pass a color to tint them:
         BTC_ICONS.WALLET(lv.color_hex(0xFF0000))  # red
@@ -190,6 +193,7 @@ class BTC_ICONS:
     CROSS = CROSS
     DEVICES = DEVICES
     EDIT = EDIT
+    EDIT_OUTLINE = EDIT_OUTLINE
     ELLIPSIS = ELLIPSIS
     EXCHANGE = EXCHANGE
     EXIT = EXIT
@@ -198,11 +202,13 @@ class BTC_ICONS:
     FLIP_HORIZONTAL = FLIP_HORIZONTAL
     FLIP_VERTICAL = FLIP_VERTICAL
     GEAR = GEAR
+    GEAR_OUTLINE = GEAR_OUTLINE
     GLOBE = GLOBE
     GRAPH = GRAPH
     GRID = GRID
     HIDDEN = HIDDEN
     HOME = HOME
+    HOME_OUTLINE = HOME_OUTLINE
     INFO = INFO
     INFO_CIRCLE = INFO_CIRCLE
     INVOICE = INVOICE

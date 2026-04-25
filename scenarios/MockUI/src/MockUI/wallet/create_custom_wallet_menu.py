@@ -126,6 +126,9 @@ class CreateCustomWalletMenu(TitledScreen):
 
         # Build fingerprint list
         fps = []
+        # For singlesig/custom: preset to active seed fingerprint
+        if not is_multi and self.state.active_seed is not None:
+            fps = [self.state.active_seed.fingerprint]
         threshold = int(self.thresh_ta.get_text())
         if is_multi:
             # Parse extra cosigner fingerprints
@@ -156,8 +159,9 @@ class CreateCustomWalletMenu(TitledScreen):
         self.state.register_wallet(wallet)
         self.state.set_active_wallet(wallet)
 
-        # Navigate to main
+        # Navigate to main — set menu_id first, then refresh_ui() directly.
+        # Calling on_navigate(None) would pop history and rebuild this screen.
         if hasattr(self.gui, 'ui_state') and self.gui.ui_state:
             self.gui.ui_state.clear_history()
             self.gui.ui_state.current_menu_id = "main"
-        self.on_navigate(None)
+        self.gui.refresh_ui()

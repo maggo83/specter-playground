@@ -62,15 +62,18 @@ class GenerateSeedMenu(TitledScreen):
         if e.get_code() != lv.EVENT.CLICKED:
             return
 
-        # read name
+        # read name before any navigation (the textarea is destroyed on refresh)
         name = self.name_ta.get_text()
 
         # create seed — add_seed() auto-creates default wallet
         seed = Seed(label=name, fingerprint=self.generated_fp)
         self.state.add_seed(seed)
 
-        # go to main menu directly
+        # Navigate to main. Set current_menu_id first, then call refresh_ui()
+        # directly — do NOT call on_navigate(None) because that calls pop_menu()
+        # which would restore the history entry for this screen, rebuilding it
+        # with a fresh random name instead of navigating away.
         if hasattr(self.gui, 'ui_state') and self.gui.ui_state:
             self.gui.ui_state.clear_history()
             self.gui.ui_state.current_menu_id = "main"
-        self.on_navigate(None)
+        self.gui.refresh_ui()

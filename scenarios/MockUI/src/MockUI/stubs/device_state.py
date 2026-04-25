@@ -112,12 +112,18 @@ class SpecterState:
             self.active_seed = self.loaded_seeds[0] if self.loaded_seeds else None
 
     def wallets_for_seed(self, seed):
-        """Return wallets that match this seed (including the shared Default Wallet)."""
+        """Return wallets that match this seed (including the shared Default Wallet).
+
+        Wallets with no required_fingerprints (custom/unkeyed wallets) are included
+        for every seed since they are not locked to a specific key.
+        """
         if seed is None:
             return None
         fp = seed.fingerprint
         return [wallet for wallet in self.registered_wallets
-                if wallet.is_default_wallet() or fp in wallet.required_fingerprints]
+                if wallet.is_default_wallet()
+                or not wallet.required_fingerprints
+                or fp in wallet.required_fingerprints]
 
     def seed_matches_wallet(self, seed=None, wallet=None):
         """Check if a seed's fingerprint is in the wallet's required signers."""

@@ -1,5 +1,7 @@
 from ..basic import SwitchAddMenu
 from ..basic.widgets import MenuItem
+from ..basic.symbol_lib import BTC_ICONS
+from ..basic.ui_consts import WHITE_HEX, GREY_HEX, ORANGE_HEX
 
 
 class SwitchAddSeedsMenu(SwitchAddMenu):
@@ -13,6 +15,20 @@ class SwitchAddSeedsMenu(SwitchAddMenu):
     """
 
     TITLE_KEY = "MENU_SWITCH_ADD_SEED"
+
+    def _seed_suffix(self, seed):
+        """Build right-side suffix info for a seed list item."""
+        items = []
+        if seed.passphrase is not None:
+            pp_color = WHITE_HEX if seed.passphrase_active else GREY_HEX
+            items.append((BTC_ICONS.PASSWORD, pp_color, None))
+        if not seed.is_backed_up:
+            items.append((BTC_ICONS.ALERT_CIRCLE, ORANGE_HEX, None))
+        raw_fp = seed.fingerprint or "????"
+        if raw_fp.startswith("0x") or raw_fp.startswith("0X"):
+            raw_fp = raw_fp[2:]
+        items.append((BTC_ICONS.RELAY, WHITE_HEX, raw_fp[:4]))
+        return items
 
     def get_menu_items(self, t, state):
         wallet_seeds = self.state.seeds_for_wallet(state.active_wallet) or []
@@ -28,6 +44,7 @@ class SwitchAddSeedsMenu(SwitchAddMenu):
                 show_check=show_check,
                 add_target_behavior=add_behavior,
                 add_string=add_str,
+                suffix_cb=self._seed_suffix,
             )
 
         if wallet_seeds:

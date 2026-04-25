@@ -22,8 +22,10 @@ SWITCH_WIDTH = const(45)         # toggle switch width  (was 30)
 PAD_SIZE = const(5)
 
 # --- Status bar / content area layout ---
-STATUS_BAR_PCT = const(8)        # each bar (top + bottom), % of screen height
-CONTENT_PCT = const(84)          # 100 - 2 * STATUS_BAR_PCT
+STATUS_BAR_PCT = const(8)        # each bar, % of screen height
+# Top-selector layout: device bar (8%) + seed bar (8%) + wallet bar (8%) = 24%
+SELECT_BAR_PCT = const(8)        # SelectAndManageBar height
+CONTENT_PCT = const(76)          # 100 - STATUS_BAR_PCT - 2 * SELECT_BAR_PCT
 
 # --- Navigation history ---
 MAX_HISTORY_DEPTH = const(10)      # maximum number of entries in the back-navigation stack

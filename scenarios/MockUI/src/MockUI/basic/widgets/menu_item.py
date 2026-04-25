@@ -23,10 +23,13 @@ class MenuItem:
     """
 
     def __init__(self, icon=None, text=None, target=None,
-                 color=None, size=None, help_key=None):
+                 color=None, size=None, help_key=None, suffix=None):
         self.icon = icon
         self.text = text
         self.target = target
         self.color = color
         self.size = size
         self.help_key = help_key
+        # suffix: list of (icon_callable_or_None, color_or_None, text_or_None) tuples
+        # rendered as a right-aligned group of icons/labels inside the button.
+        self.suffix = suffix

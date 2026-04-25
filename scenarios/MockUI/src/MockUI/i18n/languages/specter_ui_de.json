@@ -3,7 +3,11 @@
     "language_code": "de",
     "language_name": "Deutsch",
     "version": "1.0",
-    "description": "German language file for Specter UI"
+    "description": "German language file for Specter UI",
+    "COMMON_OK": "OK",
+    "MODAL_BACKUP_WARNING_TEXT": "Diese Seed-Phrase wurde noch nicht gesichert.\n\nOhne Backup könnten bei Geräteverlust Ihre Coins verloren gehen.\n\nHaben Sie Ihre Seed-Phrase bereits gesichert?",
+    "MODAL_BACKUP_CONFIRMED_BTN": "Gesichert!",
+    "WALLET_MENU_SELECT_ACCOUNT": "Konto:"
   },
   "translations": {
     "MAIN_MENU_TITLE": {
@@ -30,13 +34,17 @@
       "text": "Nachricht signieren",
       "ref_en": "Sign Message"
     },
-    "MAIN_MENU_SEED_AND_WALLET": {
-      "text": "Seed & Wallet",
-      "ref_en": "Seed & Wallet"
-    },
     "MAIN_MENU_MANAGE_SEED_WALLET": {
       "text": "Seed / Wallet verwalten",
       "ref_en": "Manage Seed / Wallet"
+    },
+    "MAIN_MENU_WALLET_SECTION": {
+      "text": "Wallet",
+      "ref_en": "Wallet"
+    },
+    "MAIN_MENU_ADD_WALLET": {
+      "text": "Wallet hinzufügen",
+      "ref_en": "Add Wallet"
     },
     "MAIN_MENU_CONNECT_SECTION": {
       "text": "Verbinden",
@@ -326,10 +334,6 @@
       "text": "Wallet",
       "ref_en": "Wallet"
     },
-    "COMMON_SINGLESIG": {
-      "text": "SingleSig",
-      "ref_en": "SingleSig"
-    },
     "COMMON_MULTISIG": {
       "text": "MultiSig",
       "ref_en": "MultiSig"
@@ -369,7 +373,7 @@
     "MENU_CHANGE_CLEAR_PASSPHRASE": {
       "text": "Passphrase ändern / löschen",
       "ref_en": "Change / Clear Passphrase"
-    },    
+    },
     "MENU_CONNECT_SW_WALLET": {
       "text": "Companion App verbinden",
       "ref_en": "Connect Companion App"
@@ -489,6 +493,42 @@
     "TOUR_SKIP_BTN": {
       "text": "Tour beenden",
       "ref_en": "Skip Tour"
+    },
+    "MODAL_BACKUP_WARNING_TEXT": {
+      "text": "Diese Seed-Phrase wurde noch nicht gesichert.\n\nOhne Backup k\u00f6nnten bei Ger\u00e4teverlust Ihre Coins verloren gehen.\n\nHaben Sie Ihre Seed-Phrase bereits gesichert?",
+      "ref_en": "This seed has not been backed up yet.\n\nIf you lose this device without a backup, your funds may be lost.\n\nHave you already backed up your seed phrase?"
+    },
+    "HELP_SHOW_SEED": {
+      "text": "<FILL>",
+      "ref_en": "<FILL>"
+    },
+    "TOUR_HOME": {
+      "text": "<FILL>",
+      "ref_en": "<FILL>"
+    },
+    "TOUR_SETTINGS": {
+      "text": "<FILL>",
+      "ref_en": "<FILL>"
+    },
+    "TOUR_WALLETS_BAR": {
+      "text": "<FILL>",
+      "ref_en": "<FILL>"
+    },
+    "COMMON_OK": {
+      "text": "OK",
+      "ref_en": "OK"
+    },
+    "MODAL_BACKUP_CONFIRMED_BTN": {
+      "text": "Gesichert!",
+      "ref_en": "Backed up!"
+    },
+    "TOUR_SEEDS_BAR": {
+      "text": "<FILL>",
+      "ref_en": "<FILL>"
+    },
+    "WALLET_MENU_SELECT_ACCOUNT": {
+      "text": "Konto:",
+      "ref_en": "Account:"
     }
   }
 }
