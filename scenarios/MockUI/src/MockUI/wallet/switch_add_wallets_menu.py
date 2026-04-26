@@ -1,7 +1,8 @@
 from ..basic import SwitchAddMenu
 from ..basic.widgets import MenuItem
 from ..basic.symbol_lib import BTC_ICONS
-from ..basic.ui_consts import WHITE_HEX, GREEN_HEX
+from ..basic.ui_consts import WHITE_HEX
+from ..basic.select_and_manage_bar import wallet_key_color
 
 
 def _sort_wallets(wallets):
@@ -36,8 +37,7 @@ class SwitchAddWalletsMenu(SwitchAddMenu):
 
     def _wallet_suffix(self, wallet):
         """Build right-side suffix info for a wallet list item."""
-        matched, required = self.state.signing_match_count(wallet)
-        key_color = GREEN_HEX if (required > 0 and matched >= required) else WHITE_HEX
+        key_color = wallet_key_color(self.state, wallet)
 
         if not wallet.is_standard():
             type_icon = BTC_ICONS.CONSOLE

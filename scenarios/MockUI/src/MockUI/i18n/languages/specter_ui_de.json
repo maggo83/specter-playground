@@ -95,8 +95,8 @@
       "ref_en": "Export Data"
     },
     "ADD_WALLET_IMPORT_FROM": {
-      "text": "Seedphrase importieren von",
-      "ref_en": "Import from"
+      "text": "Wallet importieren von",
+      "ref_en": "Import Wallet from"
     },
     "ADD_WALLET_CUSTOMIZE": {
       "text": "Anpassen",

@@ -18,7 +18,8 @@ class KeyboardManager:
         self.defocus_cb = None
         self.delete_cb = None
 
-    def bind(self, textarea, layout_id, on_commit=None, sanitize=None, on_cancel=None):
+    def bind(self, textarea, layout_id, on_commit=None, sanitize=None,
+              on_cancel=None, restore_on_defocus=True):
         """Activate the on-screen keyboard for a textarea.
 
         Call this from the textarea's CLICKED event callback. The manager then
@@ -44,6 +45,10 @@ class KeyboardManager:
                 are triggered when the textarea fires ``lv.EVENT.DELETE``
                 (the object is being destroyed by LVGL; operating on it
                 or calling navigation logic at that point would be unsafe).
+            restore_on_defocus: If True (default), losing focus (e.g. clicking
+                elsewhere) restores the original text, treating it as a cancel.
+                Set to False in forms where clicking a submit button should
+                keep the typed text rather than reverting it.
         """
         self._ensure_keyboard()
 
@@ -61,7 +66,9 @@ class KeyboardManager:
         
         self._apply_layout(layout_id)
 
-        self._set_internals(on_commit=on_commit, on_cancel=on_cancel, sanitize=sanitize, original_text=textarea.get_text())
+        self._set_internals(on_commit=on_commit, on_cancel=on_cancel, sanitize=sanitize,
+                            original_text=textarea.get_text(),
+                            restore_on_defocus=restore_on_defocus)
 
         textarea.add_state(lv.STATE.FOCUSED)
         self.defocus_cb = textarea.add_event_cb(self._cancel, lv.EVENT.DEFOCUSED, None)
@@ -98,12 +105,15 @@ class KeyboardManager:
         self.on_cancel = None
         self.sanitize = None
         self._original_text = None
+        self._restore_on_defocus = True
 
-    def _set_internals(self, on_commit=None, on_cancel=None, sanitize=None, original_text=None):
+    def _set_internals(self, on_commit=None, on_cancel=None, sanitize=None,
+                       original_text=None, restore_on_defocus=True):
         self.on_commit = on_commit
         self.on_cancel = on_cancel
         self.sanitize = sanitize
         self._original_text = original_text
+        self._restore_on_defocus = restore_on_defocus
 
     def _ensure_keyboard(self):
         if self.keyboard:
@@ -131,10 +141,12 @@ class KeyboardManager:
         cancel_cb = None
 
         is_deleting = (e is not None and e.get_code() == lv.EVENT.DELETE)
+        is_defocus = (e is not None and e.get_code() == lv.EVENT.DEFOCUSED)
 
         if not is_deleting:
-            # reset to initial value/text
-            self.textarea.set_text(self._original_text)    
+            # Only restore original text on explicit cancel or defocus-with-restore
+            if not is_defocus or self._restore_on_defocus:
+                self.textarea.set_text(self._original_text)
             cancel_cb = self.on_cancel
         
         self._unbind(is_deleting)

@@ -33,7 +33,9 @@ class GenerateSeedMenu(TitledScreen):
         self.name_ta = form_textarea(name_row)
         self.name_ta.set_text("Key " + str(urandom.randint(1, 99)))
 
-        keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.name_ta, Layout.FULL)
+        keyboard_binder = lambda e: self.gui.keyboard_manager.bind(
+            self.name_ta, Layout.FULL, restore_on_defocus=False
+        )
         self.name_ta.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         # Fingerprint preview

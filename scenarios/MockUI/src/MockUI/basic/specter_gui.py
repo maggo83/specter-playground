@@ -129,12 +129,16 @@ class SpecterGui(lv.obj):
         "manage_settings", "manage_security_settings", "manage_backups",
         "manage_firmware", "interfaces", "manage_storage", "select_language",
         "manage_preferences", "manage_security_features",
+        # Adding/creating a new seed has no active seed context → hide seed bar too
+        "add_seed", "generate_seedphrase",
     ])
     # Seed menus: wallet bar hidden (seeds bar may still be useful for context)
     _SEED_MENUS = frozenset([
-        "switch_add_seeds", "add_seed", "generate_seedphrase",
+        "switch_add_seeds",
         "manage_seedphrase", "store_seedphrase", "clear_seedphrase",
         "set_passphrase",
+        # Adding/creating a wallet has no active wallet context → hide wallet bar
+        "add_wallet", "create_custom_wallet",
     ])
 
     def refresh_ui(self):

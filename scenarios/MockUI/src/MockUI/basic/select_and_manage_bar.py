@@ -98,6 +98,16 @@ def _best_font_for_name(text, max_w, max_h):
     return lv.font_montserrat_16, text
 
 
+def wallet_key_color(specter_state, wallet):
+    """Return the icon colour for a wallet's key icon.
+
+    white  — all required signing keys are loaded (wallet is signable)
+    grey   — not all required keys are present
+    """
+    matched, required = specter_state.signing_match_count(wallet)
+    return WHITE_HEX if (required > 0 and matched >= required) else GREY_HEX
+
+
 class SelectAndManageBar(lv.obj):
     """Generic select-and-manage bar. Subclass and override _build_info()."""
 
@@ -195,6 +205,14 @@ class SelectAndManageBar(lv.obj):
         m = self.get_manage_menu_id()
         return frozenset([m]) if m else frozenset()
 
+    def _show_nav_arrows(self, items):
+        """Whether prev/next navigation arrows should be shown. Override in subclass."""
+        return True
+
+    def _use_plus_icon(self, items):
+        """Whether the switch button should show PLUS (vs CARET_DOWN). Override in subclass."""
+        return len(items) <= 1
+
     def _build_info(self, parent, item):
         """Populate the info section for the given active item.
 
@@ -244,13 +262,13 @@ class SelectAndManageBar(lv.obj):
             # Switch menu already open: CARET_UP = cancel / go back
             self.gui.show_menu(None)
             return
-        if len(items) <= 1:
-            # 0 or 1 item: go directly to add menu
+        if self._use_plus_icon(items):
+            # PLUS icon: go directly to add menu
             add_menu = self.get_add_menu_id()
             if add_menu:
                 self.gui.show_menu(add_menu)
         else:
-            # 2+ items: open switch/select menu
+            # CARET_DOWN icon: open switch/select menu
             if switch_menu:
                 self.gui.show_menu(switch_menu)
 
@@ -288,11 +306,10 @@ class SelectAndManageBar(lv.obj):
 
         # switch_btn icon:
         #   on switch menu already open  → CARET_UP  (cancel)
-        #   0 or 1 items                 → PLUS      (go to add)
-        #   2+ items                     → CARET_DOWN (open switch menu)
+        #   otherwise use _use_plus_icon → PLUS or CARET_DOWN
         if current == self.get_switch_menu_id():
             self.switch_btn.update_icon(BTC_ICONS.CARET_UP)
-        elif len(items) <= 1:
+        elif self._use_plus_icon(items):
             self.switch_btn.update_icon(BTC_ICONS.PLUS)
         else:
             self.switch_btn.update_icon(BTC_ICONS.CARET_DOWN)
@@ -303,6 +320,32 @@ class SelectAndManageBar(lv.obj):
             BTC_ICONS.EDIT if manage_active else BTC_ICONS.EDIT_OUTLINE
         )
 
+        # Reposition buttons and info_section depending on arrow visibility.
+        # Since the bar uses absolute positioning, we must physically move
+        # widgets — opacity=TRANSP just hides pixels but does NOT free space.
+        show_arrows = self._show_nav_arrows(items)
+        wo = self._OUTER_BTN_W
+        wi = self._NAV_BTN_W
+        if show_arrows:
+            # Full layout: [prev(wo)][switch(wi)] <info> [manage(wi)][next(wo)]
+            self.prev_btn.set_style_opa(lv.OPA.COVER, 0)
+            self.next_btn.set_style_opa(lv.OPA.COVER, 0)
+            self.switch_btn.align(lv.ALIGN.LEFT_MID, wo, 0)
+            self.manage_btn.align(lv.ALIGN.RIGHT_MID, -wo, 0)
+            info_x = wo + wi
+            info_w = SCREEN_WIDTH - 2 * wo - 2 * wi
+        else:
+            # Compact layout: [switch(wi)] <info> [manage(wi)]  (no prev/next)
+            self.prev_btn.set_style_opa(lv.OPA.TRANSP, 0)
+            self.next_btn.set_style_opa(lv.OPA.TRANSP, 0)
+            self.switch_btn.align(lv.ALIGN.LEFT_MID, 0, 0)
+            self.manage_btn.align(lv.ALIGN.RIGHT_MID, 0, 0)
+            info_x = wi
+            info_w = SCREEN_WIDTH - 2 * wi
+        self.info_section.set_width(info_w)
+        self.info_section.align(lv.ALIGN.LEFT_MID, info_x, 0)
+        self._current_info_w = info_w
+
         # active_in_cycle: whether active is in the filtered cycling list
         active_in_cycle = active is not None and active in items
 
@@ -311,17 +354,16 @@ class SelectAndManageBar(lv.obj):
             # the cycling subset (e.g. a wallet from another seed was selected).
             _grey = GREY_HEX
             _white = WHITE_HEX
-            if active_in_cycle:
-                idx = items.index(active)
-                prev_color = _grey if idx == 0 else _white
-                next_color = _grey if idx == len(items) - 1 else _white
-            else:
-                # Not in cycling list — disable both prev/next arrows
-                prev_color = _grey
-                next_color = _grey
-
-            self.prev_btn.update_icon(BTC_ICONS.CARET_LEFT, color=prev_color)
-            self.next_btn.update_icon(BTC_ICONS.CARET_RIGHT, color=next_color)
+            if show_arrows:
+                if active_in_cycle:
+                    idx = items.index(active)
+                    prev_color = _grey if idx == 0 else _white
+                    next_color = _grey if idx == len(items) - 1 else _white
+                else:
+                    prev_color = _grey
+                    next_color = _grey
+                self.prev_btn.update_icon(BTC_ICONS.CARET_LEFT, color=prev_color)
+                self.next_btn.update_icon(BTC_ICONS.CARET_RIGHT, color=next_color)
 
             # rebuild info section
             self.info_section.clean()
@@ -329,8 +371,6 @@ class SelectAndManageBar(lv.obj):
 
             self.info_section.set_style_opa(lv.OPA.COVER, 0)
             self.manage_btn.set_style_opa(lv.OPA.COVER, 0)
-            self.next_btn.set_style_opa(lv.OPA.COVER, 0)
-            self.prev_btn.set_style_opa(lv.OPA.COVER, 0)
         else:
             # No active item — hide everything except switch_btn
             self.info_section.set_style_opa(lv.OPA.TRANSP, 0)
@@ -387,10 +427,19 @@ class SelectAndManageSeedsBar(SelectAndManageBar):
             "set_passphrase",
         ])
 
+    def _show_nav_arrows(self, items):
+        """Hide prev/next when only one seed is loaded — no point cycling."""
+        return len(items) > 1
+
     # _NAME_W is no longer a fixed constant — name width is computed dynamically
     # in _build_info depending on which optional elements are visible.
 
     def _build_info(self, parent, seed):
+        multi_seed = len(self.gui.specter_state.loaded_seeds) > 1
+        # Available info width (expanded when nav arrows are hidden for single seed)
+        info_w = getattr(self, '_current_info_w', _INFO_W)
+        # Right group (fp) only shown for multi-seed; adjust left area accordingly
+        available_left = info_w - (_RIGHT_W if multi_seed else 0)
         # ── Optional elements (between name and right group) ─────────────────
         show_passphrase = seed.passphrase is not None
         show_warning = not seed.is_backed_up
@@ -398,7 +447,7 @@ class SelectAndManageSeedsBar(SelectAndManageBar):
             (BTC_ICON_WIDTH if show_passphrase else 0)
             + (BTC_ICON_WIDTH if show_warning else 0)
         )
-        name_w = _LEFT_W - opt_w  # expands to full _LEFT_W when nothing is shown
+        name_w = available_left - opt_w
 
         # ── Name (left, dynamic width) ────────────────────────────────────────
         font, name_text = _best_font_for_name(seed.label, name_w, STATUS_BTN_HEIGHT)
@@ -466,7 +515,7 @@ class SelectAndManageSeedsBar(SelectAndManageBar):
             text=t("MODAL_BACKUP_WARNING_TEXT"),
             buttons=[
                 (None, t("COMMON_OK"), None, None),
-                (BTC_ICONS.CHECK, t("MODAL_BACKUP_CONFIRMED_BTN"), GREEN_HEX, _mark_backed_up),
+                (BTC_ICONS.CHECK, t("MODAL_BACKUP_CONFIRMED_BTN"), None, _mark_backed_up),
             ],
         )
 
@@ -515,10 +564,19 @@ class SelectAndManageWalletsBar(SelectAndManageBar):
     # Account column width — 1 digit at font_28 (39 px), 2 digits at font_16 (33 px).
     _ACC_W = 40
 
+    def _use_plus_icon(self, items):
+        """Show PLUS only when no user-created wallets exist."""
+        return all(w.is_default_wallet() for w in self.gui.specter_state.registered_wallets)
+
     @property
     def _show_account_col(self):
         """True when at least one wallet has a non-zero account number."""
         return any(w.account != 0 for w in self.get_items())
+
+    @property
+    def _show_net_col(self):
+        """True when at least one registered wallet uses a non-mainnet network."""
+        return any(w.net != "mainnet" for w in self.gui.specter_state.registered_wallets)
 
     def _build_info(self, parent, wallet):
         # ── Optional element: account number ─────────────────────────────────
@@ -555,15 +613,15 @@ class SelectAndManageWalletsBar(SelectAndManageBar):
             type_icon = BTC_ICONS.TWO_KEYS
         else:
             type_icon = BTC_ICONS.KEY
-        # Green when ALL required keys are loaded, white otherwise
-        matched, required = self.gui.specter_state.signing_match_count(wallet)
-        key_color = GREEN_HEX if (required > 0 and matched >= required) else WHITE_HEX
+        # White when all required keys loaded, grey otherwise
+        key_color = wallet_key_color(self.gui.specter_state, wallet)
         type_icon(key_color).add_to_parent(type_img)
 
-        net_lbl = lv.label(right_cont)
-        net_map = {"mainnet": "main", "testnet": "test", "signet": "sig"}
-        net_lbl.set_text(net_map.get(wallet.net, wallet.net))
-        net_lbl.set_style_text_font(lv.font_montserrat_16, 0)
-        net_lbl.set_width(_RIGHT_TEXT_W)
-        net_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
+        if self._show_net_col:
+            net_lbl = lv.label(right_cont)
+            net_map = {"mainnet": "main", "testnet": "test", "signet": "sig"}
+            net_lbl.set_text(net_map.get(wallet.net, wallet.net))
+            net_lbl.set_style_text_font(lv.font_montserrat_16, 0)
+            net_lbl.set_width(_RIGHT_TEXT_W)
+            net_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
 

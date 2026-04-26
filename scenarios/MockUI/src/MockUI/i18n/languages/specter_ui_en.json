@@ -31,7 +31,7 @@
     "WALLET_MENU_CHANGE_NETWORK": "Change Network",
     "WALLET_MENU_CONNECT_EXPORT": "Connect/Export",
     "WALLET_MENU_EXPORT_DATA": "Export Data",
-    "ADD_WALLET_IMPORT_FROM": "Import from",
+    "ADD_WALLET_IMPORT_FROM": "Import Wallet from",
     "ADD_WALLET_CUSTOMIZE": "Customize",
     "ADD_WALLET_CREATE_CUSTOM": "Create Custom Descriptor",
     "ADD_WALLET_THRESHOLD": "Threshold: ",

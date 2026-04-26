@@ -33,7 +33,8 @@ class WalletMenu(GenericMenu):
     def post_init(self, t, state):
         is_default = state.active_wallet.is_default_wallet()
         if is_default:
-            # Default wallet is not user-editable
+            # Default wallet is not user-editable — only show account label
+            self._add_account_row(t, state)
             return
 
         # User-created wallet: editable name row at the top of the body.
@@ -106,7 +107,7 @@ class WalletMenu(GenericMenu):
         self._add_account_row(t, state)
 
     def _add_account_row(self, t, state):
-        """Add inline Account selector (label + −/value/+ buttons) into the Manage section."""
+        """Add read-only Account label row. Account is fixed at wallet creation time."""
         wallet = state.active_wallet
         if wallet is None:
             return
@@ -125,54 +126,10 @@ class WalletMenu(GenericMenu):
         desc_lbl.set_text(t("WALLET_MENU_SELECT_ACCOUNT"))
         desc_lbl.set_style_text_font(lv.font_montserrat_22, 0)
 
-        # Right side: [−] [account#] [+]
-        spin_row = lv.obj(row)
-        spin_row.set_height(BTN_HEIGHT - 4)
-        spin_row.set_width(lv.SIZE_CONTENT)
-        spin_row.set_layout(lv.LAYOUT.FLEX)
-        spin_row.set_flex_flow(lv.FLEX_FLOW.ROW)
-        spin_row.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        spin_row.set_style_pad_all(0, 0)
-        spin_row.set_style_border_width(0, 0)
-        spin_row.set_style_pad_column(4, 0)
-
-        btn_sz = BTN_HEIGHT - 14
-
-        dec_btn = lv.button(spin_row)
-        dec_btn.set_size(btn_sz, btn_sz)
-        dec_lbl = lv.label(dec_btn)
-        dec_lbl.set_text(lv.SYMBOL.MINUS)
-        dec_lbl.center()
-
-        val_lbl = lv.label(spin_row)
+        val_lbl = lv.label(row)
         val_lbl.set_style_text_font(lv.font_montserrat_22, 0)
         val_lbl.set_text(str(wallet.account))
-        val_lbl.set_width(50)
-        val_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-
-        inc_btn = lv.button(spin_row)
-        inc_btn.set_size(btn_sz, btn_sz)
-        inc_lbl = lv.label(inc_btn)
-        inc_lbl.set_text(lv.SYMBOL.PLUS)
-        inc_lbl.center()
-
-        def _dec_cb(e):
-            if e.get_code() == lv.EVENT.CLICKED:
-                if wallet.account > 0:
-                    wallet.account -= 1
-                    val_lbl.set_text(str(wallet.account))
-                    self.gui.refresh_ui()
-
-        def _inc_cb(e):
-            if e.get_code() == lv.EVENT.CLICKED:
-                if wallet.account < 99:
-                    wallet.account += 1
-                    val_lbl.set_text(str(wallet.account))
-                    self.gui.refresh_ui()
-
-        dec_btn.add_event_cb(_dec_cb, lv.EVENT.CLICKED, None)
-        inc_btn.add_event_cb(_inc_cb, lv.EVENT.CLICKED, None)
 
         # Layout after post_init inserts name_row at index 0:
-        #   0: name_row, 1: "Manage" header, 2: (account row here), 3: descriptor, 4: network ...
-        row.move_to_index(2)
+        #   0: name_row, 1: (account row here), 2: descriptor, 3: network ...
+        row.move_to_index(1)
