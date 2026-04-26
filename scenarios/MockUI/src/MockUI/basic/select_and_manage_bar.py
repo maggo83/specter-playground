@@ -234,8 +234,8 @@ class SelectAndManageBar(lv.obj):
         idx = items.index(active)
         if idx > 0:
             self.set_active(items[idx - 1])
-            # Stay on the current menu; just refresh the bars
-            self.gui.refresh_ui()
+            # Slide content to reveal the previous item from the left
+            self.gui.refresh_ui_animated("left")
 
     def _next_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
@@ -247,8 +247,8 @@ class SelectAndManageBar(lv.obj):
         idx = items.index(active)
         if idx < len(items) - 1:
             self.set_active(items[idx + 1])
-            # Stay on the current menu; just refresh the bars
-            self.gui.refresh_ui()
+            # Slide content to reveal the next item from the right
+            self.gui.refresh_ui_animated("right")
 
     def _switch_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
