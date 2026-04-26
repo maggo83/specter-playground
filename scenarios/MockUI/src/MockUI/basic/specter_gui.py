@@ -178,6 +178,13 @@ class SpecterGui(lv.obj):
         self.content.align(lv.ALIGN.TOP_MID, 0, content_y)
 
         # ── Rebuild current screen so its content reflects latest state ───────
+        # Skip screen rebuild if the keyboard is open — destroying the screen
+        # mid-input would discard the user's text and re-run __init__ (which
+        # generates a new random name, etc.).  Bar/layout updates above still
+        # apply; the screen will be rebuilt on the next refresh after the
+        # keyboard closes.
+        if self.keyboard_manager.textarea is not None:
+            return
         if self.current_screen:
             self.current_screen.delete()
         self._build_screen(current)
