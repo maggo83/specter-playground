@@ -40,7 +40,7 @@ from .keyboard_manager import KeyboardManager
 
 # ── Animation helpers ───────────────────────────────────────────────────────
 
-ANIM_MS = 500  # slide duration in milliseconds
+ANIM_MS = 200  # slide duration in milliseconds
 
 # ── Context sets ─────────────────────────────────────────────────────────────
 # DEVICE context: both bars hidden

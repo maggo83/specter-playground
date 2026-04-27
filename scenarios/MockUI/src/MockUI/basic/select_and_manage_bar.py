@@ -34,7 +34,7 @@ from .widgets.containers import flex_row
 from .widgets.action_modal import ActionModal
 
 # ── Animation constant for bar name label transitions ────────────────────────
-_NAME_ANIM_MS = 300
+_NAME_ANIM_MS = 200
 
 # ── Info-section layout constants ────────────────────────────────────────────
 # info_w = SCREEN_WIDTH - 2 * _OUTER_BTN_W(45) - 2 * _NAV_BTN_W(60) = 270 px
