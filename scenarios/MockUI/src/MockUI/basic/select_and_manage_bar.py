@@ -376,6 +376,8 @@ class SelectAndManageBar(lv.obj):
     def _prev_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
             return
+        if self.gui._animating:
+            return
         items = self.get_items()
         active = self.get_active()
         if not items or active is None:
@@ -401,6 +403,8 @@ class SelectAndManageBar(lv.obj):
 
     def _next_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
+            return
+        if self.gui._animating:
             return
         items = self.get_items()
         active = self.get_active()
@@ -428,6 +432,8 @@ class SelectAndManageBar(lv.obj):
     def _switch_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
             return
+        if self.gui._animating:
+            return
         items = self.get_items()
         current = (
             self.gui.ui_state.current_menu_id if self.gui.ui_state else None
@@ -449,6 +455,8 @@ class SelectAndManageBar(lv.obj):
 
     def _manage_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
+            return
+        if self.gui._animating:
             return
         menu_id = self.get_manage_menu_id()
         if not menu_id:

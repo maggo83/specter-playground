@@ -396,6 +396,8 @@ class SpecterGui(lv.obj):
             self.current_screen = ActionScreen(title, self)
 
     def show_menu(self, target_menu_id=None):
+        if self._animating:
+            return  # drop: never mutate state mid-animation
         old_id = self.ui_state.current_menu_id if self.ui_state else None
         going_back = target_menu_id is None
 
@@ -434,8 +436,7 @@ class SpecterGui(lv.obj):
         or there is no existing screen to animate away from.
         """
         if self.current_screen is None or self._animating:
-            self.refresh_ui()
-            return
+            return  # drop: never rebuild mid-animation
         self._do_transition(region, axis, new_from)
 
     def _do_transition(self, region, axis, new_from):
