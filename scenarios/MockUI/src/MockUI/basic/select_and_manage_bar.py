@@ -224,6 +224,14 @@ class SelectAndManageBar(lv.obj):
 
     # ── Button callbacks ─────────────────────────────────────────────────────
 
+    def _get_anim_region(self, new_item):
+        """Return (region, axis, new_from_left, new_from_right) for caret nav.
+
+        Subclasses override this to choose the correct animated region.
+        Default: horizontal region 'a'.
+        """
+        return "a"
+
     def _prev_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
             return
@@ -233,9 +241,10 @@ class SelectAndManageBar(lv.obj):
             return
         idx = items.index(active)
         if idx > 0:
-            self.set_active(items[idx - 1])
-            # Slide content to reveal the previous item from the left
-            self.gui.refresh_ui_animated("left")
+            new_item = items[idx - 1]
+            self.set_active(new_item)
+            region = self._get_anim_region(new_item)
+            self.gui.refresh_ui_animated(region, "horizontal", "left")
 
     def _next_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
@@ -246,9 +255,10 @@ class SelectAndManageBar(lv.obj):
             return
         idx = items.index(active)
         if idx < len(items) - 1:
-            self.set_active(items[idx + 1])
-            # Slide content to reveal the next item from the right
-            self.gui.refresh_ui_animated("right")
+            new_item = items[idx + 1]
+            self.set_active(new_item)
+            region = self._get_anim_region(new_item)
+            self.gui.refresh_ui_animated(region, "horizontal", "right")
 
     def _switch_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
@@ -412,6 +422,16 @@ class SelectAndManageSeedsBar(SelectAndManageBar):
     def set_active(self, item):
         self.gui.specter_state.set_active_seed(item)
 
+    def _get_anim_region(self, new_seed):
+        """Seeds caret: region 'd' if wallet fits new seed, else region 'c'."""
+        state = self.gui.specter_state
+        wallet = state.active_wallet
+        if (wallet is not None
+                and not wallet.is_default_wallet()
+                and state.seed_matches_wallet(new_seed, wallet)):
+            return "d"
+        return "c"
+
     def get_add_menu_id(self):
         return "add_seed"
 
@@ -548,6 +568,10 @@ class SelectAndManageWalletsBar(SelectAndManageBar):
 
     def set_active(self, item):
         self.gui.specter_state.set_active_wallet(item)
+
+    def _get_anim_region(self, new_wallet):
+        """Wallets caret always shifts region 'b' (wallets_bar + content)."""
+        return "b"
 
     def get_add_menu_id(self):
         return "add_wallet"

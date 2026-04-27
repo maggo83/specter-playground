@@ -38,63 +38,133 @@ from ..i18n import I18nManager
 from ..tour import GuidedTour
 from .keyboard_manager import KeyboardManager
 
-# ── Spatial animation helpers ────────────────────────────────────────────────
+# ── Animation helpers ───────────────────────────────────────────────────────
 
-ANIM_MS = 200  # slide duration in milliseconds
+ANIM_MS = 500  # slide duration in milliseconds
 
-# Menu IDs that live "above" the main menu in the spatial model
-_SEED_LEVEL_MENUS = frozenset([
-    "switch_add_seeds",
-    "manage_seedphrase", "store_seedphrase", "clear_seedphrase",
-    "set_passphrase",
-    "add_seed", "generate_seedphrase",
-])
-_WALLET_LEVEL_MENUS = frozenset([
-    "switch_add_wallets", "manage_wallet", "manage_wallet_descriptor",
-    "add_wallet", "create_custom_wallet", "change_network", "view_signers",
-    "connect_sw_wallet", "export_wallet", "manage_seed_wallet",
-])
-_DEVICE_LEVEL_MENUS = frozenset([
+# ── Context sets ─────────────────────────────────────────────────────────────
+# DEVICE context: both bars hidden
+_CTX_DEVICE = frozenset([
     "manage_settings", "manage_security_settings", "manage_backups",
     "manage_firmware", "interfaces", "manage_storage", "select_language",
     "manage_preferences", "manage_security_features",
+    "add_seed", "generate_seedphrase",
+    "change_pin", "set_duress_pin", "set_duress_pin_action",
+    "set_exceeded_pin_action", "set_allowed_pin_retries",
+    "wipe_device", "self_test",
+    "backup_to_sd", "restore_from_sd", "remove_backup_from_sd",
+    "update_fw_qr", "update_fw_sd", "update_fw_usb",
+    "internal_flash", "sdcard", "smartcard",
+    "display_settings", "sound_settings",
 ])
+# SEED context: seeds_bar visible, wallets_bar hidden
+_CTX_SEED = frozenset([
+    "switch_add_seeds",
+    "manage_seedphrase", "store_seedphrase", "clear_seedphrase",
+    "set_passphrase", "show_seedphrase",
+    "store_to_smartcard", "store_to_sd", "store_to_flash",
+    "clear_from_smartcard", "clear_from_sd", "clear_from_flash", "clear_all_storage",
+    "import_from_keyboard", "import_from_qr", "import_from_sd",
+    "import_from_smartcard", "import_from_flash",
+])
+# WALLET context: both bars visible (data-permitting)
+_CTX_WALLET = frozenset([
+    "switch_add_wallets",
+    "manage_wallet",
+    "manage_wallet_descriptor", "change_network", "view_signers",
+    "export_wallet",
+    "import_wallet_from_qr", "import_wallet_from_sd",
+])
+# MAIN (wallet+seed) context: both bars visible (data-permitting)
+# Everything not in the above sets falls into this context.
 
 
-def _menu_vertical_level(menu_id):
-    if menu_id in _SEED_LEVEL_MENUS:
-        return 2
-    if menu_id in _WALLET_LEVEL_MENUS:
-        return 1
-    return 0
+def _context(menu_id, history=None):
+    """Return 'device'|'seed'|'wallet'|'main' for a menu ID.
 
-
-def transition_direction(from_id, to_id):
-    """Return the direction the NEW screen enters from.
-
-    "right"  → new enters from right (old exits left)
-    "left"   → new enters from left  (old exits right)
-    "top"    → new enters from top   (old exits bottom)
-    "bottom" → new enters from bottom (old exits top)
-    None     → same menu, no animation needed
+    Unknown IDs inherit from their parent in the navigation history.
+    If history is None or empty falls back to 'main'.
     """
-    if from_id == to_id:
+    mid = menu_id or "main"
+    if mid in _CTX_DEVICE:
+        return "device"
+    if mid in _CTX_SEED:
+        return "seed"
+    if mid in _CTX_WALLET:
+        return "wallet"
+    if mid in ("main", "scan_qr", "view_addresses", "connect_companion_app",
+               "start_intro_tour", "locked",
+               "add_wallet", "create_custom_wallet",
+               "connect_sw_wallet",
+               "connect_sparrow", "connect_nunchuck", "connect_bluewallet", "connect_other"):
+        return "main"
+    # Unknown ID: inherit from parent (last entry in history stack)
+    if history:
+        for parent in reversed(history):
+            if parent and parent != mid:
+                return _context(parent, None)  # one level only, no recursion loop
+    return "main"
+
+
+def _transition_params(from_id, to_id, history=None):
+    """Return (region, axis, new_from) for a FORWARD navigation.
+
+    region: 'a' | 'b' | 'c' | 'd'
+    axis:   'horizontal' | 'vertical'
+    new_from: direction the NEW screen enters from
+              horizontal: 'right' | 'left'
+              vertical:   'top'   (new slides down in from top)
+
+    Returns None if no animation is needed (same effective context+menu).
+    """
+    fc = _context(from_id, history)
+    tc = _context(to_id, history)
+
+    # Same menu — no animation
+    if (from_id or "main") == (to_id or "main"):
         return None
-    from_id = from_id or "main"
-    to_id = to_id or "main"
 
-    to_dev = to_id in _DEVICE_LEVEL_MENUS
-    from_dev = from_id in _DEVICE_LEVEL_MENUS
-    if to_dev or from_dev:
-        return "right" if to_dev else "left"
+    # ── Device ↔ any ─────────────────────────────────────────────────────────
+    if tc == "device" and fc != "device":
+        return ("c", "horizontal", "right")   # device enters from right
+    if fc == "device" and tc != "device":
+        return ("c", "horizontal", "left")    # device exits right, new from left
 
-    from_lv = _menu_vertical_level(from_id)
-    to_lv = _menu_vertical_level(to_id)
-    if to_lv > from_lv:
-        return "top"    # spatial: higher menus are "above"
-    if to_lv < from_lv:
-        return "bottom"
-    return "right"      # same level: sub-menus are to the right
+    # ── Cross-context vertical transitions ───────────────────────────────────
+    if fc in ("main", "wallet") and tc == "seed":
+        # Going UP to seed (less specific): new seed content enters from top
+        return ("b", "vertical", "top")
+    if fc == "seed" and tc in ("main", "wallet"):
+        # Coming DOWN from seed back to wallet/main: old lifts off
+        # Represented as new_from="bottom" meaning old exits upward (new was beneath)
+        return ("b", "vertical", "bottom")
+
+    if fc == "main" and tc == "wallet":
+        # Going UP to wallet (more specific within seed+wallet space)
+        return ("a", "vertical", "top")
+    if fc == "wallet" and tc == "main":
+        return ("a", "vertical", "bottom")
+
+    # ── Within same context: horizontal ──────────────────────────────────────
+    return (_context_region(tc), "horizontal", "right")
+
+
+def _context_region(ctx):
+    """Return the content region for within-context navigation."""
+    # Within any context the full content area of that context moves
+    if ctx == "device":
+        return "c"  # no bars visible; full space below device_bar
+    if ctx == "seed":
+        return "b"  # below seeds_bar (wallets_bar hidden)
+    if ctx == "wallet":
+        return "a"  # below wallets_bar
+    return "a"      # main: below wallets_bar (or seeds_bar if wallets hidden)
+
+
+def _invert_params(region, axis, new_from):
+    """Invert transition params for back navigation."""
+    inv = {"right": "left", "left": "right", "top": "bottom", "bottom": "top"}
+    return (region, axis, inv[new_from])
 
 
 class SpecterGui(lv.obj):
@@ -133,8 +203,15 @@ class SpecterGui(lv.obj):
 
         self.current_screen = None
         self.keyboard_manager = KeyboardManager(self)
-        self._animating = False   # True while a slide animation is running
-        self._anim_refs = None    # keeps Python callbacks alive during animation
+        self._animating = False      # True while a slide animation is running
+        self._anim_refs = None       # keeps Python callbacks alive during animation
+        self._seeds_bar_visible = False   # tracked after each refresh_ui
+        self._wallets_bar_visible = False
+
+        # Allow seeds_bar / wallets_bar to render outside our bounds during
+        # bar slide animations.  Set once here — never toggled — so device_bar
+        # layout is never disturbed.
+        self.add_flag(lv.obj.FLAG.OVERFLOW_VISIBLE)
 
         # ── Bar layout ────────────────────────────────────────────────────────
         # Top: Seeds select-and-manage bar (SELECT_BAR_PCT%)
@@ -184,22 +261,9 @@ class SpecterGui(lv.obj):
         self.i18n.set_language(lang_code)
 
     # ── Menu categories for bar visibility ──────────────────────────────────
-    # Device menus: both select bars hidden
-    _DEVICE_MENUS = frozenset([
-        "manage_settings", "manage_security_settings", "manage_backups",
-        "manage_firmware", "interfaces", "manage_storage", "select_language",
-        "manage_preferences", "manage_security_features",
-        # Adding/creating a new seed has no active seed context → hide seed bar too
-        "add_seed", "generate_seedphrase",
-    ])
-    # Seed menus: wallet bar hidden (seeds bar may still be useful for context)
-    _SEED_MENUS = frozenset([
-        "switch_add_seeds",
-        "manage_seedphrase", "store_seedphrase", "clear_seedphrase",
-        "set_passphrase",
-        # Adding/creating a wallet has no active wallet context → hide wallet bar
-        "add_wallet", "create_custom_wallet",
-    ])
+    # Reuse module-level context sets; keep class attrs for backward compat.
+    _DEVICE_MENUS = _CTX_DEVICE
+    _SEED_MENUS = _CTX_SEED
 
     def refresh_ui(self):
         """Refresh all bars, bar visibility, layout, and current screen content."""
@@ -223,6 +287,8 @@ class SpecterGui(lv.obj):
                            and current not in self._DEVICE_MENUS
                            and current not in self._SEED_MENUS)
 
+        self._seeds_bar_visible = seeds_visible
+        self._wallets_bar_visible = wallets_visible
         self.seeds_bar.set_style_opa(lv.OPA.COVER if seeds_visible else lv.OPA.TRANSP, 0)
         self.wallets_bar.set_style_opa(lv.OPA.COVER if wallets_visible else lv.OPA.TRANSP, 0)
 
@@ -319,140 +385,312 @@ class SpecterGui(lv.obj):
 
     def show_menu(self, target_menu_id=None):
         old_id = self.ui_state.current_menu_id if self.ui_state else None
+        going_back = target_menu_id is None
 
         # Update UIState navigation history (before building screen)
-        if target_menu_id is None:
-            # navigating up/back: pop previous menu from history
+        if going_back:
             self.ui_state.pop_menu()
         elif target_menu_id == "start_intro_tour":
-            # special action: clear history and set current directly, no push
             self.ui_state.clear_history()
             self.ui_state.current_menu_id = target_menu_id
         else:
-            # navigating down into a new menu
             self.ui_state.push_menu(target_menu_id)
 
         new_id = self.ui_state.current_menu_id if self.ui_state else None
-        direction = transition_direction(old_id, new_id)
+        history = list(self.ui_state.history) if self.ui_state else []
 
-        if direction is not None and self.current_screen is not None and not self._animating:
-            self._do_transition(direction)
+        if going_back:
+            # Forward direction would be new→old; invert it for back
+            fwd = _transition_params(new_id, old_id, history)
+            params = _invert_params(*fwd) if fwd is not None else None
+        else:
+            params = _transition_params(old_id, new_id, history)
+
+        if params is not None and self.current_screen is not None and not self._animating:
+            self._do_transition(*params)
         else:
             self.refresh_ui()
 
-        # If this was a start_intro_tour action, launch the tour overlay now.
-        # Reset current_menu_id to "main" BEFORE starting the tour so that
-        # "start_intro_tour" is never left in the history stack.
         if self.ui_state.current_menu_id == "start_intro_tour":
             self.ui_state.current_menu_id = "main"
             GuidedTour(self, GuidedTour.resolve_steps(self.INTRO_TOUR_STEPS, self)).start()
 
-    def refresh_ui_animated(self, direction):
-        """Animate the screen being replaced in a given direction.
+    def refresh_ui_animated(self, region, axis, new_from):
+        """Animate a bar-caret transition with an explicit region/axis/direction.
 
-        Used by the seed/wallet bar prev/next buttons where the menu_id
-        does not change but the active item (and thus all screen content) does.
-        Falls back to a plain refresh_ui() when an animation is already running
+        Falls back to plain refresh_ui() if an animation is already running
         or there is no existing screen to animate away from.
         """
         if self.current_screen is None or self._animating:
             self.refresh_ui()
             return
-        self._do_transition(direction)
+        self._do_transition(region, axis, new_from)
 
-    def _do_transition(self, direction):
-        """Slide-animate from the current screen to a freshly built new screen.
+    def _do_transition(self, region, axis, new_from):
+        """Animate from the current screen to a freshly built new screen.
 
-        *direction* is where the NEW screen enters FROM:
-          "right"  → new from right, old exits left
-          "left"   → new from left,  old exits right
-          "top"    → new from top,   old exits bottom
-          "bottom" → new from bottom, old exits top
+        Parameters
+        ----------
+        region   : 'a' | 'b' | 'c' | 'd'
+                   Which LVGL objects move:
+                     a — content only  (below wallets_bar / seeds_bar)
+                     b — wallets_bar + content
+                     c — seeds_bar + wallets_bar + content
+                     d — seeds_bar only  (seed-bar caret, wallet fits)
+        axis     : 'horizontal' | 'vertical'
+        new_from : direction the NEW screen enters from
+                   horizontal: 'right' | 'left'
+                   vertical:   'top'   → new slides DOWN over old (old stays)
+                               'bottom'→ old exits UP revealing new beneath
 
-        Only the screens (children of self.content) animate; the bars update
-        instantly so that their new state is already visible during the slide.
-        The device bar never animates.
+        device_bar is NEVER animated.
         """
         old_screen = self.current_screen
         if old_screen is None:
             self.refresh_ui()
             return
 
-        # Detach current_screen so refresh_ui won't delete it; bars + layout
-        # update for the new state, and the new screen is built normally.
+        select_h = SCREEN_HEIGHT * SELECT_BAR_PCT // 100
+        device_h = SCREEN_HEIGHT * STATUS_BAR_PCT // 100
+
+        # Capture bar visibility BEFORE refresh_ui changes it
+        seeds_was = self._seeds_bar_visible
+        wallets_was = self._wallets_bar_visible
+
+        # Content geometry BEFORE the transition
+        cy_before = (select_h if seeds_was else 0) + (select_h if wallets_was else 0)
+        ch_before = SCREEN_HEIGHT - device_h - cy_before
+
+        # ── Region 'd': only seeds_bar slides; rebuild content in-place ───────
+        if region == "d":
+            W = SCREEN_WIDTH
+            nx = W if new_from == "right" else -W
+
+            # Refresh state in-place (bar label + content update without animation)
+            self.refresh_ui()
+            # After refresh_ui seeds_bar is at x=0; push it to the off-screen
+            # start position then animate it in.
+            self.seeds_bar.set_x(nx)
+
+            self._animating = True
+            refs = []
+
+            cb_s_in = lambda anim, v: self.seeds_bar.set_x(v)
+            a_s_in = lv.anim_t(); a_s_in.init()
+            a_s_in.set_custom_exec_cb(cb_s_in)
+            a_s_in.set_values(nx, 0)
+            a_s_in.set_duration(ANIM_MS)
+            a_s_in.start()
+            refs.extend([cb_s_in, a_s_in])
+
+            gui = self
+            def _on_done_d(timer):
+                timer.delete()
+                gui._animating = False
+                gui._anim_refs = None
+                gui.seeds_bar.set_x(0)
+
+            t = lv.timer_create(_on_done_d, ANIM_MS + 50, None)
+            refs.extend([_on_done_d, t])
+            self._anim_refs = refs
+            return
+
+        # ── Build new screen (with flex disabled so old_screen isn't deleted) ─
+        self.content.set_layout(lv.LAYOUT.NONE)
         self.current_screen = None
         self.refresh_ui()
         new_screen = self.current_screen
 
         if new_screen is None:
-            # Build failed — restore the old screen reference and abort.
+            # Nothing to show; abort gracefully
             self.current_screen = old_screen
+            self.content.align(lv.ALIGN.TOP_MID, 0, cy_before)
+            self.content.set_height(ch_before)
+            self.content.set_layout(lv.LAYOUT.FLEX)
+            self.content.set_flex_flow(lv.FLEX_FLOW.COLUMN)
             return
 
-        self._animating = True  # block re-entrant refresh_ui calls
+        # Content geometry AFTER the transition (set by refresh_ui above)
+        seeds_now = self._seeds_bar_visible
+        wallets_now = self._wallets_bar_visible
+        cy_after = (select_h if seeds_now else 0) + (select_h if wallets_now else 0)
+        ch_after = SCREEN_HEIGHT - device_h - cy_after
+
+        # Expand content to cover the entire area below device_bar (y=0),
+        # make its background transparent, and position each screen at its
+        # correct absolute y inside content.  This avoids OVERFLOW_VISIBLE
+        # tricks and means bars (siblings of content) are always drawn over
+        # a transparent gap — no black rectangle.
+        anim_total_h = SCREEN_HEIGHT - device_h
+        self.content.align(lv.ALIGN.TOP_MID, 0, 0)
+        self.content.set_height(anim_total_h)
+        self.content.set_style_bg_opa(lv.OPA.TRANSP, 0)
+
+        # Place screens at their visual y positions within content
+        old_screen.set_y(cy_before)
+        new_screen.set_y(cy_after)
+        old_screen.set_size(SCREEN_WIDTH, ch_before)
+        new_screen.set_size(SCREEN_WIDTH, ch_after)
+
+        # Bars are siblings of content; they keep their absolute positions.
+        # Move them to front so they paint over content's transparent area.
+        self.seeds_bar.move_foreground()
+        self.wallets_bar.move_foreground()
+
+        self._animating = True
 
         W = SCREEN_WIDTH
-        H = self.content.get_height()
-
-        # Entry offset for new screen / exit offset for old screen
-        if direction == "right":
-            nx, ny, ox, oy = W, 0, -W, 0
-        elif direction == "left":
-            nx, ny, ox, oy = -W, 0, W, 0
-        elif direction == "top":
-            nx, ny, ox, oy = 0, -H, 0, H
-        else:  # "bottom"
-            nx, ny, ox, oy = 0, H, 0, -H
-
-        # Allow children to render outside self.content's bounding box
-        self.content.add_flag(lv.obj.FLAG.OVERFLOW_VISIBLE)
-
-        # Position the incoming screen off-screen
-        new_screen.set_x(nx)
-        new_screen.set_y(ny)
-
-        # ── Build animation objects (exec_cb uses user_data → keep refs) ──────
         refs = []
 
-        if direction in ("right", "left"):
+        # ── Horizontal transition ─────────────────────────────────────────────
+        if axis == "horizontal":
+            nx = W if new_from == "right" else -W
+            ox = -W if new_from == "right" else W
+
+            new_screen.set_x(nx)  # old_screen.x stays 0
+
             cb_new = lambda anim, v: new_screen.set_x(v)
             cb_old = lambda anim, v: old_screen.set_x(v)
-            v_new_start, v_new_end = nx, 0
-            v_old_start, v_old_end = 0, ox
+            for cb, vs, ve in [(cb_new, nx, 0), (cb_old, 0, ox)]:
+                a = lv.anim_t(); a.init()
+                a.set_custom_exec_cb(cb); a.set_values(vs, ve)
+                a.set_duration(ANIM_MS); a.start()
+                refs.extend([cb, a])
+
+            # Bars in the animated region slide in/out with the content.
+            # "In the region": region 'c' → seeds+wallets; 'b' → wallets; 'a' → none.
+            bars_in_region = []
+            if region in ("b", "c"):
+                bars_in_region.append(self.wallets_bar)
+            if region == "c":
+                bars_in_region.append(self.seeds_bar)
+
+            for bar, was_v, now_v in [
+                (self.seeds_bar, seeds_was, seeds_now),
+                (self.wallets_bar, wallets_was, wallets_now),
+            ]:
+                if bar not in bars_in_region:
+                    continue
+                if was_v and now_v:
+                    # Stays visible: slides out with old, new slides in from nx
+                    bar.set_x(nx)
+                    cb = lambda anim, v, b=bar: b.set_x(v)
+                    a = lv.anim_t(); a.init()
+                    a.set_custom_exec_cb(cb); a.set_values(nx, 0)
+                    a.set_duration(ANIM_MS); a.start()
+                    refs.extend([cb, a])
+                elif was_v and not now_v:
+                    # Exits with old content
+                    bar.set_style_opa(lv.OPA.COVER, 0)
+                    bar.set_x(0)
+                    cb = lambda anim, v, b=bar: b.set_x(v)
+                    a = lv.anim_t(); a.init()
+                    a.set_custom_exec_cb(cb); a.set_values(0, ox)
+                    a.set_duration(ANIM_MS); a.start()
+                    refs.extend([cb, a])
+                elif not was_v and now_v:
+                    # Enters with new content
+                    bar.set_x(nx)
+                    cb = lambda anim, v, b=bar: b.set_x(v)
+                    a = lv.anim_t(); a.init()
+                    a.set_custom_exec_cb(cb); a.set_values(nx, 0)
+                    a.set_duration(ANIM_MS); a.start()
+                    refs.extend([cb, a])
+
+        # ── Vertical transition ───────────────────────────────────────────────
         else:
-            cb_new = lambda anim, v: new_screen.set_y(v)
-            cb_old = lambda anim, v: old_screen.set_y(v)
-            v_new_start, v_new_end = ny, 0
-            v_old_start, v_old_end = 0, oy
+            # Bars that move with the animated region
+            # region 'b' → wallets_bar; region 'c' → seeds_bar + wallets_bar
+            bars_in_region = []
+            if region in ("b", "c") and wallets_was:
+                bars_in_region.append(self.wallets_bar)
+            if region == "c" and seeds_was:
+                bars_in_region.append(self.seeds_bar)
 
-        a1 = lv.anim_t()
-        lv.anim_init(a1)
-        lv.anim_set_custom_exec_cb(a1, cb_new)
-        lv.anim_set_values(a1, v_new_start, v_new_end)
-        lv.anim_set_duration(a1, ANIM_MS)
-        lv.anim_start(a1)
-        refs.extend([cb_new, a1])
+            # Animated height = content height of the OLD context
+            anim_h = ch_before
+            # Screens may need to render outside content bounds (above it);
+            # OVERFLOW_VISIBLE is safe here since content is transparent
+            # and bars are in front.
+            self.content.add_flag(lv.obj.FLAG.OVERFLOW_VISIBLE)
 
-        a2 = lv.anim_t()
-        lv.anim_init(a2)
-        lv.anim_set_custom_exec_cb(a2, cb_old)
-        lv.anim_set_values(a2, v_old_start, v_old_end)
-        lv.anim_set_duration(a2, ANIM_MS)
-        lv.anim_start(a2)
-        refs.extend([cb_old, a2])
+            if new_from == "top":
+                # New slides DOWN over old (old stays, new enters from above)
+                # new_screen starts above its final position by anim_h
+                new_screen.set_y(cy_after - anim_h)
 
-        # Capture locals for the cleanup closure
+                cb_new = lambda anim, v: new_screen.set_y(v)
+                a_new = lv.anim_t(); a_new.init()
+                a_new.set_custom_exec_cb(cb_new)
+                a_new.set_values(cy_after - anim_h, cy_after)
+                a_new.set_duration(ANIM_MS); a_new.start()
+                refs.extend([cb_new, a_new])
+
+                # Bars in region slide down from above
+                for b in bars_in_region:
+                    orig_y = b.get_y()
+                    b.set_y(orig_y - anim_h)
+                    cb_b = lambda anim, v, bw=b: bw.set_y(v)
+                    a_b = lv.anim_t(); a_b.init()
+                    a_b.set_custom_exec_cb(cb_b)
+                    a_b.set_values(orig_y - anim_h, orig_y)
+                    a_b.set_duration(ANIM_MS); a_b.start()
+                    refs.extend([cb_b, a_b])
+
+            else:  # new_from == "bottom"
+                # Old exits UPWARD revealing stationary new beneath.
+                # new_screen is already at y=cy_after (correct final position).
+                # old_screen is at y=cy_before.
+                # old_screen must be on top so it covers new_screen until it lifts.
+                old_screen.move_foreground()
+
+                cb_old = lambda anim, v: old_screen.set_y(v)
+                a_old = lv.anim_t(); a_old.init()
+                a_old.set_custom_exec_cb(cb_old)
+                a_old.set_values(cy_before, cy_before - anim_h)
+                a_old.set_duration(ANIM_MS); a_old.start()
+                refs.extend([cb_old, a_old])
+
+                # Bars in region also exit upward
+                for b in bars_in_region:
+                    orig_y = b.get_y()
+                    cb_b = lambda anim, v, bw=b: bw.set_y(v)
+                    a_b = lv.anim_t(); a_b.init()
+                    a_b.set_custom_exec_cb(cb_b)
+                    a_b.set_values(orig_y, orig_y - anim_h)
+                    a_b.set_duration(ANIM_MS); a_b.start()
+                    refs.extend([cb_b, a_b])
+
+        # ── Cleanup timer ─────────────────────────────────────────────────────
         old_s = old_screen
         new_s = new_screen
         content = self.content
+        gui = self
+        s_was, s_now = seeds_was, seeds_now
+        w_was, w_now = wallets_was, wallets_now
 
         def _on_done(timer):
             timer.delete()
-            self._animating = False
-            self._anim_refs = None
+            gui._animating = False
+            gui._anim_refs = None
+            # Restore bar positions and opacity
             content.remove_flag(lv.obj.FLAG.OVERFLOW_VISIBLE)
-            new_s.set_x(0)
-            new_s.set_y(0)
+            gui.seeds_bar.set_pos(0, 0)
+            gui.wallets_bar.set_pos(0, 0)
+            if s_was and not s_now:
+                gui.seeds_bar.set_style_opa(lv.OPA.TRANSP, 0)
+            if w_was and not w_now:
+                gui.wallets_bar.set_style_opa(lv.OPA.TRANSP, 0)
+            gui.seeds_bar.align(lv.ALIGN.TOP_MID, 0, 0)
+            gui.wallets_bar.align_to(gui.seeds_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 0)
+            # Restore content geometry, opacity, and layout
+            content.set_style_bg_opa(lv.OPA.COVER, 0)
+            content.align(lv.ALIGN.TOP_MID, 0, cy_after)
+            content.set_height(ch_after)
+            content.set_layout(lv.LAYOUT.FLEX)
+            content.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+            new_s.set_pos(0, 0)
+            content.move_foreground()
             try:
                 old_s.delete()
             except Exception:
@@ -460,4 +698,4 @@ class SpecterGui(lv.obj):
 
         t = lv.timer_create(_on_done, ANIM_MS + 50, None)
         refs.extend([_on_done, t])
-        self._anim_refs = refs  # prevent GC of Python callbacks + timer
+        self._anim_refs = refs
