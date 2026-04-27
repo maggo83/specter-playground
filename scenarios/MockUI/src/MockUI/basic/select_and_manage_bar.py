@@ -33,6 +33,9 @@ from .widgets.btn import Btn
 from .widgets.containers import flex_row
 from .widgets.action_modal import ActionModal
 
+# ── Animation constant for bar name label transitions ────────────────────────
+_NAME_ANIM_MS = 300
+
 # ── Info-section layout constants ────────────────────────────────────────────
 # info_w = SCREEN_WIDTH - 2 * _OUTER_BTN_W(45) - 2 * _NAV_BTN_W(60) = 270 px
 _INFO_W = SCREEN_WIDTH - 2 * (STATUS_BTN_WIDTH * 3 // 4) - 2 * STATUS_BTN_WIDTH
@@ -169,6 +172,24 @@ class SelectAndManageBar(lv.obj):
         )
         self.info_section.align(lv.ALIGN.LEFT_MID, info_x, 0)
 
+        # Transparent clip container layered over info_section.
+        # Children of this container are clipped to info_section bounds,
+        # giving the name-label slide a clean left/right edge.
+        self._name_clip = lv.obj(self)
+        self._name_clip.set_style_bg_opa(lv.OPA.TRANSP, 0)
+        self._name_clip.set_style_border_width(0, 0)
+        self._name_clip.set_style_pad_all(0, 0)
+        self._name_clip.set_style_radius(0, 0)
+        self._name_clip.set_layout(lv.LAYOUT.NONE)
+        self._name_clip.set_scroll_dir(lv.DIR.NONE)
+        self._name_clip.remove_flag(lv.obj.FLAG.CLICKABLE)
+        self._name_clip.set_size(info_w, lv.pct(100))
+        self._name_clip.align(lv.ALIGN.LEFT_MID, info_x, 0)
+
+        # name-label animation state
+        self._name_lbl = None
+        self._name_anim_refs = None
+
     # ── Subclass hooks ────────────────────────────────────────────────────────
 
     def get_items(self):
@@ -224,13 +245,103 @@ class SelectAndManageBar(lv.obj):
 
     # ── Button callbacks ─────────────────────────────────────────────────────
 
-    def _get_anim_region(self, new_item):
-        """Return (region, axis, new_from_left, new_from_right) for caret nav.
+    def _get_name_info(self, item):
+        """Return (font, display_text, width) for the name label of *item*.
 
-        Subclasses override this to choose the correct animated region.
-        Default: horizontal region 'a'.
+        Subclasses override to replicate the same computation used in
+        _build_info so the animated label matches exactly.
         """
-        return "a"
+        info_w = getattr(self, '_current_info_w', _INFO_W)
+        text = str(item) if item else ""
+        font, text = _best_font_for_name(text, info_w, STATUS_BTN_HEIGHT)
+        return font, text, info_w
+
+    def _start_name_slide(self, old_font, old_text, old_w, new_item, direction):
+        """Overlay a name-label slide on top of the already-rebuilt bar.
+
+        Call this AFTER refresh_ui_animated() so that self._name_lbl already
+        points to the new (rebuilt) label in info_section.
+
+        The real name label is hidden during the animation.  Two temporary
+        labels (old name + new name) are added to _name_clip — a transparent
+        container sized identically to info_section — so the slide is clipped
+        cleanly at the info_section boundaries.
+        """
+        real_lbl = self._name_lbl
+        if real_lbl is None:
+            return
+
+        new_font, new_text, new_w = self._get_name_info(new_item)
+        # y-position within _name_clip matches the flex-centred label in info_section
+        lbl_y = real_lbl.get_y()
+        lbl_x = real_lbl.get_x()  # 0 for START-aligned flex
+
+        # Shrink _name_clip to only cover the name column so sliding labels
+        # are clipped before they reach the icons/fingerprint area on the right.
+        clip_w = max(old_w, new_w)
+        self._name_clip.set_width(clip_w)
+
+        # direction "right" (next): content slides left, name: old→left, new from right
+        # direction "left"  (prev): content slides right, name: old→right, new from left
+        nx =  clip_w if direction == "right" else -clip_w   # new label start x
+        ox = -clip_w if direction == "right" else  clip_w   # old label end x
+
+        # Hide real name label — overlays paint on top via _name_clip
+        real_lbl.set_style_opa(lv.OPA.TRANSP, 0)
+
+        old_overlay = lv.label(self._name_clip)
+        old_overlay.set_text(old_text)
+        old_overlay.set_style_text_font(old_font, 0)
+        old_overlay.set_width(old_w)
+        old_overlay.set_long_mode(lv.label.LONG_MODE.CLIP)
+        old_overlay.set_pos(lbl_x, lbl_y)
+
+        new_overlay = lv.label(self._name_clip)
+        new_overlay.set_text(new_text)
+        new_overlay.set_style_text_font(new_font, 0)
+        new_overlay.set_width(new_w)
+        new_overlay.set_long_mode(lv.label.LONG_MODE.CLIP)
+        new_overlay.set_pos(nx, lbl_y)
+
+        refs = []
+        cb_old = lambda anim, v, l=old_overlay: l.set_x(v)
+        a_old = lv.anim_t(); a_old.init()
+        a_old.set_custom_exec_cb(cb_old)
+        a_old.set_values(lbl_x, ox)
+        a_old.set_duration(_NAME_ANIM_MS); a_old.start()
+        refs.extend([cb_old, a_old])
+
+        cb_new = lambda anim, v, l=new_overlay: l.set_x(v)
+        a_new = lv.anim_t(); a_new.init()
+        a_new.set_custom_exec_cb(cb_new)
+        a_new.set_values(nx, lbl_x)
+        a_new.set_duration(_NAME_ANIM_MS); a_new.start()
+        refs.extend([cb_new, a_new])
+
+        bar = self
+
+        restore_clip_w = getattr(self, '_current_info_w', _INFO_W)
+
+        def _on_name_done(timer):
+            timer.delete()
+            bar._name_anim_refs = None
+            try:
+                old_overlay.delete()
+                new_overlay.delete()
+            except Exception:
+                pass
+            try:
+                real_lbl.set_style_opa(lv.OPA.COVER, 0)
+            except Exception:
+                pass
+            try:
+                bar._name_clip.set_width(restore_clip_w)
+            except Exception:
+                pass
+
+        t = lv.timer_create(_on_name_done, _NAME_ANIM_MS + 50, None)
+        refs.extend([_on_name_done, t])
+        self._name_anim_refs = refs
 
     def _prev_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
@@ -242,9 +353,24 @@ class SelectAndManageBar(lv.obj):
         idx = items.index(active)
         if idx > 0:
             new_item = items[idx - 1]
+            old_font, old_text, old_w = self._get_name_info(active)
+            # Snapshot sibling bar names before state change
+            sib_seeds   = self.gui.seeds_bar
+            sib_wallets = self.gui.wallets_bar
+            old_s_active = sib_seeds.get_active()   if self is not sib_seeds   else None
+            old_w_active = sib_wallets.get_active() if self is not sib_wallets else None
             self.set_active(new_item)
-            region = self._get_anim_region(new_item)
-            self.gui.refresh_ui_animated(region, "horizontal", "left")
+            # Animate content area only (bars handled by _start_name_slide)
+            self.gui.refresh_ui_animated("a", "horizontal", "left")
+            # Slide name text on this bar
+            self._start_name_slide(old_font, old_text, old_w, new_item, "left")
+            # Slide sibling bar names if they changed
+            if old_s_active is not None and sib_seeds.get_active() != old_s_active:
+                sf, st, sw = sib_seeds._get_name_info(old_s_active)
+                sib_seeds._start_name_slide(sf, st, sw, sib_seeds.get_active(), "left")
+            if old_w_active is not None and sib_wallets.get_active() != old_w_active:
+                wf, wt, ww = sib_wallets._get_name_info(old_w_active)
+                sib_wallets._start_name_slide(wf, wt, ww, sib_wallets.get_active(), "left")
 
     def _next_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
@@ -256,9 +382,20 @@ class SelectAndManageBar(lv.obj):
         idx = items.index(active)
         if idx < len(items) - 1:
             new_item = items[idx + 1]
+            old_font, old_text, old_w = self._get_name_info(active)
+            sib_seeds   = self.gui.seeds_bar
+            sib_wallets = self.gui.wallets_bar
+            old_s_active = sib_seeds.get_active()   if self is not sib_seeds   else None
+            old_w_active = sib_wallets.get_active() if self is not sib_wallets else None
             self.set_active(new_item)
-            region = self._get_anim_region(new_item)
-            self.gui.refresh_ui_animated(region, "horizontal", "right")
+            self.gui.refresh_ui_animated("a", "horizontal", "right")
+            self._start_name_slide(old_font, old_text, old_w, new_item, "right")
+            if old_s_active is not None and sib_seeds.get_active() != old_s_active:
+                sf, st, sw = sib_seeds._get_name_info(old_s_active)
+                sib_seeds._start_name_slide(sf, st, sw, sib_seeds.get_active(), "right")
+            if old_w_active is not None and sib_wallets.get_active() != old_w_active:
+                wf, wt, ww = sib_wallets._get_name_info(old_w_active)
+                sib_wallets._start_name_slide(wf, wt, ww, sib_wallets.get_active(), "right")
 
     def _switch_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
@@ -354,6 +491,8 @@ class SelectAndManageBar(lv.obj):
             info_w = SCREEN_WIDTH - 2 * wi
         self.info_section.set_width(info_w)
         self.info_section.align(lv.ALIGN.LEFT_MID, info_x, 0)
+        self._name_clip.set_width(info_w)
+        self._name_clip.align(lv.ALIGN.LEFT_MID, info_x, 0)
         self._current_info_w = info_w
 
         # active_in_cycle: whether active is in the filtered cycling list
@@ -375,9 +514,14 @@ class SelectAndManageBar(lv.obj):
                 self.prev_btn.update_icon(BTC_ICONS.CARET_LEFT, color=prev_color)
                 self.next_btn.update_icon(BTC_ICONS.CARET_RIGHT, color=next_color)
 
-            # rebuild info section
-            self.info_section.clean()
-            self._build_info(self.info_section, active)
+            # rebuild info section — skip if a name animation is in progress
+            # (it will call refresh() again once the animation completes)
+            if self._name_anim_refs is None:
+                self.info_section.set_layout(lv.LAYOUT.FLEX)
+                self.info_section.set_flex_flow(lv.FLEX_FLOW.ROW)
+                self.info_section.clean()
+                self._build_info(self.info_section, active)
+                self._name_lbl = self.info_section.get_child(0) if self.info_section.get_child_count() > 0 else None
 
             self.info_section.set_style_opa(lv.OPA.COVER, 0)
             self.manage_btn.set_style_opa(lv.OPA.COVER, 0)
@@ -421,6 +565,17 @@ class SelectAndManageSeedsBar(SelectAndManageBar):
 
     def set_active(self, item):
         self.gui.specter_state.set_active_seed(item)
+
+    def _get_name_info(self, seed):
+        multi_seed = len(self.gui.specter_state.loaded_seeds) > 1
+        info_w = getattr(self, '_current_info_w', _INFO_W)
+        available_left = info_w - (_RIGHT_W if multi_seed else 0)
+        show_passphrase = seed.passphrase is not None
+        show_warning = not seed.is_backed_up
+        opt_w = (BTC_ICON_WIDTH if show_passphrase else 0) + (BTC_ICON_WIDTH if show_warning else 0)
+        name_w = available_left - opt_w
+        font, name_text = _best_font_for_name(seed.label, name_w, STATUS_BTN_HEIGHT)
+        return font, name_text, name_w
 
     def _get_anim_region(self, new_seed):
         """Seeds caret: region 'd' if wallet fits new seed, else region 'c'."""
@@ -569,6 +724,13 @@ class SelectAndManageWalletsBar(SelectAndManageBar):
     def set_active(self, item):
         self.gui.specter_state.set_active_wallet(item)
 
+    def _get_name_info(self, wallet):
+        show_account = self._show_account_col
+        opt_w = self._ACC_W if show_account else 0
+        name_w = _LEFT_W - opt_w
+        font, name_text = _best_font_for_name(wallet.label, name_w, STATUS_BTN_HEIGHT)
+        return font, name_text, name_w
+
     def _get_anim_region(self, new_wallet):
         """Wallets caret always shifts region 'b' (wallets_bar + content)."""
         return "b"
@@ -583,7 +745,12 @@ class SelectAndManageWalletsBar(SelectAndManageBar):
         return "manage_wallet"
 
     def get_manage_menu_ids(self):
-        return frozenset(["manage_wallet", "manage_wallet_descriptor"])
+        return frozenset([
+            "manage_wallet",
+            "manage_wallet_descriptor", "change_network", "view_signers",
+            "export_wallet",
+            "import_wallet_from_qr", "import_wallet_from_sd",
+        ])
 
     # Account column width — 1 digit at font_28 (39 px), 2 digits at font_16 (33 px).
     _ACC_W = 40

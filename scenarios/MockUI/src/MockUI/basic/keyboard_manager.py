@@ -75,6 +75,7 @@ class KeyboardManager:
         self.delete_cb = textarea.add_event_cb(self._cancel, lv.EVENT.DELETE, None)
 
         self.keyboard.remove_flag(lv.obj.FLAG.HIDDEN)
+        self.keyboard.move_foreground()
         self.keyboard.set_textarea(textarea)
 
         #Do this last to mark binding is complete
