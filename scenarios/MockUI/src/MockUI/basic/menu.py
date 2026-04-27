@@ -76,6 +76,8 @@ class GenericMenu(TitledScreen):
             bottom = child.get_y() + child.get_height()
             if bottom > content_h:
                 content_h = bottom
+        # Store so callers (e.g. dropdown sizing) can read the real item height.
+        self._items_content_h = content_h
         available_h = (self.body.get_height()
                        - self.body.get_style_pad_top(0)
                        - self.body.get_style_pad_bottom(0))

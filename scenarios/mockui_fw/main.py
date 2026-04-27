@@ -66,6 +66,14 @@ if not _ON_HARDWARE and '--control' in sys.argv:
     from sim_control import ControlServer
     ControlServer(scr)
 
+_last_tick = time.ticks_ms()
 while True:
-    display.update(30)
-    time.sleep_ms(30)
+    now = time.ticks_ms()
+    elapsed = time.ticks_diff(now, _last_tick)
+    _last_tick = now
+    # Cap the tick increment so LVGL never skips animation frames.
+    # If a render+flush takes 50ms, telling LVGL "50ms elapsed" makes a
+    # 150ms animation finish in 3 frames. Capping at 16ms gives >=9 frames
+    # regardless of actual frame rate.
+    display.update(min(elapsed, 16) if _ON_HARDWARE else elapsed)
+    time.sleep_ms(0 if _ON_HARDWARE else 20)

@@ -6,7 +6,8 @@ from .select_and_manage_bar import SelectAndManageSeedsBar, SelectAndManageWalle
 from .action_screen import ActionScreen
 from .main_menu import MainMenu
 from .locked_menu import LockedMenu
-from .ui_consts import STATUS_BAR_PCT, SELECT_BAR_PCT, CONTENT_PCT, SCREEN_HEIGHT, SCREEN_WIDTH
+from .ui_consts import STATUS_BAR_PCT, SELECT_BAR_PCT, CONTENT_PCT, SCREEN_HEIGHT, SCREEN_WIDTH, BTN_HEIGHT
+from .widgets.modal_overlay import ModalOverlay
 from ..wallet import (
     WalletMenu,
     ConnectWalletsMenu,
@@ -42,6 +43,27 @@ from .keyboard_manager import KeyboardManager
 
 ANIM_MS = 150           # horizontal slide duration in milliseconds
 ANIM_MS_VERTICAL = 300  # vertical slide duration in milliseconds
+
+
+class _DropdownProxy:
+    """Thin proxy passed as 'parent' to SwitchAddMenu so it builds into a
+    dropdown panel instead of ``self.content``.
+
+    ``TitledScreen.__init__`` does ``lv_parent = getattr(parent, 'content', parent)``,
+    so by setting ``self.content = panel`` the menu widgets are parented to *panel*.
+    All other attributes required by TitledScreen / GenericMenu are forwarded from
+    the real SpecterGui instance.
+    """
+
+    def __init__(self, gui, panel):
+        self.content = panel
+        self.specter_state = gui.specter_state
+        self.i18n = gui.i18n
+        self.on_navigate = gui._on_dropdown_navigate
+
+    def refresh_ui(self):
+        """Called by SwitchAddMenu after item selection — deferred to close callback."""
+        pass
 
 # ── Context sets ─────────────────────────────────────────────────────────────
 # DEVICE context: both bars hidden
@@ -217,6 +239,10 @@ class SpecterGui(lv.obj):
         self.keyboard_manager = KeyboardManager(self)
         self._animating = False      # True while a slide animation is running
         self._anim_refs = None       # keeps Python callbacks alive during animation
+        self._dropdown_modal = None   # ModalOverlay when dropdown is open
+        self._dropdown_clip = None    # clip container inside the overlay
+        self._dropdown_panel = None   # solid panel lv.obj inside the clip
+        self._dropdown_menu_obj = None  # the SwitchAddMenu instance inside the dropdown
         self._seeds_bar_visible = False   # tracked after each refresh_ui
         self._wallets_bar_visible = False
 
@@ -325,6 +351,8 @@ class SpecterGui(lv.obj):
             return
         if self._animating:
             return  # don't rebuild mid-transition; _do_transition drives this
+        if self._dropdown_modal is not None:
+            return  # dropdown open — bars already refreshed; don't touch content
         if self.current_screen:
             self.current_screen.delete()
         self._build_screen(current)
@@ -398,6 +426,19 @@ class SpecterGui(lv.obj):
     def show_menu(self, target_menu_id=None):
         if self._animating:
             return  # drop: never mutate state mid-animation
+
+        # ── Dropdown shortcuts ────────────────────────────────────────────────
+        # Back gesture while a dropdown is open: close it without rebuilding content.
+        if target_menu_id is None and self._dropdown_modal is not None:
+            self.ui_state.pop_menu()
+            self._hide_dropdown()
+            return
+        # switch_add menus render as dropdown overlays, not full content screens.
+        if target_menu_id in ("switch_add_seeds", "switch_add_wallets"):
+            self.ui_state.push_menu(target_menu_id)
+            self._show_dropdown(target_menu_id)
+            return
+
         old_id = self.ui_state.current_menu_id if self.ui_state else None
         going_back = target_menu_id is None
 
@@ -723,4 +764,200 @@ class SpecterGui(lv.obj):
         anim_done_ms = ANIM_MS_VERTICAL if axis == "vertical" else ANIM_MS
         t = lv.timer_create(_on_done, anim_done_ms + 50, None)
         refs.extend([_on_done, t])
+        self._anim_refs = refs
+
+    # ── Dropdown overlay (switch_add_seeds / switch_add_wallets) ─────────────
+
+    def _show_dropdown(self, menu_id):
+        """Show a switch_add menu as a dropdown panel overlaid on the current content.
+
+        The panel is solid and opaque, sized to fit its items, anchored just
+        below the triggering bar.  The content area beneath the panel is covered
+        by a semi-transparent dim backdrop so the user knows it is inactive.
+        Tapping the dim backdrop dismisses the dropdown.
+        """
+        select_h = SCREEN_HEIGHT * SELECT_BAR_PCT // 100
+        device_h = SCREEN_HEIGHT * STATUS_BAR_PCT // 100
+
+        # Vertical position where the panel starts (just below the triggering bar).
+        if menu_id == "switch_add_seeds":
+            bar_bottom_y = select_h
+        else:
+            # wallets bar sits below seeds bar
+            bar_bottom_y = select_h * (2 if self._seeds_bar_visible else 1)
+
+        content_area_h = SCREEN_HEIGHT - device_h - bar_bottom_y
+
+        # ── Modal overlay (transparent full-screen, on layer_top) ─────────────
+        modal = ModalOverlay(bg_opa=lv.OPA.TRANSP)
+        self._dropdown_modal = modal
+
+        # ── Dim backdrop covering content area below the bar ─────────────────
+        dim = lv.obj(modal.overlay)
+        dim.set_size(SCREEN_WIDTH, content_area_h)
+        dim.set_pos(0, bar_bottom_y)
+        dim.set_style_bg_color(lv.color_hex(0x000000), 0)
+        dim.set_style_bg_opa(150, 0)   # ~60 % dim
+        dim.set_style_border_width(0, 0)
+        dim.set_style_radius(0, 0)
+        dim.set_scroll_dir(lv.DIR.NONE)
+
+        # Tap anywhere outside the panel (bar area or dim) = dismiss dropdown.
+        # The bar zone (0..bar_bottom_y) has no child covering it on modal.overlay,
+        # so clicks there land on overlay directly — including the caret button area.
+        # The dim zone is a child, so its clicks are handled by dim's own callback.
+        # LVGL does not bubble by default, so we need the handler on both.
+        gui = self
+        def _on_outside_click(e):
+            if e.get_code() == lv.EVENT.CLICKED:
+                gui._on_dropdown_navigate(None)
+        modal.overlay.add_event_cb(_on_outside_click, lv.EVENT.CLICKED, None)
+        dim.add_event_cb(_on_outside_click, lv.EVENT.CLICKED, None)
+
+        # ── Clip container: positioned at bar_bottom_y, clips panel above the bar ─
+        clip = lv.obj(modal.overlay)
+        clip.set_size(SCREEN_WIDTH, content_area_h)
+        clip.set_pos(0, bar_bottom_y)
+        clip.set_style_bg_opa(lv.OPA.TRANSP, 0)
+        clip.set_style_border_width(0, 0)
+        clip.set_style_radius(0, 0)
+        clip.set_style_pad_all(0, 0)
+        clip.set_scroll_dir(lv.DIR.NONE)
+        # Default behaviour already clips children to bounds (OVERFLOW_VISIBLE is the opt-out)
+        clip.move_foreground()   # above dim
+
+        # ── Solid panel (theme-styled, opaque) inside the clip ────────────────
+        panel = lv.obj(clip)
+        panel.set_width(SCREEN_WIDTH)
+        panel.set_height(content_area_h)   # temporary; resized below
+        panel.set_pos(0, 0)
+        panel.set_style_pad_all(0, 0)
+        panel.set_style_border_width(0, 0)
+        panel.set_style_radius(0, 0)
+        panel.set_scroll_dir(lv.DIR.NONE)
+        self._dropdown_panel = panel
+        self._dropdown_clip = clip
+
+        # ── Build menu items into panel via proxy ─────────────────────────────
+        # _DropdownProxy sets proxy.content = panel so TitledScreen parents
+        # itself to panel, and proxy.on_navigate = gui._on_dropdown_navigate.
+        proxy = _DropdownProxy(self, panel)
+        if menu_id == "switch_add_seeds":
+            menu_obj = SwitchAddSeedsMenu(proxy)
+        else:
+            menu_obj = SwitchAddWalletsMenu(proxy)
+        self._dropdown_menu_obj = menu_obj
+        # Hide the empty title bar so items start flush at the top of the panel.
+        menu_obj.title_bar.set_height(0)
+        menu_obj.title_bar.add_flag(lv.obj.FLAG.HIDDEN)
+
+        # ── Size panel to actual content height ───────────────────────────────
+        # _configure_scroll (called inside GenericMenu.__init__) stores the
+        # true item-content height as menu_obj._items_content_h.
+        items_content_h = getattr(menu_obj, '_items_content_h', 0)
+        panel_h = min(max(items_content_h, BTN_HEIGHT), content_area_h)
+        panel.set_height(panel_h)
+        # Also shrink menu_obj so its background doesn't show beyond items
+        menu_obj.set_height(panel_h)
+        menu_obj.body.set_height(panel_h)
+
+        # ── Slide-in: panel starts hidden (y = -panel_h inside clip) ──────────
+        # The clip container sits at bar_bottom_y and hides everything above y=0,
+        # so the panel starts invisible and slides down to y=0 (flush with bar).
+        panel.set_pos(0, -panel_h)
+
+        # ── Update bar icons now so caret flips to CARET_UP immediately ────────
+        state = self.specter_state
+        self.seeds_bar.refresh(state)
+        self.wallets_bar.refresh(state)
+
+        self._animating = True
+        refs = [dim, clip, panel, menu_obj, proxy, modal]
+
+        cb_panel = lambda anim, v, p=panel: p.set_y(v)
+        a_panel = lv.anim_t()
+        a_panel.init()
+        a_panel.set_custom_exec_cb(cb_panel)
+        a_panel.set_values(-panel_h, 0)
+        a_panel.set_duration(ANIM_MS_VERTICAL)
+        a_panel.start()
+        refs.extend([cb_panel, a_panel])
+
+        gui2 = self
+        def _on_open_done(timer):
+            timer.delete()
+            gui2._animating = False
+            gui2._anim_refs = None
+        t = lv.timer_create(_on_open_done, ANIM_MS_VERTICAL + 50, None)
+        refs.extend([_on_open_done, t])
+        self._anim_refs = refs
+
+    def _on_dropdown_navigate(self, target_id):
+        """Navigation callback wired into the dropdown proxy's on_navigate.
+
+        Called when the user selects an item (target_id=None → go back to
+        previous screen) or taps the + button (target_id = e.g. 'add_seed').
+        Closes the dropdown then optionally navigates to *target_id*.
+        """
+        if self._animating:
+            return
+        nav = None if (target_id is None or target_id == "back") else target_id
+        self.ui_state.pop_menu()   # remove the switch_add_* entry pushed on open
+        self._hide_dropdown(then_navigate=nav)
+
+    def _hide_dropdown(self, then_navigate=None):
+        """Close the dropdown overlay with a slide-up animation.
+
+        After the animation completes, calls refresh_ui() (or show_menu(then_navigate)
+        if a follow-up navigation was requested).
+        """
+        modal = self._dropdown_modal
+        panel = self._dropdown_panel
+        clip = getattr(self, '_dropdown_clip', None)
+        if modal is None or panel is None:
+            return
+
+        panel_h = panel.get_height()
+
+        # Refresh bars immediately so the newly selected item is shown in the
+        # bar *before* the panel slides away, not only after the animation ends.
+        state = self.specter_state
+        self.seeds_bar.refresh(state)
+        self.wallets_bar.refresh(state)
+
+        self._animating = True
+        refs = []
+
+        gui = self
+        nav_target = then_navigate
+
+        # Slide panel up inside its clip (y: 0 → -panel_h); clip hides it above bar.
+        cb_panel = lambda anim, v, p=panel: p.set_y(v)
+        a_panel = lv.anim_t()
+        a_panel.init()
+        a_panel.set_custom_exec_cb(cb_panel)
+        a_panel.set_values(0, -panel_h)   # slide up behind bar
+        a_panel.set_duration(ANIM_MS_VERTICAL)
+        a_panel.start()
+        refs.extend([cb_panel, a_panel])
+
+        def _on_close_done(timer):
+            timer.delete()
+            gui._animating = False
+            gui._anim_refs = None
+            gui._dropdown_menu_obj = None
+            gui._dropdown_panel = None
+            gui._dropdown_clip = None
+            try:
+                modal.close()
+            except Exception:
+                pass
+            gui._dropdown_modal = None
+            if nav_target is not None:
+                gui.show_menu(nav_target)
+            else:
+                gui.refresh_ui()
+
+        t = lv.timer_create(_on_close_done, ANIM_MS_VERTICAL + 50, None)
+        refs.extend([_on_close_done, t])
         self._anim_refs = refs
