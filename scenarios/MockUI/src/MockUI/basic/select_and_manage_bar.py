@@ -230,6 +230,36 @@ class SelectAndManageBar(lv.obj):
         """Whether prev/next navigation arrows should be shown. Override in subclass."""
         return True
 
+    def _get_prev_target(self, items, active):
+        """Return the item to navigate to when the prev (left) caret is pressed.
+
+        Default: the item immediately before *active* in *items*.
+        Override for non-sequential navigation (e.g. skip non-fitting wallets).
+        """
+        if not items or active not in items:
+            return None
+        idx = items.index(active)
+        return items[idx - 1] if idx > 0 else None
+
+    def _get_next_target(self, items, active):
+        """Return the item to navigate to when the next (right) caret is pressed."""
+        if not items or active not in items:
+            return None
+        idx = items.index(active)
+        return items[idx + 1] if idx < len(items) - 1 else None
+
+    def _caret_colors(self, items, active):
+        """Return (prev_color, next_color) for the caret buttons.
+
+        Default: grey at ends of list, white otherwise.
+        """
+        if not items or active not in items:
+            return (GREY_HEX, GREY_HEX)
+        idx = items.index(active)
+        prev_color = GREY_HEX if idx == 0 else WHITE_HEX
+        next_color  = GREY_HEX if idx == len(items) - 1 else WHITE_HEX
+        return (prev_color, next_color)
+
     def _use_plus_icon(self, items):
         """Whether the switch button should show PLUS (vs CARET_DOWN). Override in subclass."""
         return len(items) <= 1
@@ -348,54 +378,52 @@ class SelectAndManageBar(lv.obj):
             return
         items = self.get_items()
         active = self.get_active()
-        if not items or active is None or active not in items:
+        if not items or active is None:
             return
-        idx = items.index(active)
-        if idx > 0:
-            new_item = items[idx - 1]
-            old_font, old_text, old_w = self._get_name_info(active)
-            # Snapshot sibling bar names before state change
-            sib_seeds   = self.gui.seeds_bar
-            sib_wallets = self.gui.wallets_bar
-            old_s_active = sib_seeds.get_active()   if self is not sib_seeds   else None
-            old_w_active = sib_wallets.get_active() if self is not sib_wallets else None
-            self.set_active(new_item)
-            # Animate content area only (bars handled by _start_name_slide)
-            self.gui.refresh_ui_animated("a", "horizontal", "left")
-            # Slide name text on this bar
-            self._start_name_slide(old_font, old_text, old_w, new_item, "left")
-            # Slide sibling bar names if they changed
-            if old_s_active is not None and sib_seeds.get_active() != old_s_active:
-                sf, st, sw = sib_seeds._get_name_info(old_s_active)
-                sib_seeds._start_name_slide(sf, st, sw, sib_seeds.get_active(), "left")
-            if old_w_active is not None and sib_wallets.get_active() != old_w_active:
-                wf, wt, ww = sib_wallets._get_name_info(old_w_active)
-                sib_wallets._start_name_slide(wf, wt, ww, sib_wallets.get_active(), "left")
+        new_item = self._get_prev_target(items, active)
+        if new_item is None:
+            return
+        old_font, old_text, old_w = self._get_name_info(active)
+        sib_seeds   = self.gui.seeds_bar
+        sib_wallets = self.gui.wallets_bar
+        old_w_active = sib_wallets.get_active() if self is not sib_wallets else None
+        animate_wallet_sib = (
+            self is sib_seeds
+            and old_w_active is not None
+            and self._get_anim_region(new_item) != "d"
+        )
+        self.set_active(new_item)
+        self.gui.refresh_ui_animated("a", "horizontal", "left")
+        self._start_name_slide(old_font, old_text, old_w, new_item, "left")
+        if animate_wallet_sib:
+            wf, wt, ww = sib_wallets._get_name_info(old_w_active)
+            sib_wallets._start_name_slide(wf, wt, ww, sib_wallets.get_active(), "left")
 
     def _next_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
             return
         items = self.get_items()
         active = self.get_active()
-        if not items or active is None or active not in items:
+        if not items or active is None:
             return
-        idx = items.index(active)
-        if idx < len(items) - 1:
-            new_item = items[idx + 1]
-            old_font, old_text, old_w = self._get_name_info(active)
-            sib_seeds   = self.gui.seeds_bar
-            sib_wallets = self.gui.wallets_bar
-            old_s_active = sib_seeds.get_active()   if self is not sib_seeds   else None
-            old_w_active = sib_wallets.get_active() if self is not sib_wallets else None
-            self.set_active(new_item)
-            self.gui.refresh_ui_animated("a", "horizontal", "right")
-            self._start_name_slide(old_font, old_text, old_w, new_item, "right")
-            if old_s_active is not None and sib_seeds.get_active() != old_s_active:
-                sf, st, sw = sib_seeds._get_name_info(old_s_active)
-                sib_seeds._start_name_slide(sf, st, sw, sib_seeds.get_active(), "right")
-            if old_w_active is not None and sib_wallets.get_active() != old_w_active:
-                wf, wt, ww = sib_wallets._get_name_info(old_w_active)
-                sib_wallets._start_name_slide(wf, wt, ww, sib_wallets.get_active(), "right")
+        new_item = self._get_next_target(items, active)
+        if new_item is None:
+            return
+        old_font, old_text, old_w = self._get_name_info(active)
+        sib_seeds   = self.gui.seeds_bar
+        sib_wallets = self.gui.wallets_bar
+        old_w_active = sib_wallets.get_active() if self is not sib_wallets else None
+        animate_wallet_sib = (
+            self is sib_seeds
+            and old_w_active is not None
+            and self._get_anim_region(new_item) != "d"
+        )
+        self.set_active(new_item)
+        self.gui.refresh_ui_animated("a", "horizontal", "right")
+        self._start_name_slide(old_font, old_text, old_w, new_item, "right")
+        if animate_wallet_sib:
+            wf, wt, ww = sib_wallets._get_name_info(old_w_active)
+            sib_wallets._start_name_slide(wf, wt, ww, sib_wallets.get_active(), "right")
 
     def _switch_cb(self, e):
         if e.get_code() != lv.EVENT.CLICKED:
@@ -495,22 +523,9 @@ class SelectAndManageBar(lv.obj):
         self._name_clip.align(lv.ALIGN.LEFT_MID, info_x, 0)
         self._current_info_w = info_w
 
-        # active_in_cycle: whether active is in the filtered cycling list
-        active_in_cycle = active is not None and active in items
-
         if active is not None:
-            # Always show info + manage for the active item, even if it's outside
-            # the cycling subset (e.g. a wallet from another seed was selected).
-            _grey = GREY_HEX
-            _white = WHITE_HEX
             if show_arrows:
-                if active_in_cycle:
-                    idx = items.index(active)
-                    prev_color = _grey if idx == 0 else _white
-                    next_color = _grey if idx == len(items) - 1 else _white
-                else:
-                    prev_color = _grey
-                    next_color = _grey
+                prev_color, next_color = self._caret_colors(items, active)
                 self.prev_btn.update_icon(BTC_ICONS.CARET_LEFT, color=prev_color)
                 self.next_btn.update_icon(BTC_ICONS.CARET_RIGHT, color=next_color)
 
@@ -706,17 +721,48 @@ class SelectAndManageWalletsBar(SelectAndManageBar):
     """
 
     def get_items(self):
-        """Return wallets for the active seed only (plus Default Wallet).
+        """Return all registered wallets.
 
-        Cycling left/right through wallets is limited to wallets that
-        include the currently selected seed, so the user stays in context.
+        Navigation targets are determined by _get_prev/next_target which skip
+        non-fitting wallets, so the full list is needed here.
         """
+        return self.gui.specter_state.registered_wallets
+
+    def _fitting_wallets(self, items):
+        """Subset of *items* that fit (or are the Default Wallet for) the active seed."""
         state = self.gui.specter_state
         seed = state.active_seed
-        if seed is not None:
-            wallets = state.wallets_for_seed(seed)
-            return wallets if wallets else state.registered_wallets
-        return state.registered_wallets
+        if seed is None:
+            return list(items)
+        return [w for w in items if state.seed_matches_wallet(seed, w) or w.is_default_wallet()]
+
+    def _get_prev_target(self, items, active):
+        """Nearest fitting wallet to the LEFT of active in the full list."""
+        if not items or active not in items:
+            return None
+        fitting = set(self._fitting_wallets(items))
+        idx = items.index(active)
+        for i in range(idx - 1, -1, -1):
+            if items[i] in fitting:
+                return items[i]
+        return None
+
+    def _get_next_target(self, items, active):
+        """Nearest fitting wallet to the RIGHT of active in the full list."""
+        if not items or active not in items:
+            return None
+        fitting = set(self._fitting_wallets(items))
+        idx = items.index(active)
+        for i in range(idx + 1, len(items)):
+            if items[i] in fitting:
+                return items[i]
+        return None
+
+    def _caret_colors(self, items, active):
+        """White when a fitting wallet exists in that direction, grey otherwise."""
+        prev_color = WHITE_HEX if self._get_prev_target(items, active) else GREY_HEX
+        next_color = WHITE_HEX if self._get_next_target(items, active) else GREY_HEX
+        return (prev_color, next_color)
 
     def get_active(self):
         return self.gui.specter_state.active_wallet

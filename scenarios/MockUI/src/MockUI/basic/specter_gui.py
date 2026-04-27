@@ -40,7 +40,8 @@ from .keyboard_manager import KeyboardManager
 
 # ── Animation helpers ───────────────────────────────────────────────────────
 
-ANIM_MS = 200  # slide duration in milliseconds
+ANIM_MS = 150           # horizontal slide duration in milliseconds
+ANIM_MS_VERTICAL = 300  # vertical slide duration in milliseconds
 
 # ── Context sets ─────────────────────────────────────────────────────────────
 # DEVICE context: both bars hidden
@@ -123,6 +124,17 @@ def _transition_params(from_id, to_id, history=None):
     # Same menu — no animation
     if (from_id or "main") == (to_id or "main"):
         return None
+
+    # ── switch_add_* always enter from top / exit upward ─────────────────────
+    # The caret-down gesture implies a dropdown from above, regardless of context.
+    if to_id == "switch_add_seeds":
+        return ("a", "vertical", "top")
+    if from_id == "switch_add_seeds":
+        return ("a", "vertical", "bottom")
+    if to_id == "switch_add_wallets":
+        return ("a", "vertical", "top")
+    if from_id == "switch_add_wallets":
+        return ("a", "vertical", "bottom")
 
     # ── Device ↔ any ─────────────────────────────────────────────────────────
     if tc == "device" and fc != "device":
@@ -533,7 +545,14 @@ class SpecterGui(lv.obj):
         new_screen.set_size(SCREEN_WIDTH, ch_after)
 
         # Bars are siblings of content; they keep their absolute positions.
-        # Move them to front so they paint over content's transparent area.
+        # For vertical-bottom (old exits upward revealing new): bars that are
+        # newly appearing must stay hidden so old_screen can cover them;
+        # they are revealed in cleanup.  All other cases: bring to front.
+        if axis == "vertical" and new_from == "bottom":
+            if not seeds_was and seeds_now:
+                self.seeds_bar.set_style_opa(lv.OPA.TRANSP, 0)
+            if not wallets_was and wallets_now:
+                self.wallets_bar.set_style_opa(lv.OPA.TRANSP, 0)
         self.seeds_bar.move_foreground()
         self.wallets_bar.move_foreground()
 
@@ -623,7 +642,7 @@ class SpecterGui(lv.obj):
                 a_new = lv.anim_t(); a_new.init()
                 a_new.set_custom_exec_cb(cb_new)
                 a_new.set_values(cy_after - anim_h, cy_after)
-                a_new.set_duration(ANIM_MS); a_new.start()
+                a_new.set_duration(ANIM_MS_VERTICAL); a_new.start()
                 refs.extend([cb_new, a_new])
 
                 # Bars in region slide down from above
@@ -634,7 +653,7 @@ class SpecterGui(lv.obj):
                     a_b = lv.anim_t(); a_b.init()
                     a_b.set_custom_exec_cb(cb_b)
                     a_b.set_values(orig_y - anim_h, orig_y)
-                    a_b.set_duration(ANIM_MS); a_b.start()
+                    a_b.set_duration(ANIM_MS_VERTICAL); a_b.start()
                     refs.extend([cb_b, a_b])
 
             else:  # new_from == "bottom"
@@ -648,7 +667,7 @@ class SpecterGui(lv.obj):
                 a_old = lv.anim_t(); a_old.init()
                 a_old.set_custom_exec_cb(cb_old)
                 a_old.set_values(cy_before, cy_before - anim_h)
-                a_old.set_duration(ANIM_MS); a_old.start()
+                a_old.set_duration(ANIM_MS_VERTICAL); a_old.start()
                 refs.extend([cb_old, a_old])
 
                 # Bars in region also exit upward
@@ -658,7 +677,7 @@ class SpecterGui(lv.obj):
                     a_b = lv.anim_t(); a_b.init()
                     a_b.set_custom_exec_cb(cb_b)
                     a_b.set_values(orig_y, orig_y - anim_h)
-                    a_b.set_duration(ANIM_MS); a_b.start()
+                    a_b.set_duration(ANIM_MS_VERTICAL); a_b.start()
                     refs.extend([cb_b, a_b])
 
         # ── Cleanup timer ─────────────────────────────────────────────────────
@@ -681,6 +700,10 @@ class SpecterGui(lv.obj):
                 gui.seeds_bar.set_style_opa(lv.OPA.TRANSP, 0)
             if w_was and not w_now:
                 gui.wallets_bar.set_style_opa(lv.OPA.TRANSP, 0)
+            if not s_was and s_now:
+                gui.seeds_bar.set_style_opa(lv.OPA.COVER, 0)
+            if not w_was and w_now:
+                gui.wallets_bar.set_style_opa(lv.OPA.COVER, 0)
             gui.seeds_bar.align(lv.ALIGN.TOP_MID, 0, 0)
             gui.wallets_bar.align_to(gui.seeds_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 0)
             # Restore content geometry, opacity, and layout
@@ -696,6 +719,7 @@ class SpecterGui(lv.obj):
             except Exception:
                 pass
 
-        t = lv.timer_create(_on_done, ANIM_MS + 50, None)
+        anim_done_ms = ANIM_MS_VERTICAL if axis == "vertical" else ANIM_MS
+        t = lv.timer_create(_on_done, anim_done_ms + 50, None)
         refs.extend([_on_done, t])
         self._anim_refs = refs
