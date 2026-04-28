@@ -304,7 +304,10 @@ class SeedDropUp(_DropUp):
                 def _do_delete():
                     self.gui.specter_state.remove_seed(s)
                     self.close()
-                    self.gui.refresh_ui()
+                    if not self.gui.specter_state.loaded_seeds:
+                        self.gui.show_menu("main")
+                    else:
+                        self.gui.refresh_ui()
 
                 ActionModal(
                     text=t("MODAL_DELETE_SEED_TEXT") % s.label,
