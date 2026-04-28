@@ -126,9 +126,17 @@ class ControlServer:
             return {"ok": True, "navigated": target}
 
     def _cmd_widget_tree(self):
-        """Return full widget tree."""
+        """Return full widget tree (screen + layer_top)."""
         screen = lv.screen_active()
         tree = get_widget_tree(screen)
+        # Also include layer_top (where modals/overlays live)
+        try:
+            disp = lv.display_get_default()
+            top = disp.get_layer_top()
+            if top.get_child_count() > 0:
+                tree["layer_top"] = get_widget_tree(top)
+        except:
+            pass
         return {"ok": True, "tree": tree}
 
     def _cmd_click(self, cmd):

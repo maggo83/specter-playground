@@ -36,7 +36,7 @@ _NAV_BAR_H = SCREEN_HEIGHT * STATUS_BAR_PCT // 100   # navigation bar height (px
 _TOP_BAR_H = 0                                        # no top bar
 _PANEL_MAX_H = SCREEN_HEIGHT - _NAV_BAR_H             # max panel height
 
-_CARD_H = STATUS_BTN_HEIGHT + 2 * DIALOG_PAD + 2   # height per item card (+2 for separator border)
+_CARD_H = STATUS_BTN_HEIGHT + 2 * DIALOG_PAD + 2   # height per item card (50 + 24 + 2 = 76px)
 _ADD_BTN_H = STATUS_BTN_HEIGHT                       # "Add …" button height
 _PANEL_PAD = 0                                       # panel outer padding
 
@@ -98,6 +98,7 @@ class _DropUp:
         self._panel.set_style_radius(0, 0)
         self._panel.set_style_border_width(0, 0)
         self._panel.set_style_pad_all(0, 0)
+        self._panel.set_style_pad_row(0, 0)   # zero LVGL default theme gap between flex children
         self._panel.set_layout(lv.LAYOUT.FLEX)
         self._panel.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self._panel.set_flex_align(
@@ -153,8 +154,8 @@ class _DropUp:
 
     def _compute_panel_h(self):
         n = len(self._get_items())
-        # Add 24px safety margin so LVGL theme/rounding doesn't cause a spurious scrollbar
-        content_h = n * _CARD_H + _ADD_BTN_H + 24
+        # Exact: pad_row is forced to 0 on the panel, so content = n*_CARD_H + _ADD_BTN_H
+        content_h = n * _CARD_H + _ADD_BTN_H
         return min(content_h, _PANEL_MAX_H)
 
     def _build_cards(self, parent):
