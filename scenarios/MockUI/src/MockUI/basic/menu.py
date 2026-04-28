@@ -1,11 +1,12 @@
 import lvgl as lv
-from .ui_consts import BTN_HEIGHT, BTN_WIDTH, MODAL_HEIGHT_PCT, MODAL_WIDTH_PCT, PAD_SIZE
+from .ui_consts import BTN_HEIGHT, BTN_WIDTH, MODAL_HEIGHT_PCT, MODAL_WIDTH_PCT, PAD_SIZE, BTC_ICON_WIDTH, WHITE_HEX
 from .titled_screen import TitledScreen
 from .symbol_lib import Icon, BTC_ICONS
 from .widgets.modal_overlay import ModalOverlay
 from .widgets.btn import Btn
 from .widgets.containers import flex_col, dialog_card
 from .widgets.labels import body_label, section_header
+from ..stubs.battery import Battery
 
 
 
@@ -26,12 +27,35 @@ class GenericMenu(TitledScreen):
         - help_key: (Optional) i18n key for a help popup
     """
 
+    # target_ids that open a named Menu class (not an ActionScreen).
+    # Items with these targets get an auto-added CARET_RIGHT on the right side.
+    _SUBMENU_IDS = frozenset([
+        "manage_wallet", "view_signers", "manage_security_settings",
+        "manage_backups", "manage_firmware",
+        "add_seed", "add_wallet", "switch_add_seeds", "switch_add_wallets",
+        "manage_security_features", "interfaces", "manage_seedphrase",
+        "store_seedphrase", "clear_seedphrase", "generate_seedphrase",
+        "set_passphrase", "manage_seed_wallet", "create_custom_wallet",
+        "manage_storage", "select_language", "manage_preferences",
+        "manage_settings",
+    ])
+
+    # Set to False in subclasses where submenu carets should be suppressed
+    # (e.g. selection menus whose items are choices, not navigation steps).
+    _SHOW_SUBMENU_CARETS = True
+
     def __init__(self, parent):
         # TitledScreen sets self.gui, self.state, self.i18n, self.on_navigate, self.body, etc.
         super().__init__("", parent)
 
         title = self.get_title(self.i18n.t, self.state)
         self.title_lbl.set_text(title)
+
+        # Battery widget in top-right corner of title bar
+        batt = Battery(self.title_bar)
+        batt.VALUE = getattr(self.state, "battery_pct", None)
+        batt.update()
+        batt.align(lv.ALIGN.RIGHT_MID, -4, 0)
 
         menu_items = self.get_menu_items(self.i18n.t, self.state)
 
@@ -59,6 +83,8 @@ class GenericMenu(TitledScreen):
             bottom = child.get_y() + child.get_height()
             if bottom > content_h:
                 content_h = bottom
+        # Store so callers (e.g. dropdown sizing) can read the real content height.
+        self._items_content_h = content_h
         available_h = (self.body.get_height()
                        - self.body.get_style_pad_top(0)
                        - self.body.get_style_pad_bottom(0))
@@ -122,6 +148,47 @@ class GenericMenu(TitledScreen):
                     help_btn.make_transparent()
                     help_btn.align(lv.ALIGN.RIGHT_MID, -4, 0)
                     help_btn.add_event_cb(self.make_help_callback(text, help_key), lv.EVENT.CLICKED, None)
+                else:
+                    # Right-side suffix container (icons/text + optional caret for submenus)
+                    is_submenu = (self._SHOW_SUBMENU_CARETS
+                                  and isinstance(target_behavior, str)
+                                  and target_behavior in self._SUBMENU_IDS)
+                    has_right = item.suffix or is_submenu
+                    if has_right:
+                        right_cont = lv.obj(btn._btn)
+                        right_cont.set_style_bg_opa(lv.OPA.TRANSP, 0)
+                        right_cont.set_style_border_width(0, 0)
+                        right_cont.set_style_radius(0, 0)
+                        right_cont.set_style_pad_all(0, 0)
+                        right_cont.set_style_pad_column(4, 0)
+                        right_cont.set_height(lv.pct(100))
+                        right_cont.set_width(lv.SIZE_CONTENT)
+                        right_cont.set_layout(lv.LAYOUT.FLEX)
+                        right_cont.set_flex_flow(lv.FLEX_FLOW.ROW)
+                        right_cont.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+                        right_cont.remove_flag(lv.obj.FLAG.CLICKABLE)
+                        right_cont.set_scroll_dir(lv.DIR.NONE)
+                        right_cont.add_flag(lv.obj.FLAG.FLOATING)
+
+                        for (suf_icon, suf_color, suf_text) in (item.suffix or []):
+                            if suf_icon is not None:
+                                suf_img = lv.image(right_cont)
+                                suf_img.set_width(BTC_ICON_WIDTH)
+                                suf_icon(suf_color).add_to_parent(suf_img)
+                            if suf_text is not None:
+                                suf_lbl = lv.label(right_cont)
+                                suf_lbl.set_text(suf_text)
+                                suf_lbl.set_style_text_font(lv.font_montserrat_16, 0)
+                                suf_lbl.set_width(lv.SIZE_CONTENT)
+
+                        if is_submenu:
+                            caret_img = lv.image(right_cont)
+                            caret_img.set_width(BTC_ICON_WIDTH)
+                            BTC_ICONS.CARET_RIGHT(WHITE_HEX).add_to_parent(caret_img)
+
+                        # Force size calculation before alignment so SIZE_CONTENT resolves
+                        right_cont.update_layout()
+                        right_cont.align(lv.ALIGN.RIGHT_MID, -4, 0)
 
                 btn.add_event_cb(self.make_callback(target_behavior), lv.EVENT.CLICKED, None)
 

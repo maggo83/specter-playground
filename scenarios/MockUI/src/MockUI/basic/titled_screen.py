@@ -17,8 +17,6 @@ Layout (absolute, no flex on root):
 
 import lvgl as lv
 from .ui_consts import BACK_BTN_HEIGHT, BACK_BTN_WIDTH, TITLE_ROW_HEIGHT, TITLE_PADDING, SCREEN_HEIGHT, CONTENT_PCT
-from .symbol_lib import BTC_ICONS
-from .widgets.btn import Btn
 from .widgets.labels import body_label
 
 
@@ -61,16 +59,6 @@ class TitledScreen(lv.obj):
         self.title_bar.set_style_border_width(0, 0)
         self.title_bar.set_style_radius(0, 0)
         self.title_bar.align(lv.ALIGN.TOP_MID, 0, 0)
-
-        # Back button – only shown when there is navigation history
-        if parent.ui_state and parent.ui_state.history and len(parent.ui_state.history) > 0:
-            self.back_btn = Btn(
-                self.title_bar,
-                icon=BTC_ICONS.CARET_LEFT,
-                size=(BACK_BTN_HEIGHT, BACK_BTN_WIDTH),
-                callback=lambda e: self.on_back(e),
-            )
-            self.back_btn.align(lv.ALIGN.LEFT_MID, 8, 0)
 
         # Title label – centred in the title bar
         self.title_lbl = body_label(self.title_bar, title, font=lv.font_montserrat_28)

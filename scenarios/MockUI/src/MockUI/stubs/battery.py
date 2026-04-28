@@ -40,6 +40,8 @@ class Battery(lv.obj):
                     set_label_color(self.level, color)
                 break
         self.icon.set_text(lv.SYMBOL.BATTERY_EMPTY)
+        self.icon.align(lv.ALIGN.CENTER, 0, 0)
+        self.level.align(lv.ALIGN.CENTER, 0, 0)
         if self.CHARGING:
             self.charge.set_text(lv.SYMBOL.CHARGE)
             self.charge.align(lv.ALIGN.CENTER, -5, 0)

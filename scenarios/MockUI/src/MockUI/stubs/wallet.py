@@ -20,7 +20,7 @@ class Wallet:
 
     def __init__(self, label, descriptor=None, isMultiSig=False, net="mainnet",
                  required_fingerprints=None, threshold=None,
-                 has_been_exported=False):
+                 has_been_exported=False, account=0):
         self.label = label
         self.descriptor = descriptor
         self.isMultiSig = isMultiSig
@@ -32,6 +32,7 @@ class Wallet:
         # True when wallet was imported from companion app (QR/SD) or
         # explicitly exported via Connect Companion App flow.
         self.has_been_exported = has_been_exported
+        self.account = account
 
     def is_standard(self):
         """Check if this is the default "Standard" wallet (which has no descriptor)."""

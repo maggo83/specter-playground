@@ -3,6 +3,7 @@ from ..basic.symbol_lib import BTC_ICONS
 from ..basic.keyboard_manager import Layout
 from ..basic.widgets.action_modal import ActionModal
 from ..basic.widgets import Btn, title_textarea, MenuItem
+from ..basic.ui_consts import BTN_HEIGHT, BTN_WIDTH
 import lvgl as lv
 
 
@@ -35,37 +36,35 @@ class WalletMenu(GenericMenu):
         is_default = state.active_wallet.is_default_wallet()
 
         if is_default:
-            # Default Wallet: show plain (non-editable) title, no trash button
+            # Default wallet: show plain (non-editable) title, no trash button
             self.title.set_text(state.active_wallet.label)
-        else:
-            # Custom wallet: editable name + trash button
-            # Remove the default title label and replace with editable text area
-            self.title.delete()
-
-            self.name_textarea = title_textarea(self.title_bar)
-            self.name_textarea.set_text(state.active_wallet.label)
-
-            # Red trash button
-            textarea_height = self.name_textarea.get_height()
-            self.delete_btn = Btn(
-                self.title_bar,
-                icon=BTC_ICONS.TRASH,
-                color=RED_HEX,
-                size=(textarea_height, textarea_height),
-            )
-            self.delete_btn.align_to(self.name_textarea, lv.ALIGN.OUT_RIGHT_MID, 6, 0)
-
-            def _on_commit(new_name):
-                if self.state and self.state.active_wallet:
-                    self.state.active_wallet.label = new_name
-                    self.gui.refresh_ui()
-
-            keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.name_textarea, Layout.FULL, _on_commit)
-            self.name_textarea.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
-
-        if is_default:
-            # No delete button for default wallet, skip rest of post_init
+            self._add_account_row(t, state)
             return
+
+        # Custom wallet: editable name + trash button
+        # Remove the default title label and replace with editable text area
+        self.title.delete()
+
+        self.name_textarea = title_textarea(self.title_bar)
+        self.name_textarea.set_text(state.active_wallet.label)
+
+        # Red trash button
+        textarea_height = self.name_textarea.get_height()
+        self.delete_btn = Btn(
+            self.title_bar,
+            icon=BTC_ICONS.TRASH,
+            color=RED_HEX,
+            size=(textarea_height, textarea_height),
+        )
+        self.delete_btn.align_to(self.name_textarea, lv.ALIGN.OUT_RIGHT_MID, 6, 0)
+
+        def _on_commit(new_name):
+            if self.state and self.state.active_wallet:
+                self.state.active_wallet.label = new_name
+                self.gui.refresh_ui()
+
+        keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.name_textarea, Layout.FULL, _on_commit)
+        self.name_textarea.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         # Trash button shows delete confirmation popup
         def _on_delete(e):
@@ -90,3 +89,32 @@ class WalletMenu(GenericMenu):
             )
 
         self.delete_btn.add_event_cb(_on_delete, lv.EVENT.CLICKED, None)
+
+        # Account row
+        self._add_account_row(t, state)
+
+    def _add_account_row(self, t, state):
+        """Add read-only Account label row. Account is fixed at wallet creation time."""
+        wallet = state.active_wallet
+        if wallet is None:
+            return
+
+        row = lv.obj(self.body)
+        row.set_width(lv.pct(BTN_WIDTH))
+        row.set_height(BTN_HEIGHT)
+        row.set_layout(lv.LAYOUT.FLEX)
+        row.set_flex_flow(lv.FLEX_FLOW.ROW)
+        row.set_flex_align(lv.FLEX_ALIGN.SPACE_BETWEEN, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+        row.set_style_pad_hor(16, 0)
+        row.set_style_radius(8, 0)
+        row.set_style_border_width(0, 0)
+
+        desc_lbl = lv.label(row)
+        desc_lbl.set_text(t("WALLET_MENU_SELECT_ACCOUNT"))
+        desc_lbl.set_style_text_font(lv.font_montserrat_22, 0)
+
+        val_lbl = lv.label(row)
+        val_lbl.set_style_text_font(lv.font_montserrat_22, 0)
+        val_lbl.set_text(str(wallet.account))
+
+        row.move_to_index(1)

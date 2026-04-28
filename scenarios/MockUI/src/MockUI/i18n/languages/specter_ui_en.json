@@ -29,6 +29,7 @@
     "WALLET_MENU_MANAGE": "Manage",
     "WALLET_MENU_MANAGE_DESCRIPTOR": "View/Edit Descriptor",
     "WALLET_MENU_CHANGE_NETWORK": "Change Network",
+    "WALLET_MENU_SELECT_ACCOUNT": "Account",
     "WALLET_MENU_CONNECT_EXPORT": "Connect/Export",
     "WALLET_MENU_EXPORT_DATA": "Export Data",
     

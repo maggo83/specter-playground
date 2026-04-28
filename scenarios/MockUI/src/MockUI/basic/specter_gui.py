@@ -3,6 +3,8 @@ import lvgl as lv
 from ..stubs import UIState, SpecterState
 from .device_bar import DeviceBar
 from .wallet_bar import WalletBar
+from .navigation_bar import NavigationBar
+from .dropup import SeedDropUp, WalletDropUp
 from .action_screen import ActionScreen
 from .main_menu import MainMenu
 from .locked_menu import LockedMenu
@@ -45,11 +47,7 @@ class SpecterGui(lv.obj):
     # Resolved to runtime objects by GuidedTour.resolve_steps() before use.
     INTRO_TOUR_STEPS = [
         (None,                          "TOUR_INTRO",       "center"),
-        ("device_bar.lock_btn",         "TOUR_LOCK",        "below"),
-        ("device_bar.center_container", "TOUR_INTERFACES",  "below"),
-        ("device_bar.batt_icon",        "TOUR_BATTERY",     "below"),
-        ("device_bar.power_btn",        "TOUR_POWER",       "below"),
-        ("wallet_bar",                  "TOUR_WALLET_BAR",  "above"),
+        ("navigation_bar",              "TOUR_WALLET_BAR",  "above"),
         ((435, 143, 28, 28),            "TOUR_HELP_ICON",   "left"),
     ]
 
@@ -76,15 +74,11 @@ class SpecterGui(lv.obj):
         self.current_screen = None
         self.keyboard_manager = KeyboardManager(self)
 
-        # Create device bar at top (STATUS_BAR_PCT%), wallet bar at bottom (STATUS_BAR_PCT%), content in middle (CONTENT_PCT%)
-        self.device_bar = DeviceBar(self, height_pct=STATUS_BAR_PCT)
-        self.device_bar.align(lv.ALIGN.TOP_MID, 0, 0)
+        # Navigation bar at bottom (STATUS_BAR_PCT%)
+        self.navigation_bar = NavigationBar(self, height_pct=STATUS_BAR_PCT)
+        self.navigation_bar.align(lv.ALIGN.BOTTOM_MID, 0, 0)
 
-        # Wallet bar at bottom
-        self.wallet_bar = WalletBar(self, height_pct=STATUS_BAR_PCT)
-        self.wallet_bar.align(lv.ALIGN.BOTTOM_MID, 0, 0)
-
-        # Content area in middle (scrollable)
+        # Content area fills from top to just above nav bar (CONTENT_PCT%)
         self.content = lv.obj(self)
         self.content.set_width(lv.pct(100))
         self.content.set_height(lv.pct(CONTENT_PCT))
@@ -93,9 +87,15 @@ class SpecterGui(lv.obj):
         self.content.set_style_pad_all(0, 0)
         self.content.set_style_radius(0, 0)
         self.content.set_style_border_width(0, 0)
-        self.content.align_to(self.device_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 0)
+        self.content.align(lv.ALIGN.TOP_MID, 0, 0)
         # TitledScreen always fills content 100% so no scrolling is needed here
         self.content.set_scroll_dir(lv.DIR.NONE)
+
+        # Create and wire drop-up overlays for Seed and Wallet nav buttons
+        self._seed_dropup = SeedDropUp(self)
+        self._wallet_dropup = WalletDropUp(self)
+        self.navigation_bar.set_seed_dropup(self._seed_dropup)
+        self.navigation_bar.set_wallet_dropup(self._wallet_dropup)
 
         # initially show the main menu
         self.show_menu(None)
@@ -122,11 +122,21 @@ class SpecterGui(lv.obj):
 
     def refresh_ui(self):
         """Centralized refresh method for all UI components."""
-        self.device_bar.refresh(self.specter_state)
-        self.wallet_bar.refresh(self.specter_state)
+        self.navigation_bar.refresh()
+        # Rebuild drop-ups if open (e.g. after passphrase toggle)
+        if hasattr(self, "_seed_dropup") and self._seed_dropup.is_open():
+            self._seed_dropup.refresh()
+        if hasattr(self, "_wallet_dropup") and self._wallet_dropup.is_open():
+            self._wallet_dropup.refresh()
 
     def show_menu(self, target_menu_id=None):
-        
+
+        # Close any open drop-up overlays when navigating
+        if hasattr(self, "_seed_dropup") and self._seed_dropup.is_open():
+            self._seed_dropup.close()
+        if hasattr(self, "_wallet_dropup") and self._wallet_dropup.is_open():
+            self._wallet_dropup.close()
+
         # Delete current screen (free memory)
         if self.current_screen:
             self.current_screen.delete()

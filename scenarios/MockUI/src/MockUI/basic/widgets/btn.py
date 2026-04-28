@@ -98,6 +98,20 @@ class Btn:
         self._btn.remove_flag(lv.obj.FLAG.CLICKABLE)
         return self
 
+    def set_visible(self, visible):
+        """Show or hide this button in-place, preserving its layout slot.
+
+        When hidden the icon becomes transparent and the button stops
+        accepting touch events (acts as a placeholder spacer).
+        """
+        opa = lv.OPA.COVER if visible else lv.OPA.TRANSP
+        if self._ico_img is not None:
+            self._ico_img.set_style_opa(opa, 0)
+        if visible:
+            self._btn.add_flag(lv.obj.FLAG.CLICKABLE)
+        else:
+            self._btn.remove_flag(lv.obj.FLAG.CLICKABLE)
+
     def __getattr__(self, name):
         # Proxy all unknown attributes to the underlying lv.button.
         # Guard against recursion before _btn is initialised.

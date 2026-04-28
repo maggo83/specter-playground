@@ -14,10 +14,13 @@ class Seed:
         passphrase: optional BIP-39 passphrase (None if not set)
     """
 
-    def __init__(self, label, fingerprint=None, passphrase=None):
+    def __init__(self, label, fingerprint=None, passphrase=None,
+                 passphrase_active=False, is_backed_up=False):
         self.label = label
         self.fingerprint = fingerprint or self.generate_dummy_fingerprint()
         self.passphrase = passphrase
+        self.passphrase_active = passphrase_active
+        self.is_backed_up = is_backed_up
 
     @staticmethod
     def generate_dummy_fingerprint():

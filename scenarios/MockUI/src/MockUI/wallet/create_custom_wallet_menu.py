@@ -91,6 +91,47 @@ class CreateCustomWalletMenu(TitledScreen):
         self.custom_sw = lv.switch(custom_row)
         self.custom_sw.set_size(SWITCH_HEIGHT, SWITCH_WIDTH)
 
+        # ── Account index ────────────────────────────────────────────
+        acc_row = self._make_row(ROW_H)
+        form_label(acc_row, t("WALLET_MENU_SELECT_ACCOUNT"), width=lv.pct(50))
+
+        spin_row = flex_row(acc_row, height=ROW_H - 4, pad=0)
+        spin_row.set_width(lv.SIZE_CONTENT)
+        spin_row.set_style_pad_column(4, 0)
+
+        btn_sz = ROW_H - 14
+        dec_btn = lv.button(spin_row)
+        dec_btn.set_size(btn_sz, btn_sz)
+        dec_lbl = lv.label(dec_btn)
+        dec_lbl.set_text(lv.SYMBOL.MINUS)
+        dec_lbl.center()
+
+        self.account_val = 0
+        self.acc_lbl = lv.label(spin_row)
+        self.acc_lbl.set_style_text_font(lv.font_montserrat_22, 0)
+        self.acc_lbl.set_text("0")
+        self.acc_lbl.set_width(50)
+        self.acc_lbl.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
+
+        inc_btn = lv.button(spin_row)
+        inc_btn.set_size(btn_sz, btn_sz)
+        inc_lbl = lv.label(inc_btn)
+        inc_lbl.set_text(lv.SYMBOL.PLUS)
+        inc_lbl.center()
+
+        def _dec_cb(e):
+            if e.get_code() == lv.EVENT.CLICKED and self.account_val > 0:
+                self.account_val -= 1
+                self.acc_lbl.set_text(str(self.account_val))
+
+        def _inc_cb(e):
+            if e.get_code() == lv.EVENT.CLICKED and self.account_val < 99:
+                self.account_val += 1
+                self.acc_lbl.set_text(str(self.account_val))
+
+        dec_btn.add_event_cb(_dec_cb, lv.EVENT.CLICKED, None)
+        inc_btn.add_event_cb(_inc_cb, lv.EVENT.CLICKED, None)
+
         # ── Create button ────────────────────────────────────────────
         btn_row = self._make_row(80)
         self.create_btn = Btn(
@@ -152,6 +193,7 @@ class CreateCustomWalletMenu(TitledScreen):
             net=net,
             required_fingerprints=fps,
             threshold=threshold,
+            account=self.account_val,
         )
         self.state.register_wallet(wallet)
         self.state.set_active_wallet(wallet)

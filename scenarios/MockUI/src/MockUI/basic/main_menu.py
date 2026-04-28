@@ -27,7 +27,7 @@ class MainMenu(GenericMenu):
             if not state.active_wallet.is_default_wallet():
                 seed_wallet_title += " - " + state.active_wallet.label
 
-            self.title.set_text(seed_wallet_title)
+            #self.title.set_text(seed_wallet_title)
         
 
     def _items_no_seed(self, t, state):
@@ -95,10 +95,6 @@ class MainMenu(GenericMenu):
                 menu_items.append(MenuItem(BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_FROM_SD"), "load_sd"))
             if can_sign_msg:
                 menu_items.append(MenuItem(BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message"))
-
-        # ── Seed & Wallet section ───────────────────────────────────────────
-        menu_items.append(MenuItem(text=t("MAIN_MENU_SEED_AND_WALLET")))
-        menu_items.append(MenuItem(BTC_ICONS.MNEMONIC, t("MAIN_MENU_MANAGE_SEED_WALLET"), "manage_seed_wallet"))
 
         # ── Connect Companion App (only if wallet not yet exported) ─────────
         if active_wallet_was_never_exported:

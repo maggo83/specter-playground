@@ -23,7 +23,8 @@ else:
     display.init()
 # --- End simulator setup ---
 
-from MockUI import SpecterGui, SpecterState
+from MockUI import SpecterGui, SpecterState, Wallet
+from MockUI.stubs import Seed
 
 gc.collect()
 
@@ -55,6 +56,24 @@ specter_state._SmartCard_hasSeed = True
 specter_state._Flash_hasSeed = True
 
 specter_state.pin = "21"
+
+# ── Test data: one seed with passphrase + one wallet ─────────────────────────
+_test_seed = Seed(
+    label="My Key",
+    fingerprint="a1b2c3d4",
+    passphrase="correct horse",
+)
+_test_seed.passphrase_active = True
+_test_seed.is_backed_up = False
+#specter_state.add_seed(_test_seed)
+
+_test_wallet = Wallet(
+    label="Hot Wallet",
+    required_fingerprints=["a1b2c3d4"],
+    threshold=1,
+)
+#specter_state.register_wallet(_test_wallet)
+#specter_state.set_active_wallet(_test_wallet)
 
 gc.collect()
 
