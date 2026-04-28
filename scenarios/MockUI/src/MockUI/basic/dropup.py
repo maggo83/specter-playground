@@ -108,7 +108,7 @@ class _DropUp:
         self._panel.set_scroll_dir(lv.DIR.VER)
         self._panel.set_scrollbar_mode(lv.SCROLLBAR_MODE.AUTO)
         # Stop panel clicks from bubbling up to the backdrop callback
-        self._panel.add_event_cb(lambda e: e.stop_bubbling(), lv.EVENT.CLICKED, None)
+        self._panel.add_event_cb(lambda e: setattr(e, 'stop_bubbling', 1), lv.EVENT.CLICKED, None)
 
         self._build_cards(self._panel)
         self._build_add_button(self._panel)
@@ -164,15 +164,28 @@ class _DropUp:
 
     def _build_add_button(self, parent):
         label = self._add_button_label()
+        # Full-width transparent lv.button — absorbs dead-area taps so they never
+        # bubble up to the panel (lv.button stops event bubbling by default).
+        # No callback on the outer button: only the inner Btn triggers the add action.
+        outer = lv.button(parent)
+        outer.set_size(SCREEN_WIDTH, _ADD_BTN_H)
+        outer.set_style_bg_opa(lv.OPA.TRANSP, 0)
+        outer.set_style_shadow_width(0, 0)
+        outer.set_style_border_width(0, 0)
+        outer.set_style_pad_all(0, 0)
+        outer.set_scroll_dir(lv.DIR.NONE)
+        outer.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
+        # Content-sized inner button centered in the row — only this fires the add action
         btn = Btn(
-            parent,
+            outer,
             icon=BTC_ICONS.PLUS,
             text=label,
-            size=(SCREEN_WIDTH, _ADD_BTN_H),
+            size=(None, _ADD_BTN_H),
             callback=self._add_cb,
             font=lv.font_montserrat_16,
         )
         btn.make_transparent()
+        btn.center()
 
     def _add_cb(self, event=None):
         self.close()
@@ -223,6 +236,16 @@ class SeedDropUp(_DropUp):
     def _build_card(self, parent, seed):
         row = _card_row(parent)
 
+        # ── Row click → navigate to seed manage menu ──────────────────────────
+        def _make_row_cb(s):
+            def _cb(e):
+                if e.get_code() == lv.EVENT.CLICKED:
+                    self.close()
+                    self.gui.specter_state.set_active_seed(s)
+                    self.gui.show_menu("manage_seedphrase")
+            return _cb
+        row.add_event_cb(_make_row_cb(seed), lv.EVENT.CLICKED, None)
+
         # ── Seed name ─────────────────────────────────────────────────────────
         show_passphrase = seed.passphrase is not None
         name_w = (
@@ -230,7 +253,6 @@ class SeedDropUp(_DropUp):
             - 2 * DIALOG_PAD            # row padding
             - _FP_SLOT_W                # RELAY icon + 4-char fp
             - (BTC_ICON_WIDTH if show_passphrase else 0)
-            - BTC_ICON_WIDTH            # edit button
             - BTC_ICON_WIDTH            # delete button
         )
         name_font = _best_name_font(seed.label, max(10, name_w), _CARD_H)
@@ -253,6 +275,7 @@ class SeedDropUp(_DropUp):
             def _make_pp_cb(s):
                 def _cb(e):
                     if e.get_code() == lv.EVENT.CLICKED:
+                        e.stop_bubbling = 1  # don't trigger row navigation
                         s.passphrase_active = not getattr(s, "passphrase_active", False)
                         # Rebuild drop-up to reflect passphrase state change
                         self.refresh()
@@ -272,23 +295,6 @@ class SeedDropUp(_DropUp):
         fp_lbl.set_style_text_font(lv.font_montserrat_16, 0)
         fp_lbl.set_width(40)
         fp_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
-
-        # ── Edit button ───────────────────────────────────────────────────────
-        def _make_edit_cb(s):
-            def _cb(event=None):
-                self.close()
-                # Set seed as active then navigate to manage menu
-                self.gui.specter_state.set_active_seed(s)
-                self.gui.show_menu("manage_seedphrase")
-            return _cb
-
-        edit_btn = Btn(
-            row,
-            icon=BTC_ICONS.EDIT,
-            size=(BTC_ICON_WIDTH, _CARD_H),
-            callback=_make_edit_cb(seed),
-        )
-        edit_btn.make_transparent()
 
         # ── Delete button ─────────────────────────────────────────────────────
         def _make_delete_seed_cb(s):
@@ -316,6 +322,7 @@ class SeedDropUp(_DropUp):
             callback=_make_delete_seed_cb(seed),
         )
         del_btn.make_transparent()
+        del_btn.add_event_cb(lambda e: setattr(e, 'stop_bubbling', 1), lv.EVENT.CLICKED, None)
 
 
 _FP_SLOT_W = BTC_ICON_WIDTH + 40   # RELAY icon + 4-char fingerprint label
@@ -337,6 +344,16 @@ class WalletDropUp(_DropUp):
 
     def _build_card(self, parent, wallet):
         row = _card_row(parent)
+
+        # ── Row click → navigate to wallet manage menu ────────────────────────
+        def _make_row_cb(w):
+            def _cb(e):
+                if e.get_code() == lv.EVENT.CLICKED:
+                    self.close()
+                    self.gui.specter_state.set_active_wallet(w)
+                    self.gui.show_menu("manage_wallet")
+            return _cb
+        row.add_event_cb(_make_row_cb(wallet), lv.EVENT.CLICKED, None)
 
         # ── Wallet type icon ──────────────────────────────────────────────────
         state = self.gui.specter_state
@@ -366,7 +383,6 @@ class WalletDropUp(_DropUp):
             - thresh_w
             - acc_w
             - net_w
-            - BTC_ICON_WIDTH       # edit button
             - BTC_ICON_WIDTH       # delete button
         )
         name_font = _best_name_font(wallet.label, max(10, name_w), _CARD_H)
@@ -403,22 +419,6 @@ class WalletDropUp(_DropUp):
             net_lbl.set_width(net_w)
             net_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
 
-        # ── Edit button ───────────────────────────────────────────────────────
-        def _make_edit_cb(w):
-            def _cb(event=None):
-                self.close()
-                self.gui.specter_state.set_active_wallet(w)
-                self.gui.show_menu("manage_wallet")
-            return _cb
-
-        edit_btn = Btn(
-            row,
-            icon=BTC_ICONS.EDIT,
-            size=(BTC_ICON_WIDTH, _CARD_H),
-            callback=_make_edit_cb(wallet),
-        )
-        edit_btn.make_transparent()
-
         # ── Delete button (not shown for default wallet) ──────────────────────
         if not wallet.is_default_wallet():
             def _make_delete_wallet_cb(w):
@@ -446,3 +446,4 @@ class WalletDropUp(_DropUp):
                 callback=_make_delete_wallet_cb(wallet),
             )
             del_btn.make_transparent()
+            del_btn.add_event_cb(lambda e: setattr(e, 'stop_bubbling', 1), lv.EVENT.CLICKED, None)
