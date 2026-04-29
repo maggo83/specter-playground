@@ -680,7 +680,7 @@ class SelectAndManageSeedsBar(SelectAndManageBar):
             BTC_ICONS.RELAY(WHITE_HEX).add_to_parent(fp_icon_img)
 
             fp_lbl = lv.label(right_cont)
-            raw_fp = seed.fingerprint if seed.fingerprint else "????"
+            raw_fp = seed.get_fingerprint() or "????"
             if raw_fp.startswith("0x") or raw_fp.startswith("0X"):
                 raw_fp = raw_fp[2:]
             fp_lbl.set_text(raw_fp[:4])

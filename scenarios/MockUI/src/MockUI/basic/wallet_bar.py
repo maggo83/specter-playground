@@ -252,7 +252,8 @@ class WalletBar(lv.obj):
 
             self._show_img(self.fingerprint_img)
             #do not show "0x" hex prefix in fingerprint
-            self.fingerprint_lbl.set_text(seed.fingerprint[2:])
+            fp = seed.get_fingerprint()
+            self.fingerprint_lbl.set_text(fp[2:] if fp.startswith(("0x", "0X")) else fp)
     
 
         # ── Right side: Wallet (conditional) ────────────────────────────────

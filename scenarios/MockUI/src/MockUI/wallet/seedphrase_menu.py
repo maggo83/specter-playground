@@ -59,7 +59,7 @@ class SeedPhraseMenu(GenericMenu):
 
         # Fingerprint only when seed bar hides it (single seed loaded)
         if len(state.loaded_seeds) <= 1:
-            raw_fp = state.active_seed.fingerprint if state.active_seed.fingerprint else "????"
+            raw_fp = state.active_seed.get_fingerprint() or "????"
             if raw_fp.startswith("0x") or raw_fp.startswith("0X"):
                 raw_fp = raw_fp[2:]
             fp_img = lv.image(name_row)

@@ -24,7 +24,7 @@ class SwitchAddSeedsMenu(SwitchAddMenu):
             items.append((BTC_ICONS.PASSWORD, pp_color, None))
         if not seed.is_backed_up:
             items.append((BTC_ICONS.ALERT_CIRCLE, ORANGE_HEX, None))
-        raw_fp = seed.fingerprint or "????"
+        raw_fp = seed.get_fingerprint() or "????"
         if raw_fp.startswith("0x") or raw_fp.startswith("0X"):
             raw_fp = raw_fp[2:]
         items.append((BTC_ICONS.RELAY, WHITE_HEX, raw_fp[:4]))

@@ -62,11 +62,11 @@ class CreateCustomWalletMenu(TitledScreen):
         sig_text = ""
         if self.state and self.state.active_seed:
             # Pre-fill with active seed's fingerprint for convenience
-            fp1 = self.state.active_seed.fingerprint
-            sig_text = fp1[:]
+            fp1 = self.state.active_seed.get_fingerprint()
+            sig_text = fp1
             if self.state.loaded_seeds and len(self.state.loaded_seeds) > 1:
                 # If multiple seeds are loaded, add a second fingerprint for testing
-                fps = [s.fingerprint[:] for s in self.state.loaded_seeds if s.fingerprint != fp1]
+                fps = [s.get_fingerprint() for s in self.state.loaded_seeds if s.get_fingerprint() != fp1]
                 sig_text += f",{fps[0][:]}"
             else:
                 sig_text += ",0xabcd"
@@ -171,7 +171,7 @@ class CreateCustomWalletMenu(TitledScreen):
         fps = []
         # For singlesig/custom: preset to active seed fingerprint
         if not is_multi and self.state.active_seed is not None:
-            fps = [self.state.active_seed.fingerprint]
+            fps = [self.state.active_seed.get_fingerprint()]
         threshold = int(self.thresh_ta.get_text())
         if is_multi:
             # Parse extra cosigner fingerprints
