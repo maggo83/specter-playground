@@ -69,6 +69,7 @@ class KeyboardManager:
 
         self.keyboard.remove_flag(lv.obj.FLAG.HIDDEN)
         self.keyboard.set_textarea(textarea)
+        self.keyboard.move_foreground()  # must render above nav bar
 
         #Do this last to mark binding is complete
         self.textarea = textarea

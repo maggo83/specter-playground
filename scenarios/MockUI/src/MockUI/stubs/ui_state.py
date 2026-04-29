@@ -66,22 +66,34 @@ class UIState:
             json.dump(config, f)
 
     # Navigation helpers
-    def push_menu(self, menu_id):
-        """Navigate to a new menu and push the old one on the history stack."""
+    def push_menu(self, menu_id, seed=None, wallet=None):
+        """Navigate to a new menu and push the old one on the history stack.
+
+        seed and wallet are the SpecterState snapshots *at the time of
+        navigation* and are restored when this entry is popped.
+        """
         if menu_id == self.current_menu_id:
             return  # already on this menu — refresh only, don't grow history
         if self.current_menu_id is not None:
             if len(self.history) >= MAX_HISTORY_DEPTH:
                 self.history.pop(0)  # drop oldest before appending to stay within cap
-            self.history.append(self.current_menu_id)
+            self.history.append((self.current_menu_id, seed, wallet))
         self.current_menu_id = menu_id
 
     def pop_menu(self):
-        """Pop the last menu from history and make it current (or go to 'main')."""
+        """Pop the last history entry, restore menu id and return (seed, wallet).
+
+        The caller is responsible for applying the returned seed/wallet to
+        SpecterState before building the new screen.
+        Returns (None, None) when history is empty (pops to 'main').
+        """
         if self.history:
-            self.current_menu_id = self.history.pop()
+            entry = self.history.pop()
+            self.current_menu_id, seed, wallet = entry
+            return seed, wallet
         else:
             self.current_menu_id = "main"
+            return None, None
 
     def clear_history(self):
         self.history.clear()

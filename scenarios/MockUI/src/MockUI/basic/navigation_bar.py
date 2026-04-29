@@ -201,6 +201,8 @@ class NavigationBar(lv.obj):
 
     def _back_cb(self, event=None):
         """Go back one history level, or close any open drop-up first."""
+        if getattr(self.gui, '_animating', False):
+            return
         # If a drop-up is open, close it instead of navigating back
         if self._seed_dropup is not None and self._seed_dropup.is_open():
             self._seed_dropup.close()
@@ -211,65 +213,73 @@ class NavigationBar(lv.obj):
         self.gui.show_menu(None)
 
     def _seed_cb(self, event=None):
-        """Toggle the seed drop-up, close if already in a seed menu, or open the add/switch screen."""
+        """If in seed context root: exit. If in deeper seed menu: jump to root. Otherwise open drop-up."""
+        if getattr(self.gui, '_animating', False):
+            return
         # Always close the wallet dropup first (mutual exclusion)
         if self._wallet_dropup is not None and self._wallet_dropup.is_open():
             self._wallet_dropup.close()
+        current = self.gui.ui_state.current_menu_id
+        if current in _SEED_MENUS:
+            if current == "manage_seedphrase":
+                # At context root → exit seed context (v_overlay exit)
+                self.gui.show_menu(None)
+            else:
+                # Deeper → jump to root in one step (h_overlay back)
+                self.gui.jump_to_context_root("manage_seedphrase")
+            return
         if self._seed_dropup is not None:
             if self._seed_dropup.is_open():
                 self._seed_dropup.close()
-            elif self.gui.ui_state.current_menu_id in _SEED_MENUS:
-                # Already in a seed menu → navigate back
-                self.gui.show_menu(None)
-                return
             else:
                 self._seed_dropup.open()
         else:
-            if self.gui.ui_state.current_menu_id in _SEED_MENUS:
-                self.gui.show_menu(None)
-                return
-            else:
-                self.gui.show_menu("switch_add_seeds")
-                return
+            self.gui.show_menu("switch_add_seeds")
         self.refresh()
 
     def _home_cb(self, event=None):
         """Navigate to the main/home menu, clearing history."""
-        self.gui.ui_state.clear_history()
+        if getattr(self.gui, '_animating', False):
+            return
+        # History clearing is handled inside show_menu for target="main"
         self.gui.show_menu("main")
 
     def _wallet_cb(self, event=None):
-        """Toggle the wallet drop-up, close if already in a wallet menu, or open the add/switch screen."""
+        """If in wallet context root: exit. If in deeper wallet menu: jump to root. Otherwise open drop-up."""
+        if getattr(self.gui, '_animating', False):
+            return
         # Always close the seed dropup first (mutual exclusion)
         if self._seed_dropup is not None and self._seed_dropup.is_open():
             self._seed_dropup.close()
+        current = self.gui.ui_state.current_menu_id
+        if current in _WALLET_MENUS:
+            if current == "manage_wallet":
+                # At context root → exit wallet context (v_overlay exit)
+                self.gui.show_menu(None)
+            else:
+                # Deeper → jump to root in one step (h_overlay back)
+                self.gui.jump_to_context_root("manage_wallet")
+            return
         if self._wallet_dropup is not None:
             if self._wallet_dropup.is_open():
                 self._wallet_dropup.close()
-            elif self.gui.ui_state.current_menu_id in _WALLET_MENUS:
-                # Already in a wallet menu → navigate back
-                self.gui.show_menu(None)
-                return
             else:
                 self._wallet_dropup.open()
         else:
-            if self.gui.ui_state.current_menu_id in _WALLET_MENUS:
-                self.gui.show_menu(None)
-                return
-            else:
-                self.gui.show_menu("switch_add_wallets")
-                return
+            self.gui.show_menu("switch_add_wallets")
         self.refresh()
 
     def _device_cb(self, event=None):
-        """"If in device submenu: go back to device menu. If in device menu: go back (same as back button), otherwise navigate to manage settings."""
-        if self.gui.ui_state.current_menu_id == "manage_settings":
-            self.gui.show_menu(None)
-        elif self.gui.ui_state.current_menu_id in _DEVICE_MENUS:
-            while self.gui.ui_state.current_menu_id not in ("manage_settings", "main_menu"):
-                self.gui.ui_state.pop_menu()
-            if self.gui.ui_state.current_menu_id == "manage_settings":
-                self.gui.ui_state.pop_menu()
-            self.gui.show_menu("manage_settings")
+        """If at device root: exit. If in deeper device menu: jump to root. Otherwise enter device."""
+        if getattr(self.gui, '_animating', False):
+            return
+        current = self.gui.ui_state.current_menu_id
+        if current in _DEVICE_MENUS:
+            if current == "manage_settings":
+                # At context root → exit device context (h_push exit_device)
+                self.gui.show_menu(None)
+            else:
+                # Deeper → jump to root in one step (h_overlay back)
+                self.gui.jump_to_context_root("manage_settings")
         else:
             self.gui.show_menu("manage_settings")

@@ -66,6 +66,8 @@ class _DropUp:
     def __init__(self, gui):
         self.gui = gui
         self._modal = None    # ModalOverlay instance when open
+        self._animating = False
+        self._anim_refs = None
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -73,22 +75,19 @@ class _DropUp:
         return self._modal is not None
 
     def open(self):
-        if self._modal is not None:
+        if self._modal is not None or self._animating:
             return
         self._modal = ModalOverlay(bg_opa=140)  # semi-transparent dim backdrop
 
-        # Restrict the overlay to the content area only — TopBar and NavigationBar
-        # must stay visible and undimmed above/below.
-        _content_h = SCREEN_HEIGHT - _NAV_BAR_H #- _TOP_BAR_H 
+        # Restrict the overlay to the content area only — NavigationBar stays visible.
+        _content_h = SCREEN_HEIGHT - _NAV_BAR_H
         self._modal.overlay.set_size(SCREEN_WIDTH, _content_h)
         self._modal.overlay.set_pos(0, 0)
 
         # Dismiss when tapping the backdrop (outside the panel)
         self._modal.overlay.add_event_cb(self._backdrop_cb, lv.EVENT.CLICKED, None)
 
-        # Panel: full-width strip anchored at the bottom of the content area,
-        # growing upward.  panel_y is relative to the overlay (which starts at
-        # 0)
+        # Panel: full-width strip anchored at the bottom of the content area.
         panel_h = self._compute_panel_h()
         panel_y = _content_h - panel_h
 
@@ -98,39 +97,110 @@ class _DropUp:
         self._panel.set_style_radius(0, 0)
         self._panel.set_style_border_width(0, 0)
         self._panel.set_style_pad_all(0, 0)
-        self._panel.set_style_pad_row(0, 0)   # zero LVGL default theme gap between flex children
+        self._panel.set_style_pad_row(0, 0)
         self._panel.set_layout(lv.LAYOUT.FLEX)
         self._panel.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self._panel.set_flex_align(
             lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER
         )
-        # Disable horizontal scroll; enable vertical only when content overflows
         self._panel.set_scroll_dir(lv.DIR.VER)
         self._panel.set_scrollbar_mode(lv.SCROLLBAR_MODE.AUTO)
-        # Stop panel clicks from bubbling up to the backdrop callback
         self._panel.add_event_cb(lambda e: setattr(e, 'stop_bubbling', 1), lv.EVENT.CLICKED, None)
 
         self._build_cards(self._panel)
         self._build_add_button(self._panel)
 
+        # ── Slide-in animation: panel starts below content, slides up ─────────
+        # panel_y is the final resting y; animate from _content_h down to panel_y
+        self._panel.set_y(_content_h)
+        self._animating = True
+        refs = []
+
+        cb = lambda anim, v: self._panel.set_y(v)
+        a = lv.anim_t(); a.init()
+        a.set_custom_exec_cb(cb)
+        a.set_values(_content_h, panel_y)
+        a.set_duration(300)
+        a.start()
+        refs.extend([cb, a])
+
+        dropup = self
+
+        def _on_open_done(timer):
+            timer.delete()
+            dropup._animating = False
+            dropup._anim_refs = None
+
+        t = lv.timer_create(_on_open_done, 350, None)
+        refs.extend([_on_open_done, t])
+        self._anim_refs = refs
+
     def close(self):
-        if self._modal is not None:
+        if self._modal is None or self._animating:
+            return
+        if self._panel is None:
+            # Nothing to animate — destroy immediately
             self._modal.close()
             self._modal = None
-            self._panel = None
+            return
+
+        _content_h = SCREEN_HEIGHT - _NAV_BAR_H
+        panel_y_now = self._panel.get_y()
+        panel_y_end = _content_h  # slide off-screen down
+
+        self._animating = True
+        refs = []
+        modal = self._modal
+        panel = self._panel
+        dropup = self
+
+        cb = lambda anim, v: panel.set_y(v)
+        a = lv.anim_t(); a.init()
+        a.set_custom_exec_cb(cb)
+        a.set_values(panel_y_now, panel_y_end)
+        a.set_duration(300)
+        a.start()
+        refs.extend([cb, a])
+
+        def _on_close_done(timer):
+            timer.delete()
+            dropup._animating = False
+            dropup._anim_refs = None
+            dropup._panel = None
+            dropup._modal = None
+            try:
+                modal.close()
+            except Exception:
+                pass
+
+        t = lv.timer_create(_on_close_done, 350, None)
+        refs.extend([_on_close_done, t])
+        self._anim_refs = refs
 
     def toggle(self):
+        if self._animating:
+            return
         if self.is_open():
             self.close()
         else:
             self.open()
 
     def refresh(self):
-        """Rebuild cards in place (called after state changes)."""
-        if not self.is_open():
+        """Rebuild cards in place (called after state changes like passphrase toggle)."""
+        if not self.is_open() or self._animating:
             return
-        self.close()
-        self.open()
+        # Remove existing cards from the panel (all children except the add-button)
+        # Simplest: delete all children and rebuild them all (panel layout is FLEX COLUMN)
+        while self._panel.get_child_count() > 0:
+            self._panel.get_child(0).delete()
+        self._build_cards(self._panel)
+        self._build_add_button(self._panel)
+        # Resize panel in case item count changed
+        panel_h = self._compute_panel_h()
+        _content_h = SCREEN_HEIGHT - _NAV_BAR_H
+        panel_y = _content_h - panel_h
+        self._panel.set_size(SCREEN_WIDTH, panel_h)
+        self._panel.set_pos(0, panel_y)
 
     # ── Subclass interface ────────────────────────────────────────────────────
 
@@ -332,11 +402,11 @@ class SeedDropUp(_DropUp):
 
                 def _do_delete():
                     self.gui.specter_state.remove_seed(s)
-                    self.close()
                     if not self.gui.specter_state.loaded_seeds:
+                        self.close()
                         self.gui.show_menu("main")
                     else:
-                        self.gui.refresh_ui()
+                        self.refresh()
 
                 ActionModal(
                     text=t("MODAL_DELETE_SEED_TEXT") % s.label,
@@ -459,7 +529,10 @@ class WalletDropUp(_DropUp):
 
                     def _do_delete():
                         self.gui.specter_state.remove_wallet(w)
-                        self.close()
+                        if not self.gui.specter_state.registered_wallets:
+                            self.close()
+                        else:
+                            self.refresh()
                         self.gui.refresh_ui()
 
                     ActionModal(

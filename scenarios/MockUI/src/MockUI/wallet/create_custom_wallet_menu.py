@@ -197,9 +197,4 @@ class CreateCustomWalletMenu(TitledScreen):
         )
         self.state.register_wallet(wallet)
         self.state.set_active_wallet(wallet)
-
-        # Navigate to main
-        if hasattr(self.gui, 'ui_state') and self.gui.ui_state:
-            self.gui.ui_state.clear_history()
-            self.gui.ui_state.current_menu_id = "main"
-        self.on_navigate(None)
+        self.on_navigate("main")

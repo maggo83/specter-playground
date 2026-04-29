@@ -105,11 +105,19 @@ class SpecterState:
             self.active_wallet = self._ensure_default_wallet()
 
     def remove_seed(self, seed):
-        """Remove a seed from loaded seeds."""
+        """Remove a seed from loaded seeds and clean up all wallets it owns."""
         if seed in self.loaded_seeds:
             self.loaded_seeds.remove(seed)
         if self.active_seed is seed:
             self.active_seed = self.loaded_seeds[0] if self.loaded_seeds else None
+        # Remove wallets that belonged exclusively to this seed (non-default, not multisig shared)
+        fp = seed.get_fingerprint()
+        self.registered_wallets = [
+            w for w in self.registered_wallets
+            if not (fp in w.required_fingerprints and len(w.required_fingerprints) == 1 and not w.is_default_wallet())
+        ]
+        if self.active_wallet not in self.registered_wallets:
+            self.active_wallet = self.registered_wallets[0] if self.registered_wallets else None
 
     def wallets_for_seed(self, seed):
         """Return wallets that match this seed (including the shared Default Wallet)."""

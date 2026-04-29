@@ -69,8 +69,5 @@ class GenerateSeedMenu(TitledScreen):
         seed = Seed(label=name, fingerprint=self.generated_fp)
         self.state.add_seed(seed)
 
-        # go to main menu directly
-        if hasattr(self.gui, 'ui_state') and self.gui.ui_state:
-            self.gui.ui_state.clear_history()
-            self.gui.ui_state.current_menu_id = "main"
-        self.on_navigate(None)
+        # Navigate home — show_menu("main") clears history and runs the exit animation
+        self.on_navigate("main")
