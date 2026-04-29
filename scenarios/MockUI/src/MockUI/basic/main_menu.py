@@ -78,12 +78,11 @@ class MainMenu(GenericMenu):
         menu_items = []
 
         has_controlled_input = (state.QR_enabled() or state.SD_detected())
-        can_sign_msg = (state.active_wallet
-                        and not state.active_wallet.isMultiSig
-                        and state.seed_matches_wallet()
+        can_sign_msg = (len(state.registered_wallets) > 0
+                        and not all(wallet.isMultiSig for wallet in state.registered_wallets)
                         and has_controlled_input)
         
-        active_wallet_was_never_exported = state.active_wallet and not state.active_wallet.has_been_exported
+        active_wallet_was_never_exported = not all (wallet.has_been_exported for wallet in state.registered_wallets)
 
         # ── Actions section ─────────────────────────────────────────────────
 
@@ -95,6 +94,10 @@ class MainMenu(GenericMenu):
                 menu_items.append(MenuItem(BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_FROM_SD"), "load_sd"))
             if can_sign_msg:
                 menu_items.append(MenuItem(BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message"))
+
+        # ── Explore section ─────────────────────────────────────────────────
+        menu_items.append(MenuItem(text=t("WALLET_MENU_EXPLORE")))
+        menu_items.append(MenuItem(BTC_ICONS.MENU, t("WALLET_MENU_VIEW_ADDRESSES"), "view_addresses"))
 
         # ── Connect Companion App (only if wallet not yet exported) ─────────
         if active_wallet_was_never_exported:
