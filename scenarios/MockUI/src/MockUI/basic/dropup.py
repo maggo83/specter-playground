@@ -248,11 +248,13 @@ class SeedDropUp(_DropUp):
 
         # ── Seed name ─────────────────────────────────────────────────────────
         show_passphrase = seed.passphrase is not None
+        show_warning = not seed.is_backed_up
         name_w = (
             SCREEN_WIDTH
             - 2 * DIALOG_PAD            # row padding
             - _FP_SLOT_W                # RELAY icon + 4-char fp
             - (BTC_ICON_WIDTH if show_passphrase else 0)
+            - (BTC_ICON_WIDTH if show_warning else 0)
             - BTC_ICON_WIDTH            # delete button
         )
         name_font = _best_name_font(seed.label, max(10, name_w), _CARD_H)
@@ -281,6 +283,33 @@ class SeedDropUp(_DropUp):
                         self.refresh()
                 return _cb
             pp_img.add_event_cb(_make_pp_cb(seed), lv.EVENT.CLICKED, None)
+
+        # ── Backup warning (optional, clickable) ──────────────────────────────
+        if show_warning:
+            warn_img = lv.image(row)
+            warn_img.set_width(BTC_ICON_WIDTH)
+            BTC_ICONS.ALERT_CIRCLE(ORANGE_HEX).add_to_parent(warn_img)
+            warn_img.add_flag(lv.obj.FLAG.CLICKABLE)
+
+            def _make_warn_cb(s):
+                def _cb(e):
+                    if e.get_code() == lv.EVENT.CLICKED:
+                        e.stop_bubbling = 1  # don't trigger row navigation
+                        t = self.gui.i18n.t
+
+                        def _mark_backed_up():
+                            s.is_backed_up = True
+                            self.refresh()
+
+                        ActionModal(
+                            text=t("MODAL_BACKUP_WARNING_TEXT"),
+                            buttons=[
+                                (None,           t("COMMON_OK"),                 None, None),
+                                (BTC_ICONS.CHECK, t("MODAL_BACKUP_CONFIRMED_BTN"), None, _mark_backed_up),
+                            ],
+                        )
+                return _cb
+            warn_img.add_event_cb(_make_warn_cb(seed), lv.EVENT.CLICKED, None)
 
         # ── Fingerprint: RELAY icon + first 4 hex chars ───────────────────────
         fp_img = lv.image(row)

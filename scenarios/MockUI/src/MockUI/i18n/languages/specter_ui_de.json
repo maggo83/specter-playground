@@ -322,6 +322,14 @@
       "text": "Seed \"%s\" löschen?\nDer Schlüssel wird aus dem Speicher entfernt.",
       "ref_en": "Delete seed \"%s\"?\nThis will remove the key from memory."
     },
+    "MODAL_BACKUP_WARNING_TEXT": {
+      "text": "Diese Seed-Phrase wurde noch nicht gesichert.\n\nOhne Backup könnten bei Geräteverlust Ihre Coins verloren gehen.\n\nHaben Sie Ihre Seed-Phrase bereits gesichert?",
+      "ref_en": "This seed has not been backed up yet.\n\nIf you lose this device without a backup, your funds may be lost.\n\nHave you already backed up your seed phrase?"
+    },
+    "MODAL_BACKUP_CONFIRMED_BTN": {
+      "text": "Gesichert!",
+      "ref_en": "Backed up!"
+    },
     "COMMON_WALLET": {
       "text": "Wallet",
       "ref_en": "Wallet"
@@ -345,6 +353,10 @@
     "COMMON_NAME": {
       "text": "Name",
       "ref_en": "Name"
+    },
+    "COMMON_OK": {
+      "text": "OK",
+      "ref_en": "OK"
     },
     "COMMON_CANCEL": {
       "text": "Abbrechen",

@@ -107,6 +107,8 @@
     "MODAL_CLOSE_BTN": "Close",
     "MODAL_DELETE_WALLET_TEXT": "Delete wallet \"%s\"?\nThis cannot be undone.",
     "MODAL_DELETE_SEED_TEXT": "Delete seed \"%s\"?\nThis will remove the key from memory.",
+    "MODAL_BACKUP_WARNING_TEXT": "This seed has not been backed up yet.\n\nIf you lose this device without a backup, your funds may be lost.\n\nHave you already backed up your seed phrase?",
+    "MODAL_BACKUP_CONFIRMED_BTN": "Backed up!",
     
     "COMMON_WALLET": "Wallet",
     "COMMON_SINGLESIG": "SingleSig",
@@ -114,6 +116,7 @@
     "COMMON_KEYBOARD": "Keyboard",
     "COMMON_CREATE": "Create",
     "COMMON_NAME": "Name",
+    "COMMON_OK": "OK",
     "COMMON_CANCEL": "Cancel",
     "COMMON_DELETE": "Delete",
     
