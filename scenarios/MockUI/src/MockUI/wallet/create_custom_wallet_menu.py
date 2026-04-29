@@ -60,11 +60,11 @@ class CreateCustomWalletMenu(TitledScreen):
         sig_text = ""
         if self.state and self.state.active_seed:
             # Pre-fill with active seed's fingerprint for convenience
-            fp1 = self.state.active_seed.fingerprint
+            fp1 = self.state.active_seed.get_fingerprint()
             sig_text = fp1[:]
             if self.state.loaded_seeds and len(self.state.loaded_seeds) > 1:
                 # If multiple seeds are loaded, add a second fingerprint for testing
-                fps = [s.fingerprint[:] for s in self.state.loaded_seeds if s.fingerprint != fp1]
+                fps = [s.get_fingerprint()[:] for s in self.state.loaded_seeds if s.get_fingerprint() != fp1]
                 sig_text += f",{fps[0][:]}"
             else:
                 sig_text += ",0xabcd"

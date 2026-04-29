@@ -37,7 +37,7 @@ class GenerateSeedMenu(TitledScreen):
         self.name_ta.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
         # Fingerprint preview
-        self.generated_fp = Seed.generate_dummy_fingerprint()
+        self.generated_fp = Seed._generate_dummy_fingerprint()
         body_label(self.body,
                    t("GENERATE_SEED_FINGERPRINT") + self.generated_fp,
                    font=lv.font_montserrat_16)

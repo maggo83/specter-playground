@@ -40,6 +40,7 @@ class PassphraseMenu(TitledScreen):
                     self.state.active_seed.passphrase = None
                 else:
                     self.state.active_seed.passphrase = value
+                    self.state.active_seed.passphrase_active = True
             self.gui.refresh_ui()
             self.on_navigate(None)
 

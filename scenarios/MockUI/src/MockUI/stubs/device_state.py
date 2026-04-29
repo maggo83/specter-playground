@@ -115,7 +115,7 @@ class SpecterState:
         """Return wallets that match this seed (including the shared Default Wallet)."""
         if seed is None:
             return None
-        fp = seed.fingerprint
+        fp = seed.get_fingerprint()
         return [wallet for wallet in self.registered_wallets
                 if wallet.is_default_wallet() or fp in wallet.required_fingerprints]
 
@@ -186,7 +186,7 @@ class SpecterState:
         
         fps = set(wallet.required_fingerprints)
         return [seed for seed in self.loaded_seeds
-                if seed.fingerprint in fps] 
+                if seed.get_fingerprint() in fps] 
 
     def signing_match_count(self, wallet = None):
         """Return (matched_count, required_count) for the given wallet (default: active wallet)."""
@@ -200,7 +200,7 @@ class SpecterState:
             return (1, 1) if self.active_seed else (0, 1)
         
         if wallet.is_standard():
-            loaded_fps = set(seed.fingerprint for seed in self.loaded_seeds)
+            loaded_fps = set(seed.get_fingerprint() for seed in self.loaded_seeds)
             matched = len(loaded_fps & set(wallet.required_fingerprints))
             return (matched, len(wallet.required_fingerprints))
         else:

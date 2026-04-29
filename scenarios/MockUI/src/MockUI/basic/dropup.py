@@ -288,7 +288,7 @@ class SeedDropUp(_DropUp):
         BTC_ICONS.RELAY(WHITE_HEX).add_to_parent(fp_img)
 
         fp_lbl = lv.label(row)
-        raw_fp = seed.fingerprint if seed.fingerprint else "????"
+        raw_fp = seed.get_fingerprint()
         if raw_fp.startswith("0x") or raw_fp.startswith("0X"):
             raw_fp = raw_fp[2:]
         fp_lbl.set_text(raw_fp[:4])
