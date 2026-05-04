@@ -27,6 +27,20 @@ class SeedPhraseMenu(GenericMenu):
         menu_items.append(MenuItem(text=t("SEEDPHRASE_MENU_ADVANCED")))
         menu_items.append(MenuItem(BTC_ICONS.SHARED_WALLET, t("SEEDPHRASE_MENU_BIP85"), "derive_bip85"))
 
+        # Explore section
+        menu_items.append(MenuItem(text=t("SEEDPHRASE_MENU_EXPLORE")))
+        menu_items.append(MenuItem(BTC_ICONS.WALLET, t("SEEDPHRASE_MENU_RELATED_WALLETS"), "related_wallets_for_seed"))
+
+        # Sign message (only when signing is possible)
+        has_controlled_input = (state.QR_enabled() or state.SD_detected())
+        can_sign_msg = (
+            len(state.registered_wallets) > 0
+            and not all(wallet.isMultiSig for wallet in state.registered_wallets)
+            and has_controlled_input
+        )
+        if can_sign_msg:
+            menu_items.append(MenuItem(BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message"))
+
         return menu_items
 
     def post_init(self, t, state):
@@ -38,8 +52,19 @@ class SeedPhraseMenu(GenericMenu):
         self.name_textarea = title_textarea(self.title_bar)
         self.name_textarea.set_text(state.active_seed.label)
 
-        # Red trash button – square, matching textarea height
         textarea_height = self.name_textarea.get_height()
+
+        # Key icon (transparent, non-clickable) – left of textarea
+        self.icon_btn = Btn(
+            self.title_bar,
+            icon=BTC_ICONS.KEY,
+            size=(textarea_height, textarea_height),
+        )
+        self.icon_btn.make_transparent()
+        self.icon_btn._btn.remove_flag(lv.obj.FLAG.CLICKABLE)
+        self.icon_btn.align_to(self.name_textarea, lv.ALIGN.OUT_LEFT_MID, -6, 0)
+
+        # Red trash button – square, matching textarea height
         self.delete_btn = Btn(
             self.title_bar,
             icon=BTC_ICONS.TRASH,

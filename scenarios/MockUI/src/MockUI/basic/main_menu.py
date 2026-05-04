@@ -78,22 +78,17 @@ class MainMenu(GenericMenu):
         menu_items = []
 
         has_controlled_input = (state.QR_enabled() or state.SD_detected())
-        can_sign_msg = (len(state.registered_wallets) > 0
-                        and not all(wallet.isMultiSig for wallet in state.registered_wallets)
-                        and has_controlled_input)
         
         active_wallet_was_never_exported = not all (wallet.has_been_exported for wallet in state.registered_wallets)
 
         # ── Actions section ─────────────────────────────────────────────────
 
-        if has_controlled_input or can_sign_msg:
+        if has_controlled_input:
             menu_items.append(MenuItem(text=t("MAIN_MENU_PROCESS_INPUT")))
             if state.QR_enabled():
                 menu_items.append(MenuItem(BTC_ICONS.SCAN, t("MAIN_MENU_SCAN_QR"), "scan_qr", size=1.3, help_key="HELP_SCAN_QR"))
             if state.SD_detected():
                 menu_items.append(MenuItem(BTC_ICONS.SD_CARD, t("MAIN_MENU_LOAD_FROM_SD"), "load_sd"))
-            if can_sign_msg:
-                menu_items.append(MenuItem(BTC_ICONS.SIGN, t("MAIN_MENU_SIGN_MESSAGE"), "sign_message"))
 
         # ── Explore section ─────────────────────────────────────────────────
         menu_items.append(MenuItem(text=t("WALLET_MENU_EXPLORE")))

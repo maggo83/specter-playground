@@ -31,7 +31,7 @@ _ALL_DEVICE = frozenset([
 _ALL_SEED = frozenset([
     "manage_seedphrase", "switch_add_seeds", "add_seed",
     "store_seedphrase", "clear_seedphrase", "generate_seedphrase",
-    "set_passphrase", "manage_seed_wallet",
+    "set_passphrase", "manage_seed_wallet", "related_wallets_for_seed",
 ])
 _ALL_WALLET = frozenset([
     "manage_wallet", "switch_add_wallets", "add_wallet",
@@ -128,6 +128,7 @@ from ..wallet import (
     ManageSeedsAndWalletsMenu,
     CreateCustomWalletMenu,
     ViewSignersScreen,
+    RelatedWalletsForSeedMenu,
 )
 from ..device import (
     SecuritySettingsMenu,
@@ -393,6 +394,8 @@ class SpecterGui(lv.obj):
             self.current_screen = InterfacesMenu(self)
         elif current == "manage_seedphrase":
             self.current_screen = SeedPhraseMenu(self)
+        elif current == "related_wallets_for_seed":
+            self.current_screen = RelatedWalletsForSeedMenu(self)
         elif current == "store_seedphrase":
             self.current_screen = StoreSeedphraseMenu(self)
         elif current == "clear_seedphrase":

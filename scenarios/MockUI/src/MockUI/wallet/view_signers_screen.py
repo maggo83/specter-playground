@@ -2,6 +2,7 @@ from ..basic import GenericMenu
 from ..basic.symbol_lib import BTC_ICONS
 from ..basic.widgets import MenuItem
 from ..stubs import Seed
+import lvgl as lv
 
 class ViewSignersScreen(GenericMenu):
     """Form to view the active seed's signers.
@@ -20,12 +21,24 @@ class ViewSignersScreen(GenericMenu):
         for fp in state.active_wallet.required_fingerprints:
             signer_name = fp[2:]  # do not show "0x" hex prefix in fingerprint
             icon = None
+            target = None
 
             if s4w and fp in loaded_fp4w:
-                signer_name += " (" + s4w[loaded_fp4w.index(fp)].label + ")"
+                matched_seed = s4w[loaded_fp4w.index(fp)]
+                signer_name += " (" + matched_seed.label + ")"
                 icon = BTC_ICONS.CHECK
 
-            menu_items.append(MenuItem(icon, signer_name))
+                def _make_seed_cb(seed):
+                    def _cb(e):
+                        if e.get_code() != lv.EVENT.CLICKED:
+                            return
+                        self.state.set_active_seed(seed)
+                        self.on_navigate("manage_seedphrase")
+                    return _cb
+
+                target = _make_seed_cb(matched_seed)
+
+            menu_items.append(MenuItem(icon, signer_name, target=target))
         return menu_items
     
     def post_init(self, t, state):

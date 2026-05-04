@@ -37,7 +37,7 @@ class GenericMenu(TitledScreen):
         "store_seedphrase", "clear_seedphrase", "generate_seedphrase",
         "set_passphrase", "manage_seed_wallet", "create_custom_wallet",
         "manage_storage", "select_language", "manage_preferences",
-        "manage_settings",
+        "manage_settings", "related_wallets_for_seed",
     ])
 
     # Set to False in subclasses where submenu carets should be suppressed

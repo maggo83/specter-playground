@@ -38,6 +38,16 @@ class WalletMenu(GenericMenu):
         if is_default:
             # Default wallet: show plain (non-editable) title, no trash button
             self.title.set_text(state.active_wallet.label)
+            # Wallet icon (transparent, non-clickable) – left of title label
+            title_h = self.title.get_height()
+            self.icon_btn = Btn(
+                self.title_bar,
+                icon=BTC_ICONS.WALLET,
+                size=(title_h, title_h),
+            )
+            self.icon_btn.make_transparent()
+            self.icon_btn._btn.remove_flag(lv.obj.FLAG.CLICKABLE)
+            self.icon_btn.align_to(self.title, lv.ALIGN.OUT_LEFT_MID, -6, 0)
             self._add_account_row(t, state)
             return
 
@@ -48,8 +58,19 @@ class WalletMenu(GenericMenu):
         self.name_textarea = title_textarea(self.title_bar)
         self.name_textarea.set_text(state.active_wallet.label)
 
-        # Red trash button
         textarea_height = self.name_textarea.get_height()
+
+        # Wallet icon (transparent, non-clickable) – left of textarea
+        self.icon_btn = Btn(
+            self.title_bar,
+            icon=BTC_ICONS.WALLET,
+            size=(textarea_height, textarea_height),
+        )
+        self.icon_btn.make_transparent()
+        self.icon_btn._btn.remove_flag(lv.obj.FLAG.CLICKABLE)
+        self.icon_btn.align_to(self.name_textarea, lv.ALIGN.OUT_LEFT_MID, -6, 0)
+
+        # Red trash button
         self.delete_btn = Btn(
             self.title_bar,
             icon=BTC_ICONS.TRASH,
