@@ -13,11 +13,8 @@ class ActionScreen(TitledScreen):
     Should not be used in production code.
     """
     def __init__(self, title, parent):
-        # TitledScreen creates title_bar (with optional back_btn + title_lbl) and body
+        # TitledScreen creates title_bar and body
         super().__init__(title, parent)
-
-        # Get i18n manager from shorthand (always available via SpecterGui)
-        self.t = self.i18n.t
 
         # Message – placed inside body
         self.msg = body_label(self.body, self.t("ACTION_SCREEN_PREFIX") + title)

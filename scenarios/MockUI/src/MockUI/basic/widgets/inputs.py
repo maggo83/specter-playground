@@ -1,7 +1,7 @@
 """Input helpers — lv.textarea wrappers with Specter default styling."""
 
 import lvgl as lv
-from ..ui_consts import TITLE_ROW_HEIGHT, WHITE_HEX
+from ..ui_consts import TITLE_ROW_HEIGHT, TITLE_TA_WIDTH, WHITE_HEX, TITLE_FONT, TEXT_FONT
 
 ACCEPTED_CHARS = (
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -9,37 +9,28 @@ ACCEPTED_CHARS = (
 )
 
 
-def title_textarea(parent, accepted_chars=None):
-    """Editable title-bar text area (font_28, centred, 2px white border).
+def title_textarea(parent, accepted_chars=ACCEPTED_CHARS):
+    """Editable title-bar text area (TITLE_FONT, centred, 2px white border).
 
     Intended for editable names in the title bar.
-
-    Args:
-        parent:         LVGL parent object (typically title_bar).
-        accepted_chars: Character allowlist string; defaults to ACCEPTED_CHARS.
     """
     ta = lv.textarea(parent)
-    ta.set_width(270)
+    ta.set_width(TITLE_TA_WIDTH)
     ta.set_height(TITLE_ROW_HEIGHT)
-    ta.set_style_text_font(lv.font_montserrat_28, 0)
+    ta.set_style_text_font(TITLE_FONT, 0)
     ta.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
     ta.set_style_border_width(2, lv.PART.MAIN)
     ta.set_style_border_color(WHITE_HEX, lv.PART.MAIN)
     ta.align(lv.ALIGN.CENTER, 0, 0)
-    ta.set_accepted_chars(accepted_chars if accepted_chars is not None else ACCEPTED_CHARS)
+    ta.set_accepted_chars(accepted_chars)
     return ta
 
 
-def form_textarea(parent, width=None, font=None):
-    """Compact form input field (font_22, height=50, 60% width by default).
-
-    Args:
-        parent: LVGL parent object (typically a flex-row form row).
-        width:  Width value; defaults to lv.pct(60).
-        font:   LVGL font; defaults to lv.font_montserrat_22.
+def form_textarea(parent, width=lv.pct(60), font=TEXT_FONT):
+    """Compact form input field (TEXT_FONT, height=50, 60% width by default).
     """
     ta = lv.textarea(parent)
-    ta.set_width(width if width is not None else lv.pct(60))
+    ta.set_width(width)
     ta.set_height(50)
-    ta.set_style_text_font(font if font is not None else lv.font_montserrat_22, 0)
+    ta.set_style_text_font(font, 0)
     return ta

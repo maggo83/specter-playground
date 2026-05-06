@@ -10,6 +10,18 @@
       "text": "Was möchtest du tun?",
       "ref_en": "What do you want to do?"
     },
+    "MAIN_MENU_BACKUP_SECTION": {
+      "text": "Daten sichern",
+      "ref_en": "Save data"
+    },
+    "MAIN_MENU_BACKUP_SEED": {
+      "text": "Seedphrase sichern",
+      "ref_en": "Backup Seedphrase"
+    },
+    "HELP_BACKUP_SEED": {
+      "text": "Du hast mindestens einen Seed geladen, der nicht gesichert ist. Wenn du das Gerät ausschaltest, ohne ein Backup zu erstellen, könnten die Coins dieses Seeds dauerhaft verloren gehen.",
+      "ref_en": "You have at least one seed loaded that is not backed up. Turning off the device without backing up may result in permanent loss of funds for that seed."
+    },
     "MAIN_MENU_SCAN_QR": {
       "text": "QR-Code scannen",
       "ref_en": "Scan QR"
@@ -261,6 +273,10 @@
     "BACKUPS_MENU_NO_SD_DETECTED": {
       "text": "Keine SD-Karte erkannt",
       "ref_en": "No SD Card detected"
+    },
+    "SECURITY_MENU_LOCK_DEVICE": {
+      "text": "Gerät sperren",
+      "ref_en": "Lock Device"
     },
     "SECURITY_MENU_CHANGE_PIN": {
       "text": "PIN ändern",

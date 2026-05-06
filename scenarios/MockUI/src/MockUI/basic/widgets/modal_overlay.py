@@ -25,7 +25,7 @@ Usage::
 """
 
 import lvgl as lv
-
+from ..ui_consts import DEFAULT_MODAL_BG_OPA, BLACK, to_lv_color
 
 class ModalOverlay:
     """Full-screen container parented to ``layer_top``.
@@ -33,10 +33,10 @@ class ModalOverlay:
     Args:
         bg_opa:   Background opacity (0-255 or ``lv.OPA.*`` constant).
                   Use ``lv.OPA.TRANSP`` when adding your own dim strips.
-        bg_color: Background colour as a hex int (default: 0x000000).
+        bg_color: Background colour as a hex int (default: BLACK_HEX).
     """
 
-    def __init__(self, bg_opa=lv.OPA.TRANSP, bg_color=0x000000):
+    def __init__(self, bg_opa=DEFAULT_MODAL_BG_OPA, bg_color=BLACK):
         disp = lv.display_get_default()
         self._sw = disp.get_horizontal_resolution()
         self._sh = disp.get_vertical_resolution()
@@ -44,7 +44,7 @@ class ModalOverlay:
         self.overlay = lv.obj(disp.get_layer_top())
         self.overlay.set_size(self._sw, self._sh)
         self.overlay.set_pos(0, 0)
-        self.overlay.set_style_bg_color(lv.color_hex(bg_color), 0)
+        self.overlay.set_style_bg_color(to_lv_color(bg_color), 0)
         self.overlay.set_style_bg_opa(bg_opa, 0)
         self.overlay.set_style_border_width(0, 0)
         self.overlay.set_style_radius(0, 0)

@@ -8,7 +8,7 @@ import lvgl as lv
 from ..basic.ui_consts import (
     EXPLAINER_WIDTH_PCT,
     EXPLAINER_HEIGHT_PCT,
-    EXPLAINER_OVERLAY_OPA,
+    DEFAULT_MODAL_BG_OPA,
     BLACK_HEX,
 )
 from ..basic.symbol_lib import BTC_ICONS
@@ -117,7 +117,7 @@ class UIExplainer:
             strip.set_pos(x, y)
             strip.set_size(w, h)
             strip.set_style_bg_color(BLACK_HEX, 0)
-            strip.set_style_bg_opa(EXPLAINER_OVERLAY_OPA, 0)
+            strip.set_style_bg_opa(DEFAULT_MODAL_BG_OPA, 0)
             strip.set_style_border_width(0, 0)
             strip.set_style_pad_all(0, 0)
             strip.set_style_radius(0, 0)
@@ -175,11 +175,9 @@ class UIExplainer:
         is_last = self.tour.is_last()
         
         # Previous button (or invisible placeholder on first screen)
-        if not is_first:
-            Btn(nav_container, icon=BTC_ICONS.CARET_LEFT, size=(60, 50),
-                callback=self._on_prev_clicked)
-        else:
-            Btn(nav_container, size=(60, 50)).placeholder()
+        PrevBtn = Btn(nav_container, icon=BTC_ICONS.CARET_LEFT, size=(60, 50),
+            callback=self._on_prev_clicked)
+        PrevBtn.set_visible(not is_first)
         
         # Skip/Complete button (always present)
         if is_last:
@@ -190,11 +188,9 @@ class UIExplainer:
                 size=(160, 50), callback=self._on_skip_clicked)
         
         # Next button (or invisible placeholder on last screen)
-        if not is_last:
-            Btn(nav_container, icon=BTC_ICONS.CARET_RIGHT, size=(60, 50),
-                callback=self._on_next_clicked)
-        else:
-            Btn(nav_container, size=(60, 50)).placeholder()
+        NextBtn = Btn(nav_container, icon=BTC_ICONS.CARET_RIGHT, size=(60, 50),
+            callback=self._on_next_clicked)
+        NextBtn.set_visible(not is_last)
     
     def _calculate_text_box_position(self, cutout):
         """Calculate text box dimensions and position based on text_position setting and cutout.

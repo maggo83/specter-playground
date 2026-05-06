@@ -14,6 +14,7 @@ Proxy: all lv.button methods are accessible directly on Btn instances (e.g. btn.
 
 import lvgl as lv
 from ..symbol_lib import Icon
+from ..ui_consts import to_lv_color, TEXT_FONT
 
 
 class Btn:
@@ -27,11 +28,12 @@ class Btn:
         size:     (width, height) tuple; either element may be None = don't set.
         callback: Zero-argument callable, or an lv.EVENT handler with signature
                   ``fn(event)``.  Attached to lv.EVENT.CLICKED.
-        font:     LVGL font for the text label; defaults to lv.font_montserrat_22.
+        font:     LVGL font for the text label; defaults to TEXT_FONT.
+        fontcolor: LVGL color for the text label; defaults to theme default text color.
     """
 
     def __init__(self, parent, icon=None, text=None, color=None, size=None,
-                 callback=None, font=None):
+                 callback=None, font=TEXT_FONT, fontcolor=None):
         self._btn = lv.button(parent)
 
         if size is not None:
@@ -54,6 +56,7 @@ class Btn:
 
         if icon is not None:
             self._ico_img = lv.image(self._btn)
+            icon(to_lv_color(fontcolor))
             icon.add_to_parent(self._ico_img)
             if text is None:
                 self._ico_img.center()
@@ -61,23 +64,24 @@ class Btn:
             self._ico_img = None
 
         if text is not None:
-            lbl = lv.label(self._btn)
-            lbl.set_text(text)
-            lbl.set_style_text_font(
-                font if font is not None else lv.font_montserrat_22, 0
-            )
+            self.lbl = lv.label(self._btn)
+            self.lbl.set_text(text)
+            self.lbl.set_style_text_font(font, 0)
+            if fontcolor is not None:
+                self.lbl.set_style_text_color(to_lv_color(fontcolor), 0)
             if icon is None:
-                lbl.center()
+                self.lbl.center()
+        else:
+            self.lbl = None
 
         if callback is not None:
             self._btn.add_event_cb(callback, lv.EVENT.CLICKED, None)
 
     def update_icon(self, icon):
-        """Replace the displayed icon (must have been created with an icon)."""
         if self._ico_img is not None:
             icon.add_to_parent(self._ico_img)
 
-    def make_transparent(self):
+    def make_background_transparent(self):
         """Remove button background, border and shadow.
 
         The button remains clickable and any icon/text content stays visible;
@@ -86,16 +90,6 @@ class Btn:
         self._btn.set_style_bg_opa(lv.OPA.TRANSP, 0)
         self._btn.set_style_shadow_width(0, 0)
         self._btn.set_style_border_width(0, 0)
-        return self
-
-    def placeholder(self):
-        """Invisible, non-clickable spacer (transparent body, no touch events).
-
-        Use to occupy space in a flex row when no real button is needed,
-        so sibling buttons stay correctly aligned.
-        """
-        self.make_transparent()
-        self._btn.remove_flag(lv.obj.FLAG.CLICKABLE)
         return self
 
     def set_visible(self, visible):
@@ -107,6 +101,8 @@ class Btn:
         opa = lv.OPA.COVER if visible else lv.OPA.TRANSP
         if self._ico_img is not None:
             self._ico_img.set_style_opa(opa, 0)
+        if self.lbl is not None:
+            self.lbl.set_style_opa(opa, 0)
         if visible:
             self._btn.add_flag(lv.obj.FLAG.CLICKABLE)
         else:

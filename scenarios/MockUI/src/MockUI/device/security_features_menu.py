@@ -6,6 +6,7 @@ class SecurityFeaturesMenu(GenericMenu):
     TITLE_KEY = "MENU_MANAGE_SECURITY"
 
     def get_menu_items(self, t, state):
+
         return [
             MenuItem(BTC_ICONS.CHECK, t("SECURITY_MENU_SELF_TEST"), "self_test"),
             MenuItem(BTC_ICONS.VERIFY, t("SECURITY_MENU_CHANGE_PIN"), "change_pin"),

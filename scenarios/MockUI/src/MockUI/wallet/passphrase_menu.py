@@ -1,5 +1,5 @@
 import lvgl as lv
-from ..basic import TitledScreen, BTN_WIDTH, BTN_HEIGHT, PAD_SIZE
+from ..basic import TitledScreen, BTN_WIDTH, BTN_HEIGHT, SMALL_PAD
 from ..basic.keyboard_manager import Layout
 from ..basic.widgets import flex_col, flex_row, form_label, form_textarea, Btn, ACCEPTED_CHARS
 
@@ -47,7 +47,7 @@ class PassphraseMenu(TitledScreen):
         keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.pa_ta, Layout.FULL, _on_commit, _sanitize_passphrase)
         self.pa_ta.add_event_cb(keyboard_binder, lv.EVENT.CLICKED, None)
 
-        buttons_row = flex_col(self.body, height=lv.pct(50), pad=PAD_SIZE)
+        buttons_row = flex_col(self.body, height=lv.pct(50), pad=SMALL_PAD)
 
         # Clear button
         self.clear_btn = Btn(

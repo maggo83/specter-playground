@@ -2,6 +2,7 @@ from ..basic import ORANGE_HEX, RED_HEX, WHITE_HEX, GenericMenu, TITLE_ROW_HEIGH
 from ..basic.symbol_lib import BTC_ICONS
 from ..basic.keyboard_manager import Layout
 from ..basic.widgets.action_modal import ActionModal
+from ..basic.confirm_modals import confirm_delete_seed
 from ..basic.widgets import Btn, title_textarea, MenuItem
 import lvgl as lv
 
@@ -18,18 +19,18 @@ class SeedPhraseMenu(GenericMenu):
         menu_items.append(MenuItem(BTC_ICONS.VISIBLE, t("SEEDPHRASE_MENU_SHOW"), "show_seedphrase", color=ORANGE_HEX))
 
         pp_label = t("MENU_CHANGE_CLEAR_PASSPHRASE") if state.active_seed.passphrase else t("MENU_SET_PASSPHRASE")
-        menu_items.append(MenuItem(BTC_ICONS.PASSWORD, pp_label, "set_passphrase"))
+        menu_items.append(MenuItem(BTC_ICONS.PASSWORD, pp_label, "set_passphrase", is_submenu=True))
 
         menu_items.append(MenuItem(text=t("SEEDPHRASE_MENU_STORAGE")))
-        menu_items.append(MenuItem(lv.SYMBOL.DOWNLOAD, t("SEEDPHRASE_MENU_STORE_TO") + "...", "store_seedphrase"))
-        menu_items.append(MenuItem(BTC_ICONS.TRASH, t("SEEDPHRASE_MENU_CLEAR_FROM") + "...", "clear_seedphrase", color=RED_HEX))
+        menu_items.append(MenuItem(lv.SYMBOL.DOWNLOAD, t("SEEDPHRASE_MENU_STORE_TO") + "...", "store_seedphrase", is_submenu=True))
+        menu_items.append(MenuItem(BTC_ICONS.TRASH, t("SEEDPHRASE_MENU_CLEAR_FROM") + "...", "clear_seedphrase", color=RED_HEX, is_submenu=True))
 
         menu_items.append(MenuItem(text=t("SEEDPHRASE_MENU_ADVANCED")))
         menu_items.append(MenuItem(BTC_ICONS.SHARED_WALLET, t("SEEDPHRASE_MENU_BIP85"), "derive_bip85"))
 
         # Explore section
         menu_items.append(MenuItem(text=t("SEEDPHRASE_MENU_EXPLORE")))
-        menu_items.append(MenuItem(BTC_ICONS.WALLET, t("SEEDPHRASE_MENU_RELATED_WALLETS"), "related_wallets_for_seed"))
+        menu_items.append(MenuItem(BTC_ICONS.WALLET, t("SEEDPHRASE_MENU_RELATED_WALLETS"), "related_wallets_for_seed", is_submenu=True))
 
         # Sign message (only when signing is possible)
         has_controlled_input = (state.QR_enabled() or state.SD_detected())
@@ -60,7 +61,7 @@ class SeedPhraseMenu(GenericMenu):
             icon=BTC_ICONS.KEY,
             size=(textarea_height, textarea_height),
         )
-        self.icon_btn.make_transparent()
+        self.icon_btn.make_background_transparent()
         self.icon_btn._btn.remove_flag(lv.obj.FLAG.CLICKABLE)
         self.icon_btn.align_to(self.name_textarea, lv.ALIGN.OUT_LEFT_MID, -6, 0)
 
@@ -96,12 +97,6 @@ class SeedPhraseMenu(GenericMenu):
                     self.gui.ui_state.current_menu_id = "main"
                 self.on_navigate(None)
 
-            ActionModal(
-                text=t("MODAL_DELETE_SEED_TEXT") % seed.label,
-                buttons=[
-                    (None,            t("COMMON_CANCEL"), None,    None),
-                    (BTC_ICONS.TRASH, t("COMMON_DELETE"), RED_HEX, _do_delete),
-                ],
-            )
+            confirm_delete_seed(t, seed.label, _do_delete)
 
         self.delete_btn.add_event_cb(_on_delete, lv.EVENT.CLICKED, None)

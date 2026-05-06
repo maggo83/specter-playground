@@ -15,12 +15,13 @@ class Seed:
     """
 
     def __init__(self, label, fingerprint=None, passphrase=None,
-                 passphrase_active=False, is_backed_up=False):
+                 passphrase_active=False, is_backed_up=False, has_been_synched=False):
         self.label = label
         self.fingerprint = fingerprint or self._generate_dummy_fingerprint()
         self.passphrase = passphrase
         self.passphrase_active = passphrase_active
         self.is_backed_up = is_backed_up
+        self.has_been_synched = has_been_synched #used to log synching of default wallet per seed
 
     @staticmethod
     def _generate_dummy_fingerprint():

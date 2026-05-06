@@ -7,16 +7,16 @@
   },
   "translations": {
     "MAIN_MENU_TITLE": "What do you want to do?",
+    "MAIN_MENU_BACKUP_SECTION": "Save data",
+    "MAIN_MENU_BACKUP_SEED": "Backup Seedphrase",
+    "HELP_BACKUP_SEED": "You have at least one seed loaded that is not backed up. Turning off the device without backing up may result in permanent loss of funds for that seed.",
     "MAIN_MENU_SCAN_QR": "Scan QR",
     "HELP_SCAN_QR": "Use the camera to scan a QR code. This can be used to receive transactions, import wallet descriptors, or process PSBTs (Partially Signed Bitcoin Transactions) for signing.",
     "MAIN_MENU_LOAD_FROM_SD": "Load from SD-Card",
-    
     "MAIN_MENU_PROCESS_INPUT": "Process input",
     "MAIN_MENU_SIGN_MESSAGE": "Sign Message",
-
     "MAIN_MENU_SEED_AND_WALLET": "Seed & Wallet",
     "MAIN_MENU_MANAGE_SEED_WALLET": "Manage Seed / Wallet",
-  
     "MAIN_MENU_CONNECT_SECTION": "Connect",
     "MAIN_MENU_CONNECT_COMPANION": "Connect Companion App",
     
@@ -89,6 +89,7 @@
     "BACKUPS_MENU_REMOVE_FROM_SD": "Remove from SD Card",
     "BACKUPS_MENU_NO_SD_DETECTED": "No SD Card detected",
     
+    "SECURITY_MENU_LOCK_DEVICE": "Lock Device",
     "SECURITY_MENU_CHANGE_PIN": "Change PIN",
     "SECURITY_MENU_SELF_TEST": "Run Self-Test",
     "SECURITY_MENU_PIN_RETRIES": "Set allowed PIN retries",

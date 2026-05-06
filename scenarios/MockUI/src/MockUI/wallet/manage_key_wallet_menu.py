@@ -25,19 +25,19 @@ class ManageSeedsAndWalletsMenu(GenericMenu):
 
         # ── Seed / MasterKey section ────────────────────────────────────────
         menu_items.append(MenuItem(text=t("MANAGE_SW_SEED_SECTION_TITLE")))
-        menu_items.append(MenuItem(BTC_ICONS.MNEMONIC, t("MENU_MANAGE_SEED"), "manage_seedphrase"))
+        menu_items.append(MenuItem(BTC_ICONS.MNEMONIC, t("MENU_MANAGE_SEED"), "manage_seedphrase", is_submenu=True))
         if num_seeds > 1:
-            menu_items.append(MenuItem(BTC_ICONS.REFRESH, t("MENU_SWITCH_ADD_SEED"), "switch_add_seeds"))
+            menu_items.append(MenuItem(BTC_ICONS.REFRESH, t("MENU_SWITCH_ADD_SEED"), "switch_add_seeds", is_submenu=True))
         else:
-            menu_items.append(MenuItem(BTC_ICONS.PLUS, t("MENU_ADD_SEED"), "add_seed"))
+            menu_items.append(MenuItem(BTC_ICONS.PLUS, t("MENU_ADD_SEED"), "add_seed", is_submenu=True))
 
         # ── Wallet section ──────────────────────────────────────────────────
         menu_items.append(MenuItem(text=t("MANAGE_SW_WALLET_SECTION_TITLE")))
         if state and state.active_wallet is not None:
-            menu_items.append(MenuItem(BTC_ICONS.WALLET, t("MENU_MANAGE_WALLET"), "manage_wallet"))
+            menu_items.append(MenuItem(BTC_ICONS.WALLET, t("MENU_MANAGE_WALLET"), "manage_wallet", is_submenu=True))
         if num_wallets > 1:
-            menu_items.append(MenuItem(BTC_ICONS.REFRESH, t("MENU_SWITCH_ADD_WALLET"), "switch_add_wallets"))
+            menu_items.append(MenuItem(BTC_ICONS.REFRESH, t("MENU_SWITCH_ADD_WALLET"), "switch_add_wallets", is_submenu=True))
         else:
-            menu_items.append(MenuItem(BTC_ICONS.PLUS, t("MENU_ADD_WALLET"), "add_wallet"))
+            menu_items.append(MenuItem(BTC_ICONS.PLUS, t("MENU_ADD_WALLET"), "add_wallet", is_submenu=True))
 
         return menu_items

@@ -41,15 +41,8 @@ from .ui_consts import (
 from .symbol_lib import BTC_ICONS
 from .widgets.containers import flex_row
 from .widgets.action_modal import ActionModal
-
-# ── Name-label font helpers (ported from TopSelector) ────────────────────────
-_NAME_FONTS = [
-    lv.font_montserrat_28,
-    lv.font_montserrat_22,
-    lv.font_montserrat_16,
-]
-
-# Fixed-width slots (px) used for budget calculation
+from .widgets.labels import best_font_for_name
+from .widgets.icon_widgets import make_icon
 _FP_ICON_W  = BTC_ICON_WIDTH          # RELAY icon
 _FP_TEXT_W  = 40                       # 4-char hex fingerprint
 _PP_ICON_W  = BTC_ICON_WIDTH           # PASSWORD icon (optional)
@@ -61,47 +54,6 @@ _NET_W       = 40                      # network "test"/"sig" text (optional)
 
 # Battery slot width on the right
 _BATT_W = STATUS_BTN_WIDTH             # 60 px
-
-
-def _text_width(text, font):
-    """Advance width of *text* in *font*, including kerning."""
-    n = len(text)
-    total = 0
-    for i in range(n):
-        next_cp = ord(text[i + 1]) if i + 1 < n else 0
-        total += font.get_glyph_width(ord(text[i]), next_cp)
-    return total
-
-
-def _best_font_for_name(text, max_w, max_h):
-    """Return *(font, display_text)* for *text* within max_w × max_h px.
-
-    Tries fonts from largest to smallest for a single-line fit.
-    Falls back to a two-line word split at font_montserrat_16 if needed.
-    """
-    for font in _NAME_FONTS:
-        if font.get_line_height() <= max_h and _text_width(text, font) <= max_w:
-            return font, text
-
-    f16 = lv.font_montserrat_16
-    if f16.get_line_height() * 2 <= max_h:
-        words = text.split()
-        best_split = None
-        best_balance = None
-        for i in range(1, len(words)):
-            left = " ".join(words[:i])
-            right = " ".join(words[i:])
-            lw = _text_width(left, f16)
-            rw = _text_width(right, f16)
-            if lw <= max_w and rw <= max_w:
-                balance = max(lw, rw)
-                if best_balance is None or balance < best_balance:
-                    best_split = left + "\n" + right
-                    best_balance = balance
-        if best_split is not None:
-            return f16, best_split
-
-    return lv.font_montserrat_16, text
 
 
 class TopBar(lv.obj):
@@ -206,7 +158,7 @@ class TopBar(lv.obj):
         wallet_name_w = max(10, (info_w - fixed_seed_w - fixed_wallet_w) // 2) if show_wallet else 0
 
         # ── Seed name ─────────────────────────────────────────────────────────
-        seed_font, seed_text = _best_font_for_name(seed.label, seed_name_w, STATUS_BTN_HEIGHT)
+        seed_font, seed_text = best_font_for_name(seed.label, seed_name_w, STATUS_BTN_HEIGHT)
         seed_lbl = lv.label(self._info_cont)
         seed_lbl.set_text(seed_text)
         seed_lbl.set_style_text_font(seed_font, 0)
@@ -214,9 +166,7 @@ class TopBar(lv.obj):
         seed_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
 
         # ── Fingerprint: RELAY icon + first 4 hex chars ───────────────────────
-        fp_img = lv.image(self._info_cont)
-        fp_img.set_width(_FP_ICON_W)
-        BTC_ICONS.RELAY(WHITE_HEX).add_to_parent(fp_img)
+        fp_img = make_icon(self._info_cont, BTC_ICONS.RELAY, WHITE_HEX)
 
         fp_lbl = lv.label(self._info_cont)
         raw_fp = seed.get_fingerprint()
@@ -229,19 +179,15 @@ class TopBar(lv.obj):
 
         # ── Passphrase indicator (optional, clickable) ────────────────────────
         if show_passphrase:
-            pp_img = lv.image(self._info_cont)
-            pp_img.set_width(_PP_ICON_W)
             pp_active = getattr(seed, "passphrase_active", False)
             pp_color = WHITE_HEX if pp_active else GREY_HEX
-            BTC_ICONS.PASSWORD(pp_color).add_to_parent(pp_img)
+            pp_img = make_icon(self._info_cont, BTC_ICONS.PASSWORD, pp_color)
             pp_img.add_flag(lv.obj.FLAG.CLICKABLE)
             pp_img.add_event_cb(self._toggle_passphrase_cb, lv.EVENT.CLICKED, None)
 
         # ── Backup warning (optional, clickable) ─────────────────────────────
         if show_warning:
-            warn_img = lv.image(self._info_cont)
-            warn_img.set_width(_WARN_ICON_W)
-            BTC_ICONS.ALERT_CIRCLE(ORANGE_HEX).add_to_parent(warn_img)
+            warn_img = make_icon(self._info_cont, BTC_ICONS.ALERT_CIRCLE, ORANGE_HEX)
             warn_img.add_flag(lv.obj.FLAG.CLICKABLE)
             warn_img.add_event_cb(self._backup_warning_cb, lv.EVENT.CLICKED, None)
 
@@ -255,7 +201,7 @@ class TopBar(lv.obj):
             sep_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
 
             # Wallet name
-            wallet_font, wallet_text = _best_font_for_name(
+            wallet_font, wallet_text = best_font_for_name(
                 wallet.label, wallet_name_w, STATUS_BTN_HEIGHT
             )
             wallet_lbl = lv.label(self._info_cont)
@@ -265,8 +211,6 @@ class TopBar(lv.obj):
             wallet_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
 
             # Wallet type icon
-            type_img = lv.image(self._info_cont)
-            type_img.set_width(_TYPE_ICON_W)
             if not wallet.is_standard():
                 type_icon = BTC_ICONS.CONSOLE
             elif wallet.isMultiSig:
@@ -275,7 +219,7 @@ class TopBar(lv.obj):
                 type_icon = BTC_ICONS.KEY
             matched, required = state.signing_match_count(wallet)
             key_color = WHITE_HEX if (required > 0 and matched >= required) else GREY_HEX
-            type_icon(key_color).add_to_parent(type_img)
+            type_img = make_icon(self._info_cont, type_icon, key_color)
 
             # Multisig threshold "X/Y"
             if wallet.isMultiSig and wallet.threshold is not None:

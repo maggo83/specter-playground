@@ -3,7 +3,8 @@ from ..basic.menu import GenericMenu
 from ..basic.titled_screen import TitledScreen
 from ..basic.symbol_lib import BTC_ICONS
 from ..basic.widgets import MenuItem
-from ..basic.ui_consts import BTC_ICON_WIDTH, STATUS_BTN_HEIGHT, GREEN_HEX, WHITE_HEX, GREY_HEX
+from ..basic.ui_consts import BTC_ICON_WIDTH, STATUS_BTN_HEIGHT, GREEN_HEX, WHITE_HEX, GREY_HEX, SMALL_PAD
+from ..basic.widgets.icon_widgets import make_icon
 
 
 class SettingsMenu(GenericMenu):
@@ -29,7 +30,7 @@ class SettingsMenu(GenericMenu):
         batt = Battery(self.title_bar)
         batt.VALUE = getattr(state, "battery_pct", None)
         batt.update()
-        batt.align(lv.ALIGN.RIGHT_MID, -4, 0)
+        batt.align(lv.ALIGN.RIGHT_MID, -SMALL_PAD, 0)
 
         # 3. Menu items below
         menu_items = self.get_menu_items(t, state)
@@ -50,9 +51,7 @@ class SettingsMenu(GenericMenu):
         row.set_style_radius(0, 0)
 
         def _add_ico(icon, color):
-            img = lv.image(row)
-            img.set_width(BTC_ICON_WIDTH)
-            icon(color).add_to_parent(img)
+            img = make_icon(row, icon, color)
             img.add_flag(lv.obj.FLAG.CLICKABLE)
             img.add_event_cb(self._iface_ico_cb, lv.EVENT.CLICKED, None)
 
@@ -76,8 +75,8 @@ class SettingsMenu(GenericMenu):
         lang_label = t("MENU_LANGUAGE") + " (" + lang_code.upper() + ")"
 
         return [
-            MenuItem(BTC_ICONS.SHIELD, t("MENU_SETTINGS_SECURITY"), "manage_security_settings"),
-            MenuItem(BTC_ICONS.FILE, t("MENU_MANAGE_STORAGE"), "manage_storage"),
-            MenuItem(BTC_ICONS.CONTACTS, t("MENU_MANAGE_PREFERENCES"), "manage_preferences"),
-            MenuItem(BTC_ICONS.GLOBE, lang_label, "select_language"),
+            MenuItem(BTC_ICONS.SHIELD, t("MENU_SETTINGS_SECURITY"), "manage_security_settings", is_submenu=True),
+            MenuItem(BTC_ICONS.FILE, t("MENU_MANAGE_STORAGE"), "manage_storage", is_submenu=True),
+            MenuItem(BTC_ICONS.CONTACTS, t("MENU_MANAGE_PREFERENCES"), "manage_preferences", is_submenu=True),
+            MenuItem(BTC_ICONS.GLOBE, lang_label, "select_language", is_submenu=True),
         ]

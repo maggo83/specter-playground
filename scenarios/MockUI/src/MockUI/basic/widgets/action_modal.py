@@ -27,7 +27,7 @@ from .modal_overlay import ModalOverlay
 from .btn import Btn
 from .containers import dialog_card, flex_row
 from .labels import body_label
-from ..ui_consts import MODAL_WIDTH_PCT, MODAL_HEIGHT_PCT, BTN_HEIGHT
+from ..ui_consts import DEFAULT_MODAL_BG_OPA, MODAL_WIDTH_PCT, MODAL_HEIGHT_PCT, BTN_HEIGHT
 
 
 class ActionModal:
@@ -38,10 +38,10 @@ class ActionModal:
         buttons: List of ``(icon, label, color, callback)`` tuples.
                  Each element may be ``None``.  An empty list adds a
                  default "Close" button.
-        bg_opa:  Backdrop opacity (0-255).  Defaults to 180.
+        bg_opa:  Backdrop opacity (0-255).  Defaults to DEFAULT_MODAL_BG_OPA.
     """
 
-    def __init__(self, text, buttons=None, bg_opa=180):
+    def __init__(self, text, buttons=None, bg_opa=DEFAULT_MODAL_BG_OPA):
         if buttons is None or len(buttons) == 0:
             buttons = [(None, "Close", None, None)]
 

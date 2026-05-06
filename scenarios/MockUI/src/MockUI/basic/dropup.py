@@ -3,204 +3,186 @@
 Both classes share the same structure:
   - Rendered above everything via layer_top (ModalOverlay)
   - Anchored at the bottom of the screen (just above the NavigationBar)
-  - Grows upward; scrollable if content exceeds available height
+  - Grow upward; scrollable if content exceeds available height
   - Dismissed by tapping the backdrop, pressing Back, or re-tapping the
     triggering nav button
 
 Public API (used by NavigationBar):
-  dropup.is_open()  → bool
-  dropup.open()     → build and show the panel
+  dropup.get_state() → DropUpState constant
+  dropup.open()      → build and show the panel
   dropup.close()    → destroy the panel
   dropup.toggle()   → open if closed, close if open
   dropup.refresh()  → rebuild card list (called after state changes)
 
-NavigationBar height (STATUS_BAR_PCT% of 800 px = 8% × 800 = 64 px) is
-passed in as *nav_bar_h*.  TopBar occupies the same height at the top.
-The panel fills from the nav bar top edge upward to the top bar bottom edge.
+The panel fills from the nav bar top edge upward.
 """
 
 import lvgl as lv
-from .modal_overlay import ModalOverlay
-from .widgets.action_modal import ActionModal
+from .widgets.modal_overlay import ModalOverlay
+from .widgets.action_modal import DEFAULT_MODAL_BG_OPA, ActionModal
+from .confirm_modals import confirm_delete_seed, confirm_delete_wallet
 from .ui_consts import (
-    BTC_ICON_WIDTH, STATUS_BTN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT,
-    STATUS_BAR_PCT, WHITE_HEX, GREY_HEX, ORANGE_HEX,
-    DIALOG_RADIUS, DIALOG_PAD,
+    BTC_ICON_WIDTH, SMALL_TEXT_FONT, STATUS_BTN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT,
+    STATUS_BAR_PCT, WHITE_HEX, GREY_HEX, ORANGE_HEX, BIG_PAD,
+    DEFAULT_MODAL_BG_OPA, DROPUP_DIVIDER_OPA, ANIM_MS_VERTICAL, TEXT_FONT, SMALL_TEXT_FONT
 )
 from .symbol_lib import BTC_ICONS
-from .widgets.containers import flex_row
+from .widgets.containers import flex_col, flex_row
 from .widgets.btn import Btn
+from .widgets.labels import _make_label, best_font_for_name
+from .widgets.icon_widgets import make_icon
+from .animations import slide_y
+from .specter_gui_base import SpecterGuiMixin
+
 
 # ── Layout constants ──────────────────────────────────────────────────────────
 _NAV_BAR_H = SCREEN_HEIGHT * STATUS_BAR_PCT // 100   # navigation bar height (px)
-_TOP_BAR_H = 0                                        # no top bar
-_PANEL_MAX_H = SCREEN_HEIGHT - _NAV_BAR_H             # max panel height
+_PANEL_MAX_H = SCREEN_HEIGHT - _NAV_BAR_H            # max panel height
 
-_CARD_H = STATUS_BTN_HEIGHT + 2 * DIALOG_PAD + 2   # height per item card (50 + 24 + 2 = 76px)
-_ADD_BTN_H = STATUS_BTN_HEIGHT                       # "Add …" button height
-_PANEL_PAD = 0                                       # panel outer padding
+_CARD_H = STATUS_BTN_HEIGHT + 2 * BIG_PAD + 2   # height per item card
+_ADD_BTN_H = STATUS_BTN_HEIGHT                     # "Add …" button height
 
-# Font helpers (reused from top_bar, inlined here to avoid circular import)
-_NAME_FONTS = [
-    lv.font_montserrat_22,
-    lv.font_montserrat_16,
-]
+_FP_SLOT_W = BTC_ICON_WIDTH + 40   # RELAY icon + 4-char fingerprint label
 
 
-def _best_name_font(text, max_w, max_h):
-    """Return the largest font whose glyph height fits max_h and glyph width fits max_w."""
-    for font in _NAME_FONTS:
-        if font.get_line_height() <= max_h:
-            # approximate: average char width ≈ 10 px for font_22, 8 px for font_16
-            approx_w = len(text) * font.get_glyph_width(ord('A'), 0)
-            if approx_w <= max_w:
-                return font
-    return lv.font_montserrat_16
+class DropUpState:
+    """Valid states for a ``_DropUp`` instance."""
+    CLOSED  = "closed"
+    OPENING = "opening"
+    OPEN    = "open"
+    CLOSING = "closing"
 
 
 # ── Base class ────────────────────────────────────────────────────────────────
 
-class _DropUp:
-    """Abstract base for seed/wallet drop-up overlays."""
+class _DropUp(SpecterGuiMixin):
+    """Abstract base drop-up overlays."""
 
     def __init__(self, gui):
         self.gui = gui
         self._modal = None    # ModalOverlay instance when open
         self._animating = False
-        self._anim_refs = None
+        self._closing = False  # True while close animation is running
+        self._anim = None
 
     # ── Public API ────────────────────────────────────────────────────────────
 
-    def is_open(self):
-        return self._modal is not None
+    def get_state(self):
+        """Return the current drop-up state as a ``DropUpState`` constant."""
+        if self._modal is None:
+            return DropUpState.CLOSED
+        if self._animating:
+            return DropUpState.CLOSING if self._closing else DropUpState.OPENING
+        return DropUpState.OPEN
 
     def open(self):
-        if self._modal is not None or self._animating:
-            return
-        self._modal = ModalOverlay(bg_opa=140)  # semi-transparent dim backdrop
+        state = self.get_state()
+        if state in (DropUpState.OPENING, DropUpState.CLOSING, DropUpState.OPEN):
+            return state
+        self._modal = ModalOverlay(bg_opa=DEFAULT_MODAL_BG_OPA)  # semi-transparent dim backdrop
 
         # Restrict the overlay to the content area only — NavigationBar stays visible.
-        _content_h = SCREEN_HEIGHT - _NAV_BAR_H
-        self._modal.overlay.set_size(SCREEN_WIDTH, _content_h)
+        self._modal.overlay.set_size(SCREEN_WIDTH, _PANEL_MAX_H)
         self._modal.overlay.set_pos(0, 0)
 
-        # Dismiss when tapping the backdrop (outside the panel)
-        self._modal.overlay.add_event_cb(self._backdrop_cb, lv.EVENT.CLICKED, None)
-
-        # Panel: full-width strip anchored at the bottom of the content area.
-        panel_h = self._compute_panel_h()
-        panel_y = _content_h - panel_h
-
-        self._panel = lv.obj(self._modal.overlay)
-        self._panel.set_size(SCREEN_WIDTH, panel_h)
-        self._panel.set_pos(0, panel_y)
-        self._panel.set_style_radius(0, 0)
-        self._panel.set_style_border_width(0, 0)
-        self._panel.set_style_pad_all(0, 0)
-        self._panel.set_style_pad_row(0, 0)
-        self._panel.set_layout(lv.LAYOUT.FLEX)
-        self._panel.set_flex_flow(lv.FLEX_FLOW.COLUMN)
-        self._panel.set_flex_align(
-            lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER
+        self._panel = flex_col(
+            self._modal.overlay,
+            width=SCREEN_WIDTH,
+            height=_PANEL_MAX_H,
+            main_align=lv.FLEX_ALIGN.START,
         )
+        self._panel.set_style_radius(0, 0)
+        self._panel.set_style_pad_row(0, 0)
         self._panel.set_scroll_dir(lv.DIR.VER)
         self._panel.set_scrollbar_mode(lv.SCROLLBAR_MODE.AUTO)
         self._panel.add_event_cb(lambda e: setattr(e, 'stop_bubbling', 1), lv.EVENT.CLICKED, None)
 
-        self._build_cards(self._panel)
-        self._build_add_button(self._panel)
+        self._fill_panel()
 
-        # ── Slide-in animation: panel starts below content, slides up ─────────
-        # panel_y is the final resting y; animate from _content_h down to panel_y
-        self._panel.set_y(_content_h)
+        # ── Slide-in animation ────────────────────────────────────────────────
+        def _on_open_done(anim):
+            self._animating = False
+            self._anim = None
+            self.gui.refresh_ui()
+
+        panel_y = _PANEL_MAX_H - self._compute_panel_h()
+        self._anim = slide_y(self._panel, _PANEL_MAX_H, panel_y, ANIM_MS_VERTICAL, on_done=_on_open_done)
         self._animating = True
-        refs = []
+        self._anim.start()
 
-        cb = lambda anim, v: self._panel.set_y(v)
-        a = lv.anim_t(); a.init()
-        a.set_custom_exec_cb(cb)
-        a.set_values(_content_h, panel_y)
-        a.set_duration(300)
-        a.start()
-        refs.extend([cb, a])
-
-        dropup = self
-
-        def _on_open_done(timer):
-            timer.delete()
-            dropup._animating = False
-            dropup._anim_refs = None
-
-        t = lv.timer_create(_on_open_done, 350, None)
-        refs.extend([_on_open_done, t])
-        self._anim_refs = refs
+        # Dismiss when tapping the backdrop (outside the panel)
+        self._modal.overlay.add_event_cb(self._backdrop_cb, lv.EVENT.CLICKED, None)
+        return self.get_state()
 
     def close(self):
-        if self._modal is None or self._animating:
-            return
+        state = self.get_state()
+        if state in (DropUpState.OPENING, DropUpState.CLOSING, DropUpState.CLOSED):
+            return state  # animation in progress or already closed, do nothing 
         if self._panel is None:
             # Nothing to animate — destroy immediately
             self._modal.close()
             self._modal = None
-            return
+            return self.get_state()
 
-        _content_h = SCREEN_HEIGHT - _NAV_BAR_H
+        _content_h = _PANEL_MAX_H
         panel_y_now = self._panel.get_y()
         panel_y_end = _content_h  # slide off-screen down
 
+        def _on_close_done(anim):
+            self._animating = False
+            self._closing = False
+            self._anim = None
+            self._panel = None
+            self._modal.close()
+            self._modal = None
+            self.gui.refresh_ui()
+
+        self._anim = slide_y(self._panel, panel_y_now, panel_y_end, ANIM_MS_VERTICAL, on_done=_on_close_done)
+        self._closing = True
         self._animating = True
-        refs = []
-        modal = self._modal
-        panel = self._panel
-        dropup = self
-
-        cb = lambda anim, v: panel.set_y(v)
-        a = lv.anim_t(); a.init()
-        a.set_custom_exec_cb(cb)
-        a.set_values(panel_y_now, panel_y_end)
-        a.set_duration(300)
-        a.start()
-        refs.extend([cb, a])
-
-        def _on_close_done(timer):
-            timer.delete()
-            dropup._animating = False
-            dropup._anim_refs = None
-            dropup._panel = None
-            dropup._modal = None
-            try:
-                modal.close()
-            except Exception:
-                pass
-
-        t = lv.timer_create(_on_close_done, 350, None)
-        refs.extend([_on_close_done, t])
-        self._anim_refs = refs
+        self._anim.start()
+        return self.get_state()
 
     def toggle(self):
-        if self._animating:
-            return
-        if self.is_open():
-            self.close()
+        state = self.get_state()
+        if state in (DropUpState.OPENING, DropUpState.CLOSING):
+            return state  # can't change direction mid-animation
+        if state == DropUpState.OPEN:
+            return self.close()
         else:
-            self.open()
+            return self.open()
 
     def refresh(self):
-        """Rebuild cards in place (called after state changes like passphrase toggle)."""
-        if not self.is_open() or self._animating:
+        """Rebuild cards in place (called after state changes)."""
+        if self.get_state() != DropUpState.OPEN:
             return
-        # Remove existing cards from the panel (all children except the add-button)
-        # Simplest: delete all children and rebuild them all (panel layout is FLEX COLUMN)
+        self._fill_panel()
+
+    def _fill_panel(self):
+        """Clear, repopulate, and resize/reposition the panel."""
         while self._panel.get_child_count() > 0:
             self._panel.get_child(0).delete()
-        self._build_cards(self._panel)
-        self._build_add_button(self._panel)
-        # Resize panel in case item count changed
         panel_h = self._compute_panel_h()
-        _content_h = SCREEN_HEIGHT - _NAV_BAR_H
-        panel_y = _content_h - panel_h
+
+        #Create cards/items
+        for item in self._get_items():
+            self._build_card(self._panel, item)
+
+        #Create Add Button
+        row = flex_row(self._panel, width=SCREEN_WIDTH, height=_ADD_BTN_H,
+                       main_align=lv.FLEX_ALIGN.CENTER)
+        btn = Btn(
+            row,
+            icon=BTC_ICONS.PLUS,
+            text=self._add_button_label(),
+            size=(None, _ADD_BTN_H),
+            callback=self._add_cb,
+            font=TEXT_FONT,
+        )
+        btn.make_background_transparent()
+
         self._panel.set_size(SCREEN_WIDTH, panel_h)
-        self._panel.set_pos(0, panel_y)
+        self._panel.set_pos(0, _PANEL_MAX_H - panel_h)
 
     # ── Subclass interface ────────────────────────────────────────────────────
 
@@ -223,39 +205,9 @@ class _DropUp:
     # ── Private helpers ───────────────────────────────────────────────────────
 
     def _compute_panel_h(self):
-        n = len(self._get_items())
         # Exact: pad_row is forced to 0 on the panel, so content = n*_CARD_H + _ADD_BTN_H
-        content_h = n * _CARD_H + _ADD_BTN_H
+        content_h = len(self._get_items()) * _CARD_H + _ADD_BTN_H
         return min(content_h, _PANEL_MAX_H)
-
-    def _build_cards(self, parent):
-        for item in self._get_items():
-            self._build_card(parent, item)
-
-    def _build_add_button(self, parent):
-        label = self._add_button_label()
-        # Full-width transparent lv.button — absorbs dead-area taps so they never
-        # bubble up to the panel (lv.button stops event bubbling by default).
-        # No callback on the outer button: only the inner Btn triggers the add action.
-        outer = lv.button(parent)
-        outer.set_size(SCREEN_WIDTH, _ADD_BTN_H)
-        outer.set_style_bg_opa(lv.OPA.TRANSP, 0)
-        outer.set_style_shadow_width(0, 0)
-        outer.set_style_border_width(0, 0)
-        outer.set_style_pad_all(0, 0)
-        outer.set_scroll_dir(lv.DIR.NONE)
-        outer.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
-        # Content-sized inner button centered in the row — only this fires the add action
-        btn = Btn(
-            outer,
-            icon=BTC_ICONS.PLUS,
-            text=label,
-            size=(None, _ADD_BTN_H),
-            callback=self._add_cb,
-            font=lv.font_montserrat_16,
-        )
-        btn.make_transparent()
-        btn.center()
 
     def _add_cb(self, event=None):
         self.close()
@@ -272,18 +224,17 @@ def _card_row(parent):
         parent,
         width=SCREEN_WIDTH,
         height=_CARD_H,
-        pad=DIALOG_PAD,
+        pad=BIG_PAD,
         main_align=lv.FLEX_ALIGN.START,
     )
     # pad_all also sets pad_column/pad_row, which adds inter-item gaps in flex
     # layout and causes horizontal overflow.  Zero it out explicitly.
     row.set_style_pad_column(0, 0)
-    row.set_style_border_width(0, 0)
     row.set_style_radius(0, 0)
-    # Subtle separator line at the bottom
+    row.set_style_border_width(1, 0)
     row.set_style_border_side(lv.BORDER_SIDE.BOTTOM, 0)
-    row.set_style_border_width(0, 0)
-    row.set_style_border_color(lv.color_hex(0x303030), 0)
+    row.set_style_border_color(WHITE_HEX, 0)
+    row.set_style_border_opa(DROPUP_DIVIDER_OPA, 0)
     row.set_scroll_dir(lv.DIR.NONE)
     row.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
     return row
@@ -295,13 +246,13 @@ class SeedDropUp(_DropUp):
     """Drop-up overlay listing all loaded seeds with passphrase + edit buttons."""
 
     def _get_items(self):
-        return self.gui.specter_state.loaded_seeds
+        return self.state.loaded_seeds
 
     def _add_button_label(self):
-        return self.gui.i18n.t("MENU_ADD_SEED")
+        return self.t("MENU_ADD_SEED")
 
     def _navigate_add(self):
-        self.gui.show_menu("add_seed")
+        self.on_navigate("add_seed")
 
     def _build_card(self, parent, seed):
         row = _card_row(parent)
@@ -311,8 +262,8 @@ class SeedDropUp(_DropUp):
             def _cb(e):
                 if e.get_code() == lv.EVENT.CLICKED:
                     self.close()
-                    self.gui.specter_state.set_active_seed(s)
-                    self.gui.show_menu("manage_seedphrase")
+                    self.state.set_active_seed(s)
+                    self.on_navigate("manage_seedphrase")
             return _cb
         row.add_event_cb(_make_row_cb(seed), lv.EVENT.CLICKED, None)
 
@@ -321,26 +272,47 @@ class SeedDropUp(_DropUp):
         show_warning = not seed.is_backed_up
         name_w = (
             SCREEN_WIDTH
-            - 2 * DIALOG_PAD            # row padding
+            - 2 * BIG_PAD            # row padding
             - _FP_SLOT_W                # RELAY icon + 4-char fp
             - (BTC_ICON_WIDTH if show_passphrase else 0)
             - (BTC_ICON_WIDTH if show_warning else 0)
             - BTC_ICON_WIDTH            # delete button
         )
-        name_font = _best_name_font(seed.label, max(10, name_w), _CARD_H)
-        name_lbl = lv.label(row)
-        name_lbl.set_text(seed.label)
-        name_lbl.set_style_text_font(name_font, 0)
-        name_lbl.set_width(max(10, name_w))
+        name_lbl_w = max(10, name_w)
+        name_font, seed_label = best_font_for_name(seed.label, name_lbl_w, _CARD_H)
+        name_lbl = _make_label(row, seed_label, width=name_lbl_w, font=name_font)
         name_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
+
+        # ── Backup warning (optional, clickable) ──────────────────────────────
+        if show_warning:
+            warn_img = make_icon(row, BTC_ICONS.ALERT_CIRCLE, ORANGE_HEX)
+            warn_img.add_flag(lv.obj.FLAG.CLICKABLE)
+
+            def _make_warn_cb(s):
+                def _cb(e):
+                    if e.get_code() == lv.EVENT.CLICKED:
+                        e.stop_bubbling = 1  # don't trigger row navigation
+                        t = self.t
+
+                        def _mark_backed_up():
+                            s.is_backed_up = True
+                            self.gui.refresh_ui()
+
+                        ActionModal(
+                            text=t("MODAL_BACKUP_WARNING_TEXT"),
+                            buttons=[
+                                (BTC_ICONS.CHECK, t("MODAL_BACKUP_CONFIRMED_BTN"), None, _mark_backed_up),
+                                (None,            t("COMMON_OK"),                  None, None),
+                            ],
+                        )
+                return _cb
+            warn_img.add_event_cb(_make_warn_cb(seed), lv.EVENT.CLICKED, None)
 
         # ── Passphrase indicator (optional, clickable) ────────────────────────
         if show_passphrase:
             pp_active = getattr(seed, "passphrase_active", False)
             pp_color = WHITE_HEX if pp_active else GREY_HEX
-            pp_img = lv.image(row)
-            pp_img.set_width(BTC_ICON_WIDTH)
-            BTC_ICONS.PASSWORD(pp_color).add_to_parent(pp_img)
+            pp_img = make_icon(row, BTC_ICONS.PASSWORD, pp_color)
             pp_img.add_flag(lv.obj.FLAG.CLICKABLE)
 
             # Capture seed in closure
@@ -350,71 +322,31 @@ class SeedDropUp(_DropUp):
                         e.stop_bubbling = 1  # don't trigger row navigation
                         s.passphrase_active = not getattr(s, "passphrase_active", False)
                         # Rebuild drop-up to reflect passphrase state change
-                        self.refresh()
+                        self.gui.refresh_ui()
                 return _cb
             pp_img.add_event_cb(_make_pp_cb(seed), lv.EVENT.CLICKED, None)
 
-        # ── Backup warning (optional, clickable) ──────────────────────────────
-        if show_warning:
-            warn_img = lv.image(row)
-            warn_img.set_width(BTC_ICON_WIDTH)
-            BTC_ICONS.ALERT_CIRCLE(ORANGE_HEX).add_to_parent(warn_img)
-            warn_img.add_flag(lv.obj.FLAG.CLICKABLE)
-
-            def _make_warn_cb(s):
-                def _cb(e):
-                    if e.get_code() == lv.EVENT.CLICKED:
-                        e.stop_bubbling = 1  # don't trigger row navigation
-                        t = self.gui.i18n.t
-
-                        def _mark_backed_up():
-                            s.is_backed_up = True
-                            self.refresh()
-
-                        ActionModal(
-                            text=t("MODAL_BACKUP_WARNING_TEXT"),
-                            buttons=[
-                                (None,           t("COMMON_OK"),                 None, None),
-                                (BTC_ICONS.CHECK, t("MODAL_BACKUP_CONFIRMED_BTN"), None, _mark_backed_up),
-                            ],
-                        )
-                return _cb
-            warn_img.add_event_cb(_make_warn_cb(seed), lv.EVENT.CLICKED, None)
-
         # ── Fingerprint: RELAY icon + first 4 hex chars ───────────────────────
-        fp_img = lv.image(row)
-        fp_img.set_width(BTC_ICON_WIDTH)
-        BTC_ICONS.RELAY(WHITE_HEX).add_to_parent(fp_img)
+        fp_img = make_icon(row, BTC_ICONS.RELAY, WHITE_HEX)
 
-        fp_lbl = lv.label(row)
         raw_fp = seed.get_fingerprint()
-        if raw_fp.startswith("0x") or raw_fp.startswith("0X"):
-            raw_fp = raw_fp[2:]
-        fp_lbl.set_text(raw_fp[:4])
-        fp_lbl.set_style_text_font(lv.font_montserrat_16, 0)
-        fp_lbl.set_width(40)
+        raw_fp = raw_fp[2:] if raw_fp[:2].lower() == "0x" else raw_fp
+        fp_lbl = _make_label(row, raw_fp[:4], width=40, font=SMALL_TEXT_FONT)
         fp_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
 
         # ── Delete button ─────────────────────────────────────────────────────
         def _make_delete_seed_cb(s):
             def _cb(event=None):
-                t = self.gui.i18n.t
+                if event is not None:
+                    event.stop_bubbling = 1
 
                 def _do_delete():
-                    self.gui.specter_state.remove_seed(s)
-                    if not self.gui.specter_state.loaded_seeds:
+                    self.state.remove_seed(s)
+                    if not self.state.loaded_seeds:
                         self.close()
-                        self.gui.show_menu("main")
-                    else:
-                        self.refresh()
-
-                ActionModal(
-                    text=t("MODAL_DELETE_SEED_TEXT") % s.label,
-                    buttons=[
-                        (None,            t("COMMON_CANCEL"), None,    None),
-                        (BTC_ICONS.TRASH, t("COMMON_DELETE"), ORANGE_HEX, _do_delete),
-                    ],
-                )
+                        self.on_navigate("main")
+                    self.gui.refresh_ui()
+                confirm_delete_seed(self.t, s.label, _do_delete)
             return _cb
 
         del_btn = Btn(
@@ -423,11 +355,8 @@ class SeedDropUp(_DropUp):
             size=(BTC_ICON_WIDTH, _CARD_H),
             callback=_make_delete_seed_cb(seed),
         )
-        del_btn.make_transparent()
-        del_btn.add_event_cb(lambda e: setattr(e, 'stop_bubbling', 1), lv.EVENT.CLICKED, None)
+        del_btn.make_background_transparent()
 
-
-_FP_SLOT_W = BTC_ICON_WIDTH + 40   # RELAY icon + 4-char fingerprint label
 
 
 # ── Wallet Drop-Up ────────────────────────────────────────────────────────────
@@ -436,13 +365,13 @@ class WalletDropUp(_DropUp):
     """Drop-up overlay listing all registered wallets with type + edit buttons."""
 
     def _get_items(self):
-        return self.gui.specter_state.registered_wallets
+        return self.state.registered_wallets
 
     def _add_button_label(self):
-        return self.gui.i18n.t("MENU_ADD_WALLET")
+        return self.t("MENU_ADD_WALLET")
 
     def _navigate_add(self):
-        self.gui.show_menu("add_wallet")
+        self.on_navigate("add_wallet")
 
     def _build_card(self, parent, wallet):
         row = _card_row(parent)
@@ -452,13 +381,13 @@ class WalletDropUp(_DropUp):
             def _cb(e):
                 if e.get_code() == lv.EVENT.CLICKED:
                     self.close()
-                    self.gui.specter_state.set_active_wallet(w)
-                    self.gui.show_menu("manage_wallet")
+                    self.state.set_active_wallet(w)
+                    self.on_navigate("manage_wallet")
             return _cb
         row.add_event_cb(_make_row_cb(wallet), lv.EVENT.CLICKED, None)
 
         # ── Wallet type icon ──────────────────────────────────────────────────
-        state = self.gui.specter_state
+        state = self.state
         if not wallet.is_standard():
             type_icon = BTC_ICONS.CONSOLE
         elif wallet.isMultiSig:
@@ -468,80 +397,57 @@ class WalletDropUp(_DropUp):
         matched, required = state.signing_match_count(wallet)
         key_color = WHITE_HEX if (required > 0 and matched >= required) else GREY_HEX
 
-        type_img = lv.image(row)
-        type_img.set_width(BTC_ICON_WIDTH)
-        type_icon(key_color).add_to_parent(type_img)
+        type_img = make_icon(row, type_icon, key_color)
 
         # ── Wallet name ───────────────────────────────────────────────────────
-        show_account = getattr(wallet, "account", 0) != 0
-        show_net = wallet.net != "mainnet"
+        show_account = any(getattr(wallet, "account", 0) != 0 for wallet in state.registered_wallets)
+        show_net = any(wallet.net != "mainnet" for wallet in state.registered_wallets)
         thresh_w = 40 if wallet.isMultiSig and wallet.threshold else 0
         acc_w = 36 if show_account else 0
         net_w = 36 if show_net else 0
         name_w = (
             SCREEN_WIDTH
-            - 2 * DIALOG_PAD
+            - 2 * BIG_PAD
             - BTC_ICON_WIDTH       # type icon
             - thresh_w
             - acc_w
             - net_w
             - BTC_ICON_WIDTH       # delete button
         )
-        name_font = _best_name_font(wallet.label, max(10, name_w), _CARD_H)
-        name_lbl = lv.label(row)
-        name_lbl.set_text(wallet.label)
-        name_lbl.set_style_text_font(name_font, 0)
-        name_lbl.set_width(max(10, name_w))
+        name_lbl_w = max(10, name_w)
+        name_font, wallet_label = best_font_for_name(wallet.label, name_lbl_w, _CARD_H)
+        name_lbl = _make_label(row, wallet_label, width=name_lbl_w, font=name_font)
         name_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
 
         # ── Multisig threshold ────────────────────────────────────────────────
         if wallet.isMultiSig and wallet.threshold is not None:
-            thresh_lbl = lv.label(row)
             n = len(wallet.required_fingerprints)
-            thresh_lbl.set_text(str(wallet.threshold) + "/" + str(n))
-            thresh_lbl.set_style_text_font(lv.font_montserrat_16, 0)
-            thresh_lbl.set_style_text_color(key_color, 0)
-            thresh_lbl.set_width(thresh_w)
+            thresh_lbl = _make_label(row, str(wallet.threshold) + "/" + str(n), width=thresh_w, font=SMALL_TEXT_FONT, color=key_color)
             thresh_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
 
         # ── Account number (optional) ─────────────────────────────────────────
         if show_account:
-            acc_lbl = lv.label(row)
-            acc_lbl.set_text("#" + str(wallet.account))
-            acc_lbl.set_style_text_font(lv.font_montserrat_16, 0)
-            acc_lbl.set_width(acc_w)
+            acc_lbl = _make_label(row, "#" + str(wallet.account), width=acc_w, font=SMALL_TEXT_FONT)
             acc_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
 
         # ── Network (optional) ────────────────────────────────────────────────
         if show_net:
             net_map = {"testnet": "test", "signet": "sig", "mainnet": "main"}
-            net_lbl = lv.label(row)
-            net_lbl.set_text(net_map.get(wallet.net, wallet.net))
-            net_lbl.set_style_text_font(lv.font_montserrat_16, 0)
-            net_lbl.set_width(net_w)
+            net_lbl = _make_label(row, net_map.get(wallet.net, wallet.net), width=net_w, font=SMALL_TEXT_FONT)
             net_lbl.set_long_mode(lv.label.LONG_MODE.CLIP)
 
         # ── Delete button (not shown for default wallet) ──────────────────────
         if not wallet.is_default_wallet():
             def _make_delete_wallet_cb(w):
                 def _cb(event=None):
-                    t = self.gui.i18n.t
+                    if event is not None:
+                        event.stop_bubbling = 1
 
                     def _do_delete():
-                        self.gui.specter_state.remove_wallet(w)
-                        if not self.gui.specter_state.registered_wallets:
-                            self.close()
-                        else:
-                            self.refresh()
+                        self.state.remove_wallet(w)
                         self.gui.refresh_ui()
 
-                    ActionModal(
-                        text=t("MODAL_DELETE_WALLET_TEXT") % w.label,
-                        buttons=[
-                            (None,            t("COMMON_CANCEL"), None,    None),
-                            (BTC_ICONS.TRASH, t("COMMON_DELETE"), ORANGE_HEX, _do_delete),
-                        ],
-                    )
+                    confirm_delete_wallet(self.t, w.label, _do_delete)
                 return _cb
 
             del_btn = Btn(
@@ -550,5 +456,4 @@ class WalletDropUp(_DropUp):
                 size=(BTC_ICON_WIDTH, _CARD_H),
                 callback=_make_delete_wallet_cb(wallet),
             )
-            del_btn.make_transparent()
-            del_btn.add_event_cb(lambda e: setattr(e, 'stop_bubbling', 1), lv.EVENT.CLICKED, None)
+            del_btn.make_background_transparent()

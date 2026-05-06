@@ -27,6 +27,6 @@ class AddWalletMenu(GenericMenu):
 
         # Customize section
         menu_items.append(MenuItem(text=t("ADD_WALLET_CUSTOMIZE")))
-        menu_items.append(MenuItem(BTC_ICONS.CONSOLE, t("ADD_WALLET_CREATE_CUSTOM"), "create_custom_wallet"))
+        menu_items.append(MenuItem(BTC_ICONS.CONSOLE, t("ADD_WALLET_CREATE_CUSTOM"), "create_custom_wallet", is_submenu=True))
 
         return menu_items

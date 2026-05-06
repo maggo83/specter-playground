@@ -1,18 +1,45 @@
 import lvgl as lv
 
+from .ui_consts import STATUS_BAR_PCT, CONTENT_PCT, SCREEN_WIDTH, SCREEN_HEIGHT, ANIM_MS_HORIZONTAL, ANIM_MS_VERTICAL
 from ..stubs import UIState, SpecterState
-from .device_bar import DeviceBar
-from .wallet_bar import WalletBar
+from ..i18n import I18nManager
+from ..tour import GuidedTour
+from .keyboard_manager import KeyboardManager
+from .animations import slide_x, slide_y
+
 from .navigation_bar import NavigationBar
-from .dropup import SeedDropUp, WalletDropUp
+from .dropup import SeedDropUp, WalletDropUp, DropUpState
 from .action_screen import ActionScreen
 from .main_menu import MainMenu
 from .locked_menu import LockedMenu
-from .ui_consts import STATUS_BAR_PCT, CONTENT_PCT, SCREEN_WIDTH, SCREEN_HEIGHT
-
-# ── Animation constants ───────────────────────────────────────────────────────
-ANIM_MS          = 150   # horizontal slide duration (ms)
-ANIM_MS_VERTICAL = 300   # vertical slide duration (ms)
+from ..wallet import (
+    WalletMenu,
+    ConnectWalletsMenu,
+    SwitchAddSeedsMenu,
+    SwitchAddWalletsMenu,
+    AddSeedMenu,
+    AddWalletMenu,
+    SeedPhraseMenu,
+    StoreSeedphraseMenu,
+    ClearSeedphraseMenu,
+    GenerateSeedMenu,
+    PassphraseMenu,
+    ManageSeedsAndWalletsMenu,
+    CreateCustomWalletMenu,
+    ViewSignersScreen,
+    RelatedWalletsForSeedMenu,
+)
+from ..device import (
+    SecuritySettingsMenu,
+    BackupsMenu,
+    FirmwareMenu,
+    InterfacesMenu,
+    StorageMenu,
+    SecurityFeaturesMenu,
+    LanguageMenu,
+    SettingsMenu,
+    PreferencesMenu,
+)
 
 # ── Context sets ─────────────────────────────────────────────────────────────
 # _CTX_*: only the direct nav-bar entry points (for to_ctx_root detection).
@@ -113,37 +140,6 @@ def _transition_type(from_ctx, to_ctx, going_back, going_to_main=False):
     if to_ctx in ("seed", "wallet"):
         return ("v_overlay", "enter")
     return ("h_overlay", "forward")  # fallback: unknown → slide from right
-from ..wallet import (
-    WalletMenu,
-    ConnectWalletsMenu,
-    SwitchAddSeedsMenu,
-    SwitchAddWalletsMenu,
-    AddSeedMenu,
-    AddWalletMenu,
-    SeedPhraseMenu,
-    StoreSeedphraseMenu,
-    ClearSeedphraseMenu,
-    GenerateSeedMenu,
-    PassphraseMenu,
-    ManageSeedsAndWalletsMenu,
-    CreateCustomWalletMenu,
-    ViewSignersScreen,
-    RelatedWalletsForSeedMenu,
-)
-from ..device import (
-    SecuritySettingsMenu,
-    BackupsMenu,
-    FirmwareMenu,
-    InterfacesMenu,
-    StorageMenu,
-    SecurityFeaturesMenu,
-    LanguageMenu,
-    SettingsMenu,
-    PreferencesMenu,
-)
-from ..i18n import I18nManager
-from ..tour import GuidedTour
-from .keyboard_manager import KeyboardManager
 
 
 class SpecterGui(lv.obj):
@@ -170,7 +166,6 @@ class SpecterGui(lv.obj):
         else:
             self.specter_state = SpecterState()
 
-        # optional UIState instance used to track menu history
         if ui_state:
             self.ui_state = ui_state
         else:
@@ -181,8 +176,8 @@ class SpecterGui(lv.obj):
         self._animating = False   # True while a slide animation is running
         self._anim_refs = None    # holds Python callbacks + anim objects alive
 
-        # Navigation bar at bottom (STATUS_BAR_PCT%)
-        self.navigation_bar = NavigationBar(self, height_pct=STATUS_BAR_PCT)
+        # Navigation bar at bottom
+        self.navigation_bar = NavigationBar(self)
         self.navigation_bar.align(lv.ALIGN.BOTTOM_MID, 0, 0)
 
         # Content area fills from top to just above nav bar (CONTENT_PCT%)
@@ -231,9 +226,9 @@ class SpecterGui(lv.obj):
         """Centralized refresh method for all UI components."""
         self.navigation_bar.refresh()
         # Rebuild drop-ups if open (e.g. after passphrase toggle)
-        if hasattr(self, "_seed_dropup") and self._seed_dropup.is_open():
+        if hasattr(self, "_seed_dropup") and self._seed_dropup.get_state() == DropUpState.OPEN:
             self._seed_dropup.refresh()
-        if hasattr(self, "_wallet_dropup") and self._wallet_dropup.is_open():
+        if hasattr(self, "_wallet_dropup") and self._wallet_dropup.get_state() == DropUpState.OPEN:
             self._wallet_dropup.refresh()
 
     def show_menu(self, target_menu_id=None):
@@ -242,12 +237,12 @@ class SpecterGui(lv.obj):
             return
 
         # Close any open drop-up overlays when navigating
-        if hasattr(self, "_seed_dropup") and self._seed_dropup.is_open():
+        if hasattr(self, "_seed_dropup") and self._seed_dropup.get_state() == DropUpState.OPEN:
             self._seed_dropup.close()
-        if hasattr(self, "_wallet_dropup") and self._wallet_dropup.is_open():
+        if hasattr(self, "_wallet_dropup") and self._wallet_dropup.get_state() == DropUpState.OPEN:
             self._wallet_dropup.close()
 
-        going_back = target_menu_id is None
+        going_back = target_menu_id in [None, "back"]
         old_id = self.ui_state.current_menu_id
         old_history = list(self.ui_state.history)
 
@@ -332,9 +327,9 @@ class SpecterGui(lv.obj):
             return
 
         # Close any open drop-ups
-        if hasattr(self, "_seed_dropup") and self._seed_dropup.is_open():
+        if hasattr(self, "_seed_dropup") and self._seed_dropup.get_state() == DropUpState.OPEN:
             self._seed_dropup.close()
-        if hasattr(self, "_wallet_dropup") and self._wallet_dropup.is_open():
+        if hasattr(self, "_wallet_dropup") and self._wallet_dropup.get_state() == DropUpState.OPEN:
             self._wallet_dropup.close()
 
         old_id = from_id
@@ -360,6 +355,8 @@ class SpecterGui(lv.obj):
             current = self.ui_state.current_menu_id
 
         # If the device is locked, always show the locked screen
+        if current == "locked":
+            self.specter_state.lock()
         if self.specter_state.is_locked:
             self.ui_state.clear_history()
             self.ui_state.current_menu_id = "locked"
@@ -459,49 +456,45 @@ class SpecterGui(lv.obj):
         new_screen.set_size(W, content_h)
         old_screen.set_pos(0, 0)
 
+        old_s   = old_screen
+        new_s   = new_screen
+        content = self.content
+        is_vert = anim_type == "v_overlay"
+
+        def _on_done(anim):
+            self._animating = False
+            self._anim_refs = None
+            if is_vert:
+                content.remove_flag(lv.obj.FLAG.OVERFLOW_VISIBLE)
+                content.set_style_bg_opa(lv.OPA.COVER, 0)
+            content.set_layout(lv.LAYOUT.FLEX)
+            content.set_flex_flow(lv.FLEX_FLOW.COLUMN)
+            new_s.set_pos(0, 0)
+            try:
+                old_s.delete()
+            except Exception:
+                pass
+            self.refresh_ui()
+
         self._animating = True
-        refs = []
+        anims = []
 
         # ── H-overlay: only new/old screen moves ─────────────────────────────
         if anim_type == "h_overlay":
             if direction == "forward":
-                new_screen.set_x(W)
-                cb = lambda anim, v: new_screen.set_x(v)
-                a = lv.anim_t(); a.init()
-                a.set_custom_exec_cb(cb); a.set_values(W, 0)
-                a.set_duration(ANIM_MS); a.start()
-                refs.extend([cb, a])
+                anims.append(slide_x(new_screen, W, 0, ANIM_MS_HORIZONTAL, on_done=_on_done))
             else:  # back
-                new_screen.set_x(0)
                 old_screen.move_foreground()  # old must be on top so its slide-out is visible
-                cb = lambda anim, v: old_screen.set_x(v)
-                a = lv.anim_t(); a.init()
-                a.set_custom_exec_cb(cb); a.set_values(0, W)
-                a.set_duration(ANIM_MS); a.start()
-                refs.extend([cb, a])
-            anim_done_ms = ANIM_MS
+                anims.append(slide_x(old_screen, 0, W, ANIM_MS_HORIZONTAL, on_done=_on_done))
 
         # ── H-push: both screens move simultaneously ──────────────────────────
         elif anim_type == "h_push":
             if direction == "enter_device":
-                new_screen.set_x(W)
-                cb_n = lambda anim, v: new_screen.set_x(v)
-                cb_o = lambda anim, v: old_screen.set_x(v)
-                for cb, vs, ve in [(cb_n, W, 0), (cb_o, 0, -W)]:
-                    a = lv.anim_t(); a.init()
-                    a.set_custom_exec_cb(cb); a.set_values(vs, ve)
-                    a.set_duration(ANIM_MS); a.start()
-                    refs.extend([cb, a])
+                anims.append(slide_x(new_screen, W, 0, ANIM_MS_HORIZONTAL))
+                anims.append(slide_x(old_screen, 0, -W, ANIM_MS_HORIZONTAL, on_done=_on_done))
             else:  # exit_device
-                new_screen.set_x(-W)
-                cb_n = lambda anim, v: new_screen.set_x(v)
-                cb_o = lambda anim, v: old_screen.set_x(v)
-                for cb, vs, ve in [(cb_n, -W, 0), (cb_o, 0, W)]:
-                    a = lv.anim_t(); a.init()
-                    a.set_custom_exec_cb(cb); a.set_values(vs, ve)
-                    a.set_duration(ANIM_MS); a.start()
-                    refs.extend([cb, a])
-            anim_done_ms = ANIM_MS
+                anims.append(slide_x(new_screen, -W, 0, ANIM_MS_HORIZONTAL))
+                anims.append(slide_x(old_screen, 0, W, ANIM_MS_HORIZONTAL, on_done=_on_done))
 
         # ── V-overlay: vertical slide; nav bar always stays on top ────────────
         else:  # v_overlay
@@ -514,48 +507,13 @@ class SpecterGui(lv.obj):
 
             if direction == "enter":
                 # New slides up from below; old stays
-                new_screen.set_y(content_h)
-                cb = lambda anim, v: new_screen.set_y(v)
-                a = lv.anim_t(); a.init()
-                a.set_custom_exec_cb(cb)
-                a.set_values(content_h, 0)
-                a.set_duration(ANIM_MS_VERTICAL); a.start()
-                refs.extend([cb, a])
+                anims.append(slide_y(new_screen, content_h, 0, ANIM_MS_VERTICAL, on_done=_on_done))
             else:  # exit
                 # Old slides down to reveal new which is already in place
                 new_screen.set_y(0)
                 old_screen.move_foreground()  # old must cover new while sliding away
-                cb = lambda anim, v: old_screen.set_y(v)
-                a = lv.anim_t(); a.init()
-                a.set_custom_exec_cb(cb)
-                a.set_values(0, content_h)
-                a.set_duration(ANIM_MS_VERTICAL); a.start()
-                refs.extend([cb, a])
-            anim_done_ms = ANIM_MS_VERTICAL
+                anims.append(slide_y(old_screen, 0, content_h, ANIM_MS_VERTICAL, on_done=_on_done))
 
-        # ── Cleanup timer ─────────────────────────────────────────────────────
-        old_s   = old_screen
-        new_s   = new_screen
-        content = self.content
-        gui     = self
-        is_vert = anim_type == "v_overlay"
-
-        def _on_done(timer):
-            timer.delete()
-            gui._animating = False
-            gui._anim_refs = None
-            if is_vert:
-                content.remove_flag(lv.obj.FLAG.OVERFLOW_VISIBLE)
-                content.set_style_bg_opa(lv.OPA.COVER, 0)
-            content.set_layout(lv.LAYOUT.FLEX)
-            content.set_flex_flow(lv.FLEX_FLOW.COLUMN)
-            new_s.set_pos(0, 0)
-            try:
-                old_s.delete()
-            except Exception:
-                pass
-            gui.refresh_ui()
-
-        t = lv.timer_create(_on_done, anim_done_ms + 50, None)
-        refs.extend([_on_done, t])
-        self._anim_refs = refs
+        self._anim_refs = anims
+        for a in anims:
+            a.start()

@@ -1,5 +1,6 @@
 import lvgl as lv
 from .ui_consts import BTC_ICON_WIDTH, GREEN_HEX, WHITE_HEX, SCREEN_WIDTH
+from .widgets.icon_widgets import make_icon
 from .symbol_lib import BTC_ICONS, Icon
 from ..stubs import Wallet
 
@@ -178,9 +179,7 @@ class WalletBar(lv.obj):
                 lbl.add_event_cb(click_cb, lv.EVENT.CLICKED, None)
             return lbl
         elif item_type == "icon":
-            img = lv.image(parent)
-            img.set_width(width)
-            item_data.add_to_parent(img)
+            img = make_icon(parent, item_data, width=width)
             if click_cb:
                 img.add_flag(lv.obj.FLAG.CLICKABLE)
                 img.add_event_cb(click_cb, lv.EVENT.CLICKED, None)

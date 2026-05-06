@@ -1,7 +1,8 @@
-from ..basic import RED_HEX, WHITE_HEX, GenericMenu, RED, ORANGE, TITLE_ROW_HEIGHT
+from ..basic import RED_HEX, WHITE_HEX, GenericMenu, TITLE_ROW_HEIGHT
 from ..basic.symbol_lib import BTC_ICONS
 from ..basic.keyboard_manager import Layout
 from ..basic.widgets.action_modal import ActionModal
+from ..basic.confirm_modals import confirm_delete_wallet
 from ..basic.widgets import Btn, title_textarea, MenuItem
 from ..basic.ui_consts import BTN_HEIGHT, BTN_WIDTH
 import lvgl as lv
@@ -18,7 +19,7 @@ class WalletMenu(GenericMenu):
         menu_items.append(MenuItem(text=t("WALLET_MENU_EXPLORE")))
         menu_items.append(MenuItem(BTC_ICONS.MENU, t("WALLET_MENU_VIEW_ADDRESSES"), "view_addresses"))
         if (state.active_wallet and state.active_wallet.isMultiSig):
-            menu_items.append(MenuItem(BTC_ICONS.ADDRESS_BOOK, t("WALLET_MENU_VIEW_SIGNERS"), "view_signers"))
+            menu_items.append(MenuItem(BTC_ICONS.ADDRESS_BOOK, t("WALLET_MENU_VIEW_SIGNERS"), "view_signers", is_submenu=True))
 
         menu_items.append(MenuItem(text=t("WALLET_MENU_MANAGE")))
         menu_items.append(MenuItem(BTC_ICONS.CONSOLE, t("WALLET_MENU_MANAGE_DESCRIPTOR"), "manage_wallet_descriptor"))
@@ -45,7 +46,7 @@ class WalletMenu(GenericMenu):
                 icon=BTC_ICONS.WALLET,
                 size=(title_h, title_h),
             )
-            self.icon_btn.make_transparent()
+            self.icon_btn.make_background_transparent()
             self.icon_btn._btn.remove_flag(lv.obj.FLAG.CLICKABLE)
             self.icon_btn.align_to(self.title, lv.ALIGN.OUT_LEFT_MID, -6, 0)
             self._add_account_row(t, state)
@@ -66,7 +67,7 @@ class WalletMenu(GenericMenu):
             icon=BTC_ICONS.WALLET,
             size=(textarea_height, textarea_height),
         )
-        self.icon_btn.make_transparent()
+        self.icon_btn.make_background_transparent()
         self.icon_btn._btn.remove_flag(lv.obj.FLAG.CLICKABLE)
         self.icon_btn.align_to(self.name_textarea, lv.ALIGN.OUT_LEFT_MID, -6, 0)
 
@@ -101,13 +102,7 @@ class WalletMenu(GenericMenu):
                     self.gui.ui_state.current_menu_id = "main"
                 self.on_navigate(None)
 
-            ActionModal(
-                text=t("MODAL_DELETE_WALLET_TEXT") % wallet.label,
-                buttons=[
-                    (None,            t("COMMON_CANCEL"), None,    None),
-                    (BTC_ICONS.TRASH, t("COMMON_DELETE"), RED_HEX, _do_delete),
-                ],
-            )
+            confirm_delete_wallet(t, wallet.label, _do_delete)
 
         self.delete_btn.add_event_cb(_on_delete, lv.EVENT.CLICKED, None)
 

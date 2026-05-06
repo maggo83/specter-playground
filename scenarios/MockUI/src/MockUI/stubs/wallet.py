@@ -15,12 +15,12 @@ class Wallet:
         isMultiSig: boolean flag indicating multisig wallet
         required_fingerprints: list of key fingerprints needed for signing
         threshold: multisig m-of-n (m value); None for singlesig
-        has_been_exported: whether this wallet has been exported to a companion app
+        has_been_synched: whether this wallet has been synced with a companion app
     """
 
     def __init__(self, label, descriptor=None, isMultiSig=False, net="mainnet",
                  required_fingerprints=None, threshold=None,
-                 has_been_exported=False, account=0):
+                 has_been_synched=False, account=0):
         self.label = label
         self.descriptor = descriptor
         self.isMultiSig = isMultiSig
@@ -31,7 +31,7 @@ class Wallet:
 
         # True when wallet was imported from companion app (QR/SD) or
         # explicitly exported via Connect Companion App flow.
-        self.has_been_exported = has_been_exported
+        self.has_been_synched = has_been_synched
         self.account = account
 
     def is_standard(self):

@@ -1,6 +1,6 @@
 # MockUI/__init__.py
-from .basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, PAD_SIZE, SWITCH_HEIGHT, SWITCH_WIDTH, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH, ONE_LETTER_SYMBOL_WIDTH, TWO_LETTER_SYMBOL_WIDTH, THREE_LETTER_SYMBOL_WIDTH, GREEN, ORANGE, RED
-from .basic import MainMenu, LockedMenu, DeviceBar, WalletBar, ActionScreen, GenericMenu
+from .basic import BTN_HEIGHT, BTN_WIDTH, MENU_PCT, SMALL_PAD, SWITCH_HEIGHT, SWITCH_WIDTH, STATUS_BTN_HEIGHT, STATUS_BTN_WIDTH, ONE_LETTER_SYMBOL_WIDTH, TWO_LETTER_SYMBOL_WIDTH, THREE_LETTER_SYMBOL_WIDTH, GREEN, ORANGE, RED
+from .basic import MainMenu, LockedMenu, WalletBar, ActionScreen, GenericMenu
 from .basic import SpecterGui
 from .tour import UIExplainer, GuidedTour
 
@@ -31,7 +31,7 @@ from .tour import GuidedTour
 __all__ = [
     "BTN_HEIGHT", "BTN_WIDTH",
     "MENU_PCT",
-    "PAD_SIZE",
+    "SMALL_PAD",
     "SWITCH_HEIGHT", "SWITCH_WIDTH",
     "STATUS_BTN_HEIGHT", "STATUS_BTN_WIDTH",
     "ONE_LETTER_SYMBOL_WIDTH", "TWO_LETTER_SYMBOL_WIDTH", "THREE_LETTER_SYMBOL_WIDTH",

@@ -1,5 +1,5 @@
 import lvgl as lv
-
+from .ui_consts import TEXT_FONT
 
 class Layout:
     ALNUM = 0
@@ -9,8 +9,8 @@ class Layout:
 class KeyboardManager:
     """Shared on-screen keyboard controller for MockUI screens."""
 
-    def __init__(self, nav_controller):
-        self.gui = nav_controller
+    def __init__(self, gui):
+        self.gui = gui
 
         self.keyboard = None
         self._reset_internals()
@@ -69,7 +69,7 @@ class KeyboardManager:
 
         self.keyboard.remove_flag(lv.obj.FLAG.HIDDEN)
         self.keyboard.set_textarea(textarea)
-        self.keyboard.move_foreground()  # must render above nav bar
+        self.keyboard.move_foreground()  # must render above everything else
 
         #Do this last to mark binding is complete
         self.textarea = textarea
@@ -112,7 +112,7 @@ class KeyboardManager:
 
         self.keyboard = lv.keyboard(self.gui)
         self.keyboard.add_flag(lv.obj.FLAG.HIDDEN)
-        self.keyboard.set_style_text_font(lv.font_montserrat_22, lv.PART.ITEMS)
+        self.keyboard.set_style_text_font(TEXT_FONT, lv.PART.ITEMS)
         self.keyboard.add_event_cb(self._commit, lv.EVENT.READY, None)
         self.keyboard.add_event_cb(self._cancel, lv.EVENT.CANCEL, None)
 
@@ -218,12 +218,10 @@ class KeyboardManager:
         )
         ctrl_special = (
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1,
-            1, 3, 1, 1, 1,
+            1, 1, 2, 1, 1, 1, 1
         )
         map_special = (
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "\n",
-            "_", "-", lv.SYMBOL.BACKSPACE, lv.SYMBOL.LEFT, lv.SYMBOL.RIGHT, "\n",
-            "ABC", " ", lv.SYMBOL.LEFT, lv.SYMBOL.RIGHT, lv.SYMBOL.OK, "",
+            "ABC", "abc", " ", lv.SYMBOL.LEFT, lv.SYMBOL.RIGHT, lv.SYMBOL.OK, lv.SYMBOL.BACKSPACE, "",
         )
         return map_lower, map_upper, map_special, ctrl_text, ctrl_special

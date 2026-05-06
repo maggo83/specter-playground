@@ -1,7 +1,7 @@
 
 import lvgl as lv
 import urandom
-from ..basic import TitledScreen, BTN_HEIGHT, BTN_WIDTH, SWITCH_HEIGHT, SWITCH_WIDTH
+from ..basic import TitledScreen, BTN_HEIGHT, BTN_WIDTH, SWITCH_HEIGHT, SWITCH_WIDTH, SMALL_PAD
 from ..basic.keyboard_manager import Layout
 from ..basic.widgets import Btn, form_label, form_textarea, flex_row
 from ..stubs import Wallet
@@ -97,7 +97,7 @@ class CreateCustomWalletMenu(TitledScreen):
 
         spin_row = flex_row(acc_row, height=ROW_H - 4, pad=0)
         spin_row.set_width(lv.SIZE_CONTENT)
-        spin_row.set_style_pad_column(4, 0)
+        spin_row.set_style_pad_column(SMALL_PAD, 0)
 
         btn_sz = ROW_H - 14
         dec_btn = lv.button(spin_row)
@@ -144,7 +144,7 @@ class CreateCustomWalletMenu(TitledScreen):
     # ── helpers ──────────────────────────────────────────────────────
 
     def _make_row(self, height):
-        row = flex_row(self.body, height=height, pad=4, main_align=lv.FLEX_ALIGN.SPACE_BETWEEN)
+        row = flex_row(self.body, height=height, pad=SMALL_PAD, main_align=lv.FLEX_ALIGN.SPACE_BETWEEN)
         row.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
         return row
 

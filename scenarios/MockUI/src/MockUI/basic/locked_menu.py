@@ -2,7 +2,7 @@ import lvgl as lv
 import rng  # TODO: clarify if this should be encapsulated in a general HW/GUI interface
 from .titled_screen import TitledScreen
 from .symbol_lib import BTC_ICONS
-from .ui_consts import PIN_BTN_WIDTH, PIN_BTN_HEIGHT
+from .ui_consts import PIN_BTN_WIDTH, PIN_BTN_HEIGHT, TITLE_FONT, TEXT_FONT, SMALL_TEXT_FONT, SCREEN_WIDTH
 from .widgets.btn import Btn
 from .widgets.containers import flex_row
 from .widgets.labels import body_label
@@ -49,7 +49,7 @@ class LockedMenu(TitledScreen):
         super().__init__(parent.i18n.t("LOCKED_MENU_TITLE"), parent)
 
         self.pin_buf = ""
-        t = parent.i18n.t
+        t = self.t
 
         self.body.set_layout(lv.LAYOUT.FLEX)
         self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
@@ -59,14 +59,14 @@ class LockedMenu(TitledScreen):
 
         # Firmware version – shown as a subtitle directly under the title bar,
         # inside the TITLE_PADDING gap so it doesn't push body content down.
-        fw_ver = body_label(self, t("LOCKED_MENU_FW_VERSION") + str(self.state.fw_version), font=lv.font_montserrat_16)
+        fw_ver = body_label(self, t("LOCKED_MENU_FW_VERSION") + str(self.state.fw_version), font=SMALL_TEXT_FONT)
         fw_ver.align_to(self.title_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 1)
 
         # Instruction label
-        instr = body_label(self.body, t("LOCKED_MENU_ENTER_PIN"), font=lv.font_montserrat_28, width=320)
+        instr = body_label(self.body, t("LOCKED_MENU_ENTER_PIN"), font=TITLE_FONT, width=int(4*SCREEN_WIDTH/5))
 
         # masked PIN display
-        self.mask_lbl = body_label(self.body, "", font=lv.font_montserrat_28, width=320)
+        self.mask_lbl = body_label(self.body, "", font=TITLE_FONT, width=int(4*SCREEN_WIDTH/5))
 
         # keypad layout (3x4): digits in randomised order, Del, and OK
         chars = list("0123456789")
@@ -106,7 +106,7 @@ class LockedMenu(TitledScreen):
                         row_cont,
                         text=k,
                         size=(PIN_BTN_WIDTH, PIN_BTN_HEIGHT),
-                        font=lv.font_montserrat_28,
+                        font=TITLE_FONT,
                         callback=lambda e, d=k: self._on_digit(e, d),
                     )
 
@@ -117,7 +117,7 @@ class LockedMenu(TitledScreen):
         if e.get_code() != lv.EVENT.CLICKED:
             return
         # append up to 8 digits
-        if len(self.pin_buf) >= 8:
+        if len(self.pin_buf) >= 8: #TODO: replace by call to HW/backend for max pin length
             return
         self.pin_buf += d
         self._update_mask()
@@ -139,15 +139,7 @@ class LockedMenu(TitledScreen):
         if unlocked:
             # reset UI history and show main menu
             self.gui.ui_state.clear_history()
-            # Ensure state updated
-            self.state.is_locked = False
-            # load main menu fresh
-            self.gui.ui_state.current_menu_id = "main"
-            # delete current and create main menu
-            if self.gui.current_screen:
-                self.gui.current_screen.delete()
-            self.gui.current_screen = None
-            self.on_navigate(None)
+            self.on_navigate("main")
         else:
             # clear buffer and indicate failure (simple UX)
             self.pin_buf = ""

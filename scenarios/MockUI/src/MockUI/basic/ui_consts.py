@@ -14,16 +14,21 @@ BACK_BTN_HEIGHT = const(70)      # back button height (px)
 BACK_BTN_WIDTH = const(48)       # back button width (px)
 MENU_PCT = const(100)
 TITLE_ROW_HEIGHT = const(60)     # fixed height reserved for the title + back-btn row
+TITLE_TA_WIDTH = const(270)      # width of editable title text area (px)
 TITLE_PADDING = const(15)        # gap between title row and button container
 STATUS_BTN_HEIGHT = const(50)    # status bar button height (was 30)
 STATUS_BTN_WIDTH = const(60)     # status bar button width  (was 40)
 SWITCH_HEIGHT = const(82)        # toggle switch height (was 55)
 SWITCH_WIDTH = const(45)         # toggle switch width  (was 30)
-PAD_SIZE = const(5)
+
+SMALL_PAD = const(4)
+PAD = const(8)
+BIG_PAD = const(12)
 
 # --- Status bar / content area layout ---
 STATUS_BAR_PCT = const(8)        # navigation bar (bottom), % of screen height
 CONTENT_PCT = const(92)          # 100 - STATUS_BAR_PCT (no top bar)
+BATTERY_OFFSET_X = const(-10)     # battery widget offset from right corner (px)
 
 # --- Navigation history ---
 MAX_HISTORY_DEPTH = const(10)      # maximum number of entries in the back-navigation stack
@@ -39,16 +44,27 @@ THREE_LETTER_SYMBOL_WIDTH = const(40) # status bar 3-letter label (was 27)
 MENU_TITLE_FONT_SIZE = const(24)  # screen/menu title font
 MENU_ITEM_FONT_SIZE = const(20)   # menu item labels and status bar labels
 
-# Modal/popup dimensions (percentage of screen)
-MODAL_WIDTH_PCT = const(75)
-MODAL_HEIGHT_PCT = const(75)
+# Modal/popup 
+MODAL_WIDTH_PCT = const(75)  # width of modals as percentage of screen width
+MODAL_HEIGHT_PCT = const(75) # height of modals as percentage of screen height
 DIALOG_RADIUS = const(8)     # corner radius for dialog cards
-DIALOG_PAD = const(12)       # inner padding for dialog cards
+DEFAULT_MODAL_BG_OPA = const(180)  # default backdrop opacity for modals (0-255, ~70% = 180)
+
+# DropUp style
+DROPUP_DIVIDER_OPA = const(200)  # opacity of divider line between dropup items (0-255, ~80% = 200)
 
 # UIExplainer dimensions and style
 EXPLAINER_WIDTH_PCT = const(70)   # Width of explainer text box (percentage of screen)
 EXPLAINER_HEIGHT_PCT = const(40)  # Height of explainer text box (percentage of screen)
-EXPLAINER_OVERLAY_OPA = const(200)  # Opacity of dim overlay (0-255, ~80% = 200)
+
+# Animation constants
+ANIM_MS_HORIZONTAL = const(150)   # horizontal slide duration (ms)
+ANIM_MS_VERTICAL = const(300)   # vertical slide duration (ms)
+
+# Fonts
+TITLE_FONT = lv.font_montserrat_28
+TEXT_FONT = lv.font_montserrat_22
+SMALL_TEXT_FONT = lv.font_montserrat_16
 
 GREEN = const("#00D100")
 GREEN_HEX = lv.color_hex(0x00D100)
@@ -62,3 +78,27 @@ GREY = const("#606060")
 GREY_HEX = lv.color_hex(0x606060)
 BLACK = const("#000000")
 BLACK_HEX = lv.color_hex(0x000000)
+
+def to_lv_color(color):
+    """Return *color* as an ``lv.color_t``.
+
+    Accepts either an ``lv.color_t`` object or a hex string
+    (``"0xRRGGBB"`` or ``"#RRGGBB"``).
+    """
+    if isinstance(color, str):
+        val = int(color[1:], 16) if color.startswith("#") else int(color, 16)
+        return lv.color_hex(val)
+    return color
+
+
+def to_hex_str(color):
+    """Return *color* as a ``"0xRRGGBB"`` hex string.
+
+    Accepts either an ``lv.color_t`` object or a hex string
+    (``"0xRRGGBB"`` or ``"#RRGGBB"``).
+    """
+    if isinstance(color, str):
+        val = int(color[1:], 16) if color.startswith("#") else int(color, 16)
+        return "0x{:06X}".format(val)
+    c32 = lv.color_to32(color)
+    return "0x{:02X}{:02X}{:02X}".format(c32.ch.red, c32.ch.green, c32.ch.blue)
