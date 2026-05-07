@@ -16,7 +16,7 @@ class SettingsMenu(GenericMenu):
         TitledScreen.__init__(self, "", parent)
 
         t = self.i18n.t
-        state = self.state
+        state = self.device_state
 
         self.body.set_layout(lv.LAYOUT.FLEX)
         self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
@@ -27,10 +27,10 @@ class SettingsMenu(GenericMenu):
 
         # 2. Battery in title bar top-right
         from ..stubs.battery import Battery
-        batt = Battery(self.title_bar)
-        batt.VALUE = getattr(state, "battery_pct", None)
-        batt.update()
-        batt.align(lv.ALIGN.RIGHT_MID, -SMALL_PAD, 0)
+        self.batt = Battery(self.title_bar)
+        self.batt.VALUE = getattr(state, "battery_pct", None)
+        self.batt.update()
+        self.batt.align(lv.ALIGN.RIGHT_MID, -SMALL_PAD, 0)
 
         # 3. Menu items below
         menu_items = self.get_menu_items(t, state)

@@ -8,34 +8,143 @@ simulator environment.
 """
 
 import json
-
+from micropython import const
+from ..basic.animations import GUIAnimations
 from ..basic.ui_consts import MAX_HISTORY_DEPTH
 
 CONFIG_FILE = "/flash/ui_state_config.json"
 
+_MENU_CTX_MAIN   = const(0)
+_MENU_CTX_DEVICE = const(1)
+_MENU_CTX_SEED   = const(2)
+_MENU_CTX_WALLET = const(3)
+
+_CTX_ROOTS_MAIN      = frozenset(["main"])
+_CTX_ROOTS_DEVICE    = frozenset(["manage_settings"])
+_CTX_ROOTS_SEED      = frozenset(["manage_seedphrase", "add_seed"])
+_CTX_ROOTS_WALLET    = frozenset(["manage_wallet", "add_wallet"])
+
+class Context:
+    MAIN   = _MENU_CTX_MAIN
+    DEVICE = _MENU_CTX_DEVICE
+    SEED   = _MENU_CTX_SEED
+    WALLET = _MENU_CTX_WALLET
+
+
+def _infer_context(menu_id):
+    if menu_id in _CTX_ROOTS_DEVICE:
+        return Context.DEVICE
+    if menu_id in _CTX_ROOTS_SEED:
+        return Context.SEED
+    if menu_id in _CTX_ROOTS_WALLET:
+        return Context.WALLET
+    if menu_id in _CTX_ROOTS_MAIN:
+        return Context.MAIN
+    return None
 
 class UIState:
-    """Small helper to track UI-level state.
+    class Snapshot:
+        def __init__(self, menu_id, context=None, seed=None, wallet=None, out_anim=None):
+            self.menu_id = menu_id
+            self.context = context
+            self.seed = seed
+            self.wallet = wallet
+            self.anim = out_anim
 
-    Attributes are intentionally public and mutable for simplicity in the
-    mock environment.
-    """
+    def _set_to_main(self):
+        self.current_menu_id = "main"
+        self.active_context = Context.MAIN
+        self.active_seed = None
+        self.active_wallet = None
 
     def __init__(self):
-        # current visible menu id (string)
-        self.current_menu_id = "main"
-
-        # stack of previous menu ids (LIFO)
+        # stack of previous Snapshots (LIFO)
         self.history = []
 
-        # modal currently open (string name) or None
-        self.modal = None
+        self._set_to_main()
+        self.are_animations_enabled = True
 
         # Tour state - loaded from config file
         self._run_tour_on_startup = self._load_tour_state()
 
+    # Active selection helpers
+    def set_active_seed(self, seed):
+        self.active_seed = seed
+
+    def set_active_wallet(self, wallet):
+        self.active_wallet = wallet
+
+    # Navigation helpers
+    def push_menu(self, menu_id):
+        #Infer context switches and animations and store in history for backward navigation
+        if menu_id == self.current_menu_id:
+            return None # already on this menu — refresh only, don't grow history
+        
+        if len(self.history) >= MAX_HISTORY_DEPTH:
+            self.history.pop(0)  # drop oldest before appending to stay within cap
+
+        from_ctx = self.active_context
+        to_ctx = _infer_context(menu_id) or from_ctx  # default to same context if unknown
+        out_anim = self.forward_transition_type(from_ctx, to_ctx)
+
+        self.history.append(UIState.Snapshot(
+            self.current_menu_id,
+            context=from_ctx,
+            seed=self.active_seed,
+            wallet=self.active_wallet,
+            out_anim=out_anim
+        ))
+        self.active_context = to_ctx
+        self.current_menu_id = menu_id
+        return out_anim
+
+    def pop_menu(self):
+        if self.history:
+            snap = self.history.pop()
+            self.current_menu_id = snap.menu_id
+            self.active_context = snap.context
+            self.active_seed = snap.seed
+            self.active_wallet = snap.wallet
+            in_anim = self.backward_transition_type(snap.anim)
+            return in_anim
+        
+        # e.g. if pressing "back" often after history got truncated by MAX_HISTORY_DEPTH
+        self._set_to_main()
+        return None
+
+    def forward_transition_type(self, from_ctx, to_ctx):
+        # Forward navigation — animation type determined by destination
+        if from_ctx == to_ctx:
+            return GUIAnimations.horizontal_slide_in
+        if to_ctx == Context.DEVICE:
+            return GUIAnimations.horizontal_push_in
+        if to_ctx in (Context.SEED, Context.WALLET):
+            return GUIAnimations.vertical_slide_in
+        return None  # fallback: unknown → just appear, no animation
+
+
+    def backward_transition_type(self, forward_transition_type):
+        # Backward navigation — reverse of forward animation
+        if forward_transition_type == GUIAnimations.horizontal_slide_in:
+            return GUIAnimations.horizontal_slide_out
+        if forward_transition_type == GUIAnimations.horizontal_push_in:
+            return GUIAnimations.horizontal_push_out
+        if forward_transition_type == GUIAnimations.vertical_slide_in:
+            return GUIAnimations.vertical_slide_out
+        return None  # fallback: just disappear, no animation
+
+
+    def clear_history(self):
+        if len(self.history) > 0 and self.current_menu_id != "main":
+            anim = self.backward_transition_type(self.forward_transition_type(Context.MAIN, self.active_context))
+        else:
+            anim = None
+        self.history.clear()
+        self._set_to_main()
+        return anim
+
     @property
-    def run_tour_on_startup(self):
+    def is_run_tour_on_startup(self):
         """Whether the guided tour should run on startup."""
         return self._run_tour_on_startup
     
@@ -44,7 +153,7 @@ class UIState:
         self._run_tour_on_startup = False
         self._save_tour_state()
     
-    def reset_tour(self):
+    def reset_tour_completed(self):
         """Reset tour state to run again on next startup (for testing)."""
         self._run_tour_on_startup = True
         self._save_tour_state()
@@ -64,45 +173,3 @@ class UIState:
         config = {"tour_completed": not self._run_tour_on_startup}
         with open(CONFIG_FILE, "w") as f:
             json.dump(config, f)
-
-    # Navigation helpers
-    def push_menu(self, menu_id, seed=None, wallet=None):
-        """Navigate to a new menu and push the old one on the history stack.
-
-        seed and wallet are the SpecterState snapshots *at the time of
-        navigation* and are restored when this entry is popped.
-        """
-        if menu_id == self.current_menu_id:
-            return  # already on this menu — refresh only, don't grow history
-        if self.current_menu_id is not None:
-            if len(self.history) >= MAX_HISTORY_DEPTH:
-                self.history.pop(0)  # drop oldest before appending to stay within cap
-            self.history.append((self.current_menu_id, seed, wallet))
-        self.current_menu_id = menu_id
-
-    def pop_menu(self):
-        """Pop the last history entry, restore menu id and return (seed, wallet).
-
-        The caller is responsible for applying the returned seed/wallet to
-        SpecterState before building the new screen.
-        Returns (None, None) when history is empty (pops to 'main').
-        """
-        if self.history:
-            entry = self.history.pop()
-            self.current_menu_id, seed, wallet = entry
-            return seed, wallet
-        else:
-            self.current_menu_id = "main"
-            return None, None
-
-    def clear_history(self):
-        self.history.clear()
-    # Modal helpers
-    def open_modal(self, name):
-        self.modal = name
-
-    def close_modal(self):
-        self.modal = None
-
-    def is_modal_open(self):
-        return self.modal is not None

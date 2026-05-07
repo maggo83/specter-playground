@@ -65,9 +65,12 @@ class GenerateSeedMenu(TitledScreen):
         # read name
         name = self.name_ta.get_text()
 
-        # create seed — add_seed() auto-creates default wallet
+        # create seed and auto-create default wallet; set both active
         seed = Seed(label=name, fingerprint=self.generated_fp)
-        self.state.add_seed(seed)
+        default_wallet = self.device_state.add_seed(seed)
+        self.ui_state.set_active_seed(seed)
+        if not self.ui_state.active_wallet:
+            self.ui_state.set_active_wallet(default_wallet)
 
         # Navigate home — show_menu("main") clears history and runs the exit animation
         self.on_navigate("main")

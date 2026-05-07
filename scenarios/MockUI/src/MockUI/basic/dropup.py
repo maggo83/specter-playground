@@ -4,27 +4,24 @@ Both classes share the same structure:
   - Rendered above everything via layer_top (ModalOverlay)
   - Anchored at the bottom of the screen (just above the NavigationBar)
   - Grow upward; scrollable if content exceeds available height
-  - Dismissed by tapping the backdrop, pressing Back, or re-tapping the
-    triggering nav button
 
 Public API (used by NavigationBar):
-  dropup.get_state() → DropUpState constant
-  dropup.open()      → build and show the panel
-  dropup.close()    → destroy the panel
-  dropup.toggle()   → open if closed, close if open
-  dropup.refresh()  → rebuild card list (called after state changes)
+  dropup.get_state()        → DropUpState constant
+  dropup.open(container)   → build and show the panel inside *container*
+  dropup.close()           → animate panel out; fires _on_closed when done
+  dropup.refresh()         → rebuild card list (called after state changes)
 
 The panel fills from the nav bar top edge upward.
 """
 
 import lvgl as lv
-from .widgets.modal_overlay import ModalOverlay
-from .widgets.action_modal import DEFAULT_MODAL_BG_OPA, ActionModal
+from micropython import const
+from .widgets.action_modal import ActionModal
 from .confirm_modals import confirm_delete_seed, confirm_delete_wallet
 from .ui_consts import (
     BTC_ICON_WIDTH, SMALL_TEXT_FONT, STATUS_BTN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT,
     STATUS_BAR_PCT, WHITE_HEX, GREY_HEX, ORANGE_HEX, BIG_PAD,
-    DEFAULT_MODAL_BG_OPA, DROPUP_DIVIDER_OPA, ANIM_MS_VERTICAL, TEXT_FONT, SMALL_TEXT_FONT
+    DROPUP_DIVIDER_OPA, ANIM_MS_VERTICAL, TEXT_FONT, SMALL_TEXT_FONT
 )
 from .symbol_lib import BTC_ICONS
 from .widgets.containers import flex_col, flex_row
@@ -45,12 +42,16 @@ _ADD_BTN_H = STATUS_BTN_HEIGHT                     # "Add …" button height
 _FP_SLOT_W = BTC_ICON_WIDTH + 40   # RELAY icon + 4-char fingerprint label
 
 
+_CLOSED = const(0)
+_OPENING = const(1)
+_OPEN = const(2)
+_CLOSING = const(3)
 class DropUpState:
     """Valid states for a ``_DropUp`` instance."""
-    CLOSED  = "closed"
-    OPENING = "opening"
-    OPEN    = "open"
-    CLOSING = "closing"
+    CLOSED  = _CLOSED
+    OPENING = _OPENING
+    OPEN    = _OPEN
+    CLOSING = _CLOSING
 
 
 # ── Base class ────────────────────────────────────────────────────────────────
@@ -60,7 +61,8 @@ class _DropUp(SpecterGuiMixin):
 
     def __init__(self, gui):
         self.gui = gui
-        self._modal = None    # ModalOverlay instance when open
+        self._panel = None    # lv.obj panel widget when open
+        self._on_closed = None  # callback()/None — called after close animation
         self._animating = False
         self._closing = False  # True while close animation is running
         self._anim = None
@@ -69,24 +71,20 @@ class _DropUp(SpecterGuiMixin):
 
     def get_state(self):
         """Return the current drop-up state as a ``DropUpState`` constant."""
-        if self._modal is None:
+        if self._panel is None:
             return DropUpState.CLOSED
         if self._animating:
             return DropUpState.CLOSING if self._closing else DropUpState.OPENING
         return DropUpState.OPEN
 
-    def open(self):
+    def open(self, container):
+        """Build and slide in the panel inside *container* (shared backdrop overlay)."""
         state = self.get_state()
         if state in (DropUpState.OPENING, DropUpState.CLOSING, DropUpState.OPEN):
             return state
-        self._modal = ModalOverlay(bg_opa=DEFAULT_MODAL_BG_OPA)  # semi-transparent dim backdrop
-
-        # Restrict the overlay to the content area only — NavigationBar stays visible.
-        self._modal.overlay.set_size(SCREEN_WIDTH, _PANEL_MAX_H)
-        self._modal.overlay.set_pos(0, 0)
 
         self._panel = flex_col(
-            self._modal.overlay,
+            container,
             width=SCREEN_WIDTH,
             height=_PANEL_MAX_H,
             main_align=lv.FLEX_ALIGN.START,
@@ -98,59 +96,48 @@ class _DropUp(SpecterGuiMixin):
         self._panel.add_event_cb(lambda e: setattr(e, 'stop_bubbling', 1), lv.EVENT.CLICKED, None)
 
         self._fill_panel()
-
         # ── Slide-in animation ────────────────────────────────────────────────
-        def _on_open_done(anim):
-            self._animating = False
-            self._anim = None
-            self.gui.refresh_ui()
+        if self.ui_state.are_animations_enabled:        
+            self._animating = True
 
-        panel_y = _PANEL_MAX_H - self._compute_panel_h()
-        self._anim = slide_y(self._panel, _PANEL_MAX_H, panel_y, ANIM_MS_VERTICAL, on_done=_on_open_done)
-        self._animating = True
-        self._anim.start()
+            def _on_open_done(anim):
+                self._animating = False
+                self._anim = None
 
-        # Dismiss when tapping the backdrop (outside the panel)
-        self._modal.overlay.add_event_cb(self._backdrop_cb, lv.EVENT.CLICKED, None)
+            panel_y = _PANEL_MAX_H - self._compute_panel_h()
+            self._anim = slide_y(self._panel, _PANEL_MAX_H, panel_y, ANIM_MS_VERTICAL, on_done_cb=_on_open_done)
+            self._anim.start()
+
         return self.get_state()
 
     def close(self):
         state = self.get_state()
         if state in (DropUpState.OPENING, DropUpState.CLOSING, DropUpState.CLOSED):
-            return state  # animation in progress or already closed, do nothing 
-        if self._panel is None:
-            # Nothing to animate — destroy immediately
-            self._modal.close()
-            self._modal = None
-            return self.get_state()
-
-        _content_h = _PANEL_MAX_H
-        panel_y_now = self._panel.get_y()
-        panel_y_end = _content_h  # slide off-screen down
+            return state  # animation in progress or already closed, do nothing
 
         def _on_close_done(anim):
             self._animating = False
             self._closing = False
             self._anim = None
+            if self._panel is not None:
+                self._panel.delete()
             self._panel = None
-            self._modal.close()
-            self._modal = None
-            self.gui.refresh_ui()
+            if self._on_closed is not None:
+                self._on_closed()
 
-        self._anim = slide_y(self._panel, panel_y_now, panel_y_end, ANIM_MS_VERTICAL, on_done=_on_close_done)
-        self._closing = True
-        self._animating = True
-        self._anim.start()
-        return self.get_state()
+        if self.ui_state.are_animations_enabled:
+            self._animating = True
+            self._closing = True
 
-    def toggle(self):
-        state = self.get_state()
-        if state in (DropUpState.OPENING, DropUpState.CLOSING):
-            return state  # can't change direction mid-animation
-        if state == DropUpState.OPEN:
-            return self.close()
+            panel_y_now = self._panel.get_y()
+            panel_y_end = _PANEL_MAX_H  # slide off-screen down
+
+            self._anim = slide_y(self._panel, panel_y_now, panel_y_end, ANIM_MS_VERTICAL, on_done_cb=_on_close_done)
+            self._anim.start()
         else:
-            return self.open()
+            _on_close_done(None)
+
+        return self.get_state()
 
     def refresh(self):
         """Rebuild cards in place (called after state changes)."""
@@ -213,10 +200,6 @@ class _DropUp(SpecterGuiMixin):
         self.close()
         self._navigate_add()
 
-    def _backdrop_cb(self, event):
-        if event.get_code() == lv.EVENT.CLICKED:
-            self.close()
-
 
 def _card_row(parent):
     """Full-width horizontal flex row for a card, with left-aligned items."""
@@ -246,7 +229,7 @@ class SeedDropUp(_DropUp):
     """Drop-up overlay listing all loaded seeds with passphrase + edit buttons."""
 
     def _get_items(self):
-        return self.state.loaded_seeds
+        return self.device_state.loaded_seeds
 
     def _add_button_label(self):
         return self.t("MENU_ADD_SEED")
@@ -262,7 +245,7 @@ class SeedDropUp(_DropUp):
             def _cb(e):
                 if e.get_code() == lv.EVENT.CLICKED:
                     self.close()
-                    self.state.set_active_seed(s)
+                    self.ui_state.set_active_seed(s)
                     self.on_navigate("manage_seedphrase")
             return _cb
         row.add_event_cb(_make_row_cb(seed), lv.EVENT.CLICKED, None)
@@ -341,8 +324,10 @@ class SeedDropUp(_DropUp):
                     event.stop_bubbling = 1
 
                 def _do_delete():
-                    self.state.remove_seed(s)
-                    if not self.state.loaded_seeds:
+                    self.device_state.remove_seed(s)
+                    if self.ui_state.active_seed is s:
+                        self.ui_state.active_seed = None
+                    if not self.device_state.loaded_seeds:
                         self.close()
                         self.on_navigate("main")
                     self.gui.refresh_ui()
@@ -365,7 +350,7 @@ class WalletDropUp(_DropUp):
     """Drop-up overlay listing all registered wallets with type + edit buttons."""
 
     def _get_items(self):
-        return self.state.registered_wallets
+        return self.device_state.registered_wallets
 
     def _add_button_label(self):
         return self.t("MENU_ADD_WALLET")
@@ -381,13 +366,13 @@ class WalletDropUp(_DropUp):
             def _cb(e):
                 if e.get_code() == lv.EVENT.CLICKED:
                     self.close()
-                    self.state.set_active_wallet(w)
+                    self.ui_state.set_active_wallet(w)
                     self.on_navigate("manage_wallet")
             return _cb
         row.add_event_cb(_make_row_cb(wallet), lv.EVENT.CLICKED, None)
 
         # ── Wallet type icon ──────────────────────────────────────────────────
-        state = self.state
+        state = self.device_state
         if not wallet.is_standard():
             type_icon = BTC_ICONS.CONSOLE
         elif wallet.isMultiSig:
@@ -444,7 +429,9 @@ class WalletDropUp(_DropUp):
                         event.stop_bubbling = 1
 
                     def _do_delete():
-                        self.state.remove_wallet(w)
+                        self.device_state.remove_wallet(w)
+                        if self.ui_state.active_wallet is w:
+                            self.ui_state.active_wallet = None
                         self.gui.refresh_ui()
 
                     confirm_delete_wallet(self.t, w.label, _do_delete)

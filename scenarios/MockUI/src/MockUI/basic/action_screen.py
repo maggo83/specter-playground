@@ -13,6 +13,11 @@ class ActionScreen(TitledScreen):
     Should not be used in production code.
     """
     def __init__(self, title, parent):
+
+        #Make title look nicer
+        title = title.replace("_", " ") if title else ""
+        title = title[0].upper() + title[1:] if title else ""
+
         # TitledScreen creates title_bar and body
         super().__init__(title, parent)
 

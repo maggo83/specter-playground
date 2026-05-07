@@ -25,7 +25,8 @@ class TitledScreen(SpecterGuiElement):
 
     Attributes available to subclasses:
         self.gui         - the SpecterGui that owns this screen
-        self.state       - gui.specter_state shorthand
+        self.device_state - gui.device_state shorthand
+        self.ui_state    - gui.ui_state shorthand
         self.i18n        - gui.i18n shorthand
         self.on_navigate - navigation callback from gui.on_navigate
         self.title_bar   - lv.obj strip at the top, TITLE_ROW_HEIGHT tall

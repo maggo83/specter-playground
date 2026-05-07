@@ -14,11 +14,11 @@ class ViewSignersScreen(GenericMenu):
 
     def get_menu_items(self, t, state):
         """Show list of signers for the active seed."""
-        s4w = state.seeds_for_wallet(state.active_wallet)
+        s4w = state.seeds_for_wallet(self.ui_state.active_wallet)
         loaded_fp4w = Seed.get_fingerprints(s4w) if s4w else []
 
         menu_items = []
-        for fp in state.active_wallet.required_fingerprints:
+        for fp in self.ui_state.active_wallet.required_fingerprints:
             signer_name = fp[2:]  # do not show "0x" hex prefix in fingerprint
             icon = None
             target = None
@@ -32,7 +32,7 @@ class ViewSignersScreen(GenericMenu):
                     def _cb(e):
                         if e.get_code() != lv.EVENT.CLICKED:
                             return
-                        self.state.set_active_seed(seed)
+                        self.ui_state.set_active_seed(seed)
                         self.on_navigate("manage_seedphrase")
                     return _cb
 
@@ -44,6 +44,6 @@ class ViewSignersScreen(GenericMenu):
     def post_init(self, t, state):
         """Add wallet name to title."""
         title = self.title.get_text()
-        title += "," + state.active_wallet.label
+        title += "," + self.ui_state.active_wallet.label
         self.title.set_text(title)
 

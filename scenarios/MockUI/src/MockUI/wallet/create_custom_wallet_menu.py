@@ -58,13 +58,13 @@ class CreateCustomWalletMenu(TitledScreen):
 
         self.fp_ta = form_textarea(self.fp_row, width=lv.pct(55), font=lv.font_montserrat_16)
         sig_text = ""
-        if self.state and self.state.active_seed:
+        if self.ui_state.active_seed:
             # Pre-fill with active seed's fingerprint for convenience
-            fp1 = self.state.active_seed.get_fingerprint()
+            fp1 = self.ui_state.active_seed.get_fingerprint()
             sig_text = fp1[:]
-            if self.state.loaded_seeds and len(self.state.loaded_seeds) > 1:
+            if self.device_state.loaded_seeds and len(self.device_state.loaded_seeds) > 1:
                 # If multiple seeds are loaded, add a second fingerprint for testing
-                fps = [s.get_fingerprint()[:] for s in self.state.loaded_seeds if s.get_fingerprint() != fp1]
+                fps = [s.get_fingerprint()[:] for s in self.device_state.loaded_seeds if s.get_fingerprint() != fp1]
                 sig_text += f",{fps[0][:]}"
             else:
                 sig_text += ",0xabcd"
@@ -195,6 +195,6 @@ class CreateCustomWalletMenu(TitledScreen):
             threshold=threshold,
             account=self.account_val,
         )
-        self.state.register_wallet(wallet)
-        self.state.set_active_wallet(wallet)
+        self.device_state.register_wallet(wallet)
+        self.ui_state.set_active_wallet(wallet)
         self.on_navigate("main")

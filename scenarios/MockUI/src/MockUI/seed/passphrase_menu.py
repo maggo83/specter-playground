@@ -29,18 +29,18 @@ class PassphraseMenu(TitledScreen):
         # editable textarea
         self.pa_ta = form_textarea(pa_row)
         val = ""
-        if self.state.active_seed and self.state.active_seed.passphrase is not None:
-            val = self.state.active_seed.passphrase
+        if self.ui_state.active_seed and self.ui_state.active_seed.passphrase is not None:
+            val = self.ui_state.active_seed.passphrase
         self.pa_ta.set_text(val)
         self.pa_ta.set_accepted_chars(ACCEPTED_CHARS)
 
         def _on_commit(value):
-            if self.state.active_seed:
+            if self.ui_state.active_seed:
                 if not value:
-                    self.state.active_seed.passphrase = None
+                    self.ui_state.active_seed.passphrase = None
                 else:
-                    self.state.active_seed.passphrase = value
-                    self.state.active_seed.passphrase_active = True
+                    self.ui_state.active_seed.passphrase = value
+                    self.ui_state.active_seed.passphrase_active = True
             self.gui.refresh_ui()
             self.on_navigate(None)
 
@@ -65,7 +65,7 @@ class PassphraseMenu(TitledScreen):
         # Clear text area
         self.pa_ta.set_text("")
         # Clear passphrase in state
-        if self.state.active_seed:
-            self.state.active_seed.passphrase = None
+        if self.ui_state.active_seed:
+            self.ui_state.active_seed.passphrase = None
         # Refresh UI
         self.gui.refresh_ui()

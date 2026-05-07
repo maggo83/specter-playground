@@ -226,6 +226,10 @@
       "text": "Andere...",
       "ref_en": "Other..."
     },
+    "DEVICE_MENU_ANIMATIONS": {
+      "text": "Animationen",
+      "ref_en": "Animations"
+    },
     "DEVICE_MENU_DISPLAY": {
       "text": "Display konfigurieren",
       "ref_en": "Manage Display"

@@ -1,5 +1,5 @@
 import lvgl as lv
-from .ui_consts import BTN_HEIGHT, BTN_WIDTH, MODAL_HEIGHT_PCT, MODAL_WIDTH_PCT, SWITCH_HEIGHT, SWITCH_WIDTH, BATTERY_OFFSET_X, PAD, SMALL_PAD, SMALL_TEXT_FONT, BTC_ICON_WIDTH, DEFAULT_MODAL_BG_OPA
+from .ui_consts import BTN_HEIGHT, BTN_WIDTH, MODAL_HEIGHT_PCT, MODAL_WIDTH_PCT, SWITCH_HEIGHT, SWITCH_WIDTH, BATTERY_OFFSET_X, PAD, SMALL_PAD, SMALL_TEXT_FONT, BTC_ICON_WIDTH, DEFAULT_MODAL_BG_OPA, SCREEN_WIDTH, SCREEN_HEIGHT
 from .titled_screen import TitledScreen
 from .symbol_lib import Icon, BTC_ICONS
 from .widgets.modal_overlay import ModalOverlay
@@ -21,27 +21,44 @@ class GenericMenu(TitledScreen):
     """
 
     def __init__(self, parent):
-        # TitledScreen sets self.gui, self.state, self.i18n, self.on_navigate, self.body, etc.
+        # TitledScreen sets self.gui, self.device_state, self.ui_state, self.i18n, self.on_navigate, self.body, etc.
         super().__init__("", parent)
 
-        title = self.get_title(self.t, self.state)
+        title = self.get_title(self.t, self.device_state)
         self.title.set_text(title)
 
         # Battery widget in top-right corner of title bar
-        if self.state.has_battery:
-            batt = Battery(self.title_bar)
-            batt.update()
-            batt.align(lv.ALIGN.RIGHT_MID, BATTERY_OFFSET_X, 0)
-
-        menu_items = self.get_menu_items(self.t, self.state)
+        if self.device_state.has_battery:
+            self.batt = Battery(self.title_bar)
+            self.batt.VALUE = self.device_state.battery_pct
+            self.batt.update()
+            self.batt.align(lv.ALIGN.RIGHT_MID, BATTERY_OFFSET_X, 0)
 
         self.body.set_layout(lv.LAYOUT.FLEX)
         self.body.set_flex_flow(lv.FLEX_FLOW.COLUMN)
         self.body.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+        self.fill_body()
 
+    def refresh(self):
+        # Refresh battery level
+        if self.device_state.has_battery:
+            self.batt.VALUE = self.device_state.battery_pct
+            self.batt.update()
+
+    def fill_body(self):
+        menu_items = self.get_menu_items(self.t, self.device_state)
         self._build_menu_items(menu_items)
-        self.post_init(self.t, self.state)
+        self.post_init(self.t, self.device_state)
         self._configure_scroll()
+
+    def clear_body(self):
+        for i in reversed(range(self.body.get_child_count())):
+            child = self.body.get_child(i)
+            child.delete()
+
+    def rebuild_body(self):
+        self.clear_body()
+        self.fill_body()
 
     def _configure_scroll(self):
         """Enable vertical scrolling only when content overflows the visible body.
@@ -169,7 +186,7 @@ class GenericMenu(TitledScreen):
                 right_cont.update_layout()
                 right_cont.align(lv.ALIGN.RIGHT_MID, -SMALL_PAD, 0)
 
-                btn.add_event_cb(self.make_callback(target_behavior), lv.EVENT.CLICKED, None)
+                btn.add_event_cb(self.make_menu_button_callback(target_behavior), lv.EVENT.CLICKED, None)
 
     # --- template-method hooks -------------------------------------------
 
@@ -189,7 +206,7 @@ class GenericMenu(TitledScreen):
 
     # --- internal helpers -------------------------------------------------
 
-    def make_callback(self, target_behavior):
+    def make_menu_button_callback(self, target_behavior):
         """Create callback for button - handles both string menu_ids and custom callables."""
         # If it's already a callable, return it directly
         if callable(target_behavior):
@@ -216,15 +233,11 @@ class GenericMenu(TitledScreen):
                 help_text = self.t(help_key)
 
                 modal = ModalOverlay(bg_opa=DEFAULT_MODAL_BG_OPA)
-                sw = modal.screen_width
-                sh = modal.screen_height
-
                 # --- dialog card ---
-                dw = sw * MODAL_WIDTH_PCT // 100
-                dh = sh * MODAL_HEIGHT_PCT // 100
-                dx = (sw - dw) // 2
-                dy = (sh - dh) // 2
-
+                dw = SCREEN_WIDTH * MODAL_WIDTH_PCT // 100
+                dh = SCREEN_HEIGHT * MODAL_HEIGHT_PCT // 100
+                dx = (SCREEN_WIDTH - dw) // 2
+                dy = (SCREEN_HEIGHT - dh) // 2
                 dialog = dialog_card(modal.overlay, dw, dh, dx, dy)
 
                 body_label(dialog, title_text)
@@ -239,6 +252,3 @@ class GenericMenu(TitledScreen):
                 # stop the underlying button from firing too
                 e.stop_bubbling = 1
         return callback
-
-    def on_back(self, e):
-        self.on_navigate(None)

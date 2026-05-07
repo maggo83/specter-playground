@@ -10,6 +10,8 @@ from .wallet import (
     WalletMenu,
     AddWalletMenu,
     ConnectWalletsMenu,
+)
+from .seed import (
     SeedPhraseMenu,
     GenerateSeedMenu,
     PassphraseMenu,

@@ -18,7 +18,7 @@ class SeedPhraseMenu(GenericMenu):
 
         menu_items.append(MenuItem(BTC_ICONS.VISIBLE, t("SEEDPHRASE_MENU_SHOW"), "show_seedphrase", color=ORANGE_HEX))
 
-        pp_label = t("MENU_CHANGE_CLEAR_PASSPHRASE") if state.active_seed.passphrase else t("MENU_SET_PASSPHRASE")
+        pp_label = t("MENU_CHANGE_CLEAR_PASSPHRASE") if self.ui_state.active_seed.passphrase else t("MENU_SET_PASSPHRASE")
         menu_items.append(MenuItem(BTC_ICONS.PASSWORD, pp_label, "set_passphrase", is_submenu=True))
 
         menu_items.append(MenuItem(text=t("SEEDPHRASE_MENU_STORAGE")))
@@ -51,7 +51,7 @@ class SeedPhraseMenu(GenericMenu):
 
         # Text area for seed name (editable) – lives in title_bar, centred
         self.name_textarea = title_textarea(self.title_bar)
-        self.name_textarea.set_text(state.active_seed.label)
+        self.name_textarea.set_text(self.ui_state.active_seed.label)
 
         textarea_height = self.name_textarea.get_height()
 
@@ -75,7 +75,7 @@ class SeedPhraseMenu(GenericMenu):
         self.delete_btn.align_to(self.name_textarea, lv.ALIGN.OUT_RIGHT_MID, 6, 0)
 
         def _on_commit(new_name):
-            state.active_seed.label = new_name
+            self.ui_state.active_seed.label = new_name
             self.gui.refresh_ui()
 
         keyboard_binder = lambda e: self.gui.keyboard_manager.bind(
@@ -87,14 +87,14 @@ class SeedPhraseMenu(GenericMenu):
         def _on_delete(e):
             if e.get_code() != lv.EVENT.CLICKED:
                 return
-            seed = self.state.active_seed
+            seed = self.ui_state.active_seed
 
             def _do_delete():
-                self.state.remove_seed(seed)
+                self.device_state.remove_seed(seed)
+                self.ui_state.active_seed = None
+                self.gui.ui_state.clear_history()
+                self.gui.ui_state.current_menu_id = "main"
                 self.gui.refresh_ui()
-                if hasattr(self.gui, 'ui_state') and self.gui.ui_state:
-                    self.gui.ui_state.clear_history()
-                    self.gui.ui_state.current_menu_id = "main"
                 self.on_navigate(None)
 
             confirm_delete_seed(t, seed.label, _do_delete)

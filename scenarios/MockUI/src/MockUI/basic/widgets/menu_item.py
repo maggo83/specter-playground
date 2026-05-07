@@ -66,7 +66,6 @@ class MenuItemSuffix:
         color:  Background color override, or None.
         text:   Text to show in suffix, or None (icon-only).
     """
-
     def __init__(self, icon=None, color=None, text=None):
         self.icon = icon
         self.color = color

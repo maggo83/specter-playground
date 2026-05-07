@@ -18,7 +18,7 @@ class WalletMenu(GenericMenu):
 
         menu_items.append(MenuItem(text=t("WALLET_MENU_EXPLORE")))
         menu_items.append(MenuItem(BTC_ICONS.MENU, t("WALLET_MENU_VIEW_ADDRESSES"), "view_addresses"))
-        if (state.active_wallet and state.active_wallet.isMultiSig):
+        if (self.ui_state.active_wallet and self.ui_state.active_wallet.isMultiSig):
             menu_items.append(MenuItem(BTC_ICONS.ADDRESS_BOOK, t("WALLET_MENU_VIEW_SIGNERS"), "view_signers", is_submenu=True))
 
         menu_items.append(MenuItem(text=t("WALLET_MENU_MANAGE")))
@@ -34,11 +34,11 @@ class WalletMenu(GenericMenu):
         return menu_items
 
     def post_init(self, t, state):
-        is_default = state.active_wallet.is_default_wallet()
+        is_default = self.ui_state.active_wallet.is_default_wallet()
 
         if is_default:
             # Default wallet: show plain (non-editable) title, no trash button
-            self.title.set_text(state.active_wallet.label)
+            self.title.set_text(self.ui_state.active_wallet.label)
             # Wallet icon (transparent, non-clickable) – left of title label
             title_h = self.title.get_height()
             self.icon_btn = Btn(
@@ -57,7 +57,7 @@ class WalletMenu(GenericMenu):
         self.title.delete()
 
         self.name_textarea = title_textarea(self.title_bar)
-        self.name_textarea.set_text(state.active_wallet.label)
+        self.name_textarea.set_text(self.ui_state.active_wallet.label)
 
         textarea_height = self.name_textarea.get_height()
 
@@ -81,8 +81,8 @@ class WalletMenu(GenericMenu):
         self.delete_btn.align_to(self.name_textarea, lv.ALIGN.OUT_RIGHT_MID, 6, 0)
 
         def _on_commit(new_name):
-            if self.state and self.state.active_wallet:
-                self.state.active_wallet.label = new_name
+            if self.ui_state.active_wallet:
+                self.ui_state.active_wallet.label = new_name
                 self.gui.refresh_ui()
 
         keyboard_binder = lambda e: self.gui.keyboard_manager.bind(self.name_textarea, Layout.FULL, _on_commit)
@@ -92,14 +92,14 @@ class WalletMenu(GenericMenu):
         def _on_delete(e):
             if e.get_code() != lv.EVENT.CLICKED:
                 return
-            wallet = self.state.active_wallet
+            wallet = self.ui_state.active_wallet
 
             def _do_delete():
-                self.state.remove_wallet(wallet)
+                self.device_state.remove_wallet(wallet)
+                self.ui_state.active_wallet = None
+                self.gui.ui_state.clear_history()
+                self.gui.ui_state.current_menu_id = "main"
                 self.gui.refresh_ui()
-                if hasattr(self.gui, 'ui_state') and self.gui.ui_state:
-                    self.gui.ui_state.clear_history()
-                    self.gui.ui_state.current_menu_id = "main"
                 self.on_navigate(None)
 
             confirm_delete_wallet(t, wallet.label, _do_delete)
@@ -111,7 +111,7 @@ class WalletMenu(GenericMenu):
 
     def _add_account_row(self, t, state):
         """Add read-only Account label row. Account is fixed at wallet creation time."""
-        wallet = state.active_wallet
+        wallet = self.ui_state.active_wallet
         if wallet is None:
             return
 

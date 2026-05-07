@@ -27,7 +27,7 @@ from .modal_overlay import ModalOverlay
 from .btn import Btn
 from .containers import dialog_card, flex_row
 from .labels import body_label
-from ..ui_consts import DEFAULT_MODAL_BG_OPA, MODAL_WIDTH_PCT, MODAL_HEIGHT_PCT, BTN_HEIGHT
+from ..ui_consts import DEFAULT_MODAL_BG_OPA, MODAL_WIDTH_PCT, MODAL_HEIGHT_PCT, BTN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT
 
 
 class ActionModal:
@@ -46,14 +46,11 @@ class ActionModal:
             buttons = [(None, "Close", None, None)]
 
         self._modal = ModalOverlay(bg_opa=bg_opa)
-        sw = self._modal.screen_width
-        sh = self._modal.screen_height
 
-        dw = sw * MODAL_WIDTH_PCT // 100
-        dh = sh * MODAL_HEIGHT_PCT // 100
-        dx = (sw - dw) // 2
-        dy = (sh - dh) // 2
-
+        dw = SCREEN_WIDTH * MODAL_WIDTH_PCT // 100
+        dh = SCREEN_HEIGHT * MODAL_HEIGHT_PCT // 100
+        dx = (SCREEN_WIDTH - dw) // 2
+        dy = (SCREEN_HEIGHT - dh) // 2
         dialog = dialog_card(self._modal.overlay, dw, dh, dx, dy)
 
         body_label(dialog, text)

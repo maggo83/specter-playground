@@ -16,7 +16,6 @@ class MainMenu(GenericMenu):
         else:
             return self._items_with_seed(t, state)
         
-
     def _items_no_seed(self, t, state):
         """State: No Seed loaded yet — focus on key loading."""
         menu_items = []
@@ -93,3 +92,7 @@ class MainMenu(GenericMenu):
             menu_items.append(MenuItem(BTC_ICONS.LINK, t("MAIN_MENU_CONNECT_COMPANION"), "connect_sw_wallet", size=1.5))
 
         return menu_items
+    
+    def refresh(self):
+        super().refresh()
+        self.rebuild_body()

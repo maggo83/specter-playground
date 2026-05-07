@@ -4,7 +4,7 @@ Replaces DeviceBar. Shows battery + context-dependent seed/wallet info.
 
 Layout (left-to-right, full width, STATUS_BAR_PCT% height):
     ┌──────────────────────────────────────────────────────────────────┐
-    │ [seed name] [relay][fp4] [pp?] [warn?] [/] [wallet] [type] ...  🔋│
+    │ [seed name] [relay][fp4] [pp?] [warn?] [/] [wallet] [type] ... 🔋│
     └──────────────────────────────────────────────────────────────────┘
 
 Battery is always at the rightmost edge (STATUS_BTN_WIDTH wide slot).
@@ -86,7 +86,7 @@ class TopBar(lv.obj):
 
         # ── Battery (always visible, right-aligned) ───────────────────────────
         self._batt_icon = Battery(self)
-        self._batt_icon.VALUE = gui.specter_state.battery_pct
+        self._batt_icon.VALUE = gui.device_state.battery_pct
         self._batt_icon.update()
         self._batt_icon.set_width(_BATT_W)
         self._batt_icon.set_height(lv.pct(100))
@@ -94,12 +94,13 @@ class TopBar(lv.obj):
 
     # ── Public API ────────────────────────────────────────────────────────────
 
-    def refresh(self, specter_state):
+    def refresh(self):
         """Rebuild info section from current state.
 
         Should be called whenever state changes (seed load/unload, wallet
         switch, passphrase toggle, etc.).
         """
+        specter_state = self.gui.device_state
         # Update battery
         self._batt_icon.VALUE = specter_state.battery_pct
         self._batt_icon.CHARGING = specter_state.is_charging

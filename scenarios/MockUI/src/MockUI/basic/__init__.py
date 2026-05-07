@@ -17,7 +17,7 @@ from .widgets import Btn, flex_col, flex_row, dialog_card
 from .widgets import body_label, section_header, form_label
 from .widgets import title_textarea, form_textarea, ACCEPTED_CHARS
 from .widgets import MenuItem
-from .animations import slide_x, slide_y
+from .animations import GUIAnimations, slide_x, slide_y
 
 __all__ = ["BTN_HEIGHT", "BTN_WIDTH", "BACK_BTN_HEIGHT", "BACK_BTN_WIDTH",
            "SCREEN_WIDTH", "SCREEN_HEIGHT",
@@ -49,5 +49,5 @@ __all__ = ["BTN_HEIGHT", "BTN_WIDTH", "BACK_BTN_HEIGHT", "BACK_BTN_WIDTH",
            "body_label", "section_header", "form_label",
            "title_textarea", "form_textarea", "ACCEPTED_CHARS",
            "MenuItem",
-           "slide_x", "slide_y",
+           "GUIAnimations", "slide_x", "slide_y",
         ]

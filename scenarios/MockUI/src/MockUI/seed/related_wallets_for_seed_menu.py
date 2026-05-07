@@ -32,10 +32,10 @@ class RelatedWalletsForSeedMenu(GenericMenu):
     def get_menu_items(self, t, state):
         menu_items = []
 
-        if not state.active_seed:
+        if not self.ui_state.active_seed:
             return menu_items
 
-        fp = state.active_seed.get_fingerprint()
+        fp = self.ui_state.active_seed.get_fingerprint()
         related = [
             w for w in state.registered_wallets
             if not w.is_default_wallet() and fp in w.required_fingerprints
@@ -69,7 +69,7 @@ class RelatedWalletsForSeedMenu(GenericMenu):
                 def _cb(e):
                     if e.get_code() != lv.EVENT.CLICKED:
                         return
-                    self.state.set_active_wallet(w)
+                    self.ui_state.set_active_wallet(w)
                     self.on_navigate("manage_wallet")
                 return _cb
 

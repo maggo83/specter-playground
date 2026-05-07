@@ -16,9 +16,17 @@ Typical usage::
 """
 
 import lvgl as lv
+from .ui_consts import SCREEN_WIDTH, ANIM_MS_HORIZONTAL, ANIM_MS_VERTICAL
 
+class GUIAnimations:
+    horizontal_slide_in = 1
+    horizontal_slide_out = 2
+    horizontal_push_in = 3
+    horizontal_push_out = 4
+    vertical_slide_in = 5
+    vertical_slide_out = 6
 
-def _slide(obj, from_value, to_value, duration_ms, axis, on_done=None):
+def _slide(obj, from_value, to_value, duration_ms, axis, on_done_cb=None):
     """Prepare (but do NOT start) an x or y slide animation.
 
     Snaps obj to from_value immediately (avoids first-frame flicker).
@@ -36,14 +44,51 @@ def _slide(obj, from_value, to_value, duration_ms, axis, on_done=None):
     a.set_custom_exec_cb(cb)
     a.set_values(from_value, to_value)
     a.set_duration(duration_ms)
-    if on_done is not None:
-        a.set_completed_cb(on_done)
+    if on_done_cb is not None:
+        a.set_completed_cb(on_done_cb)
     return a
 
-def slide_x(obj, from_x, to_x, duration_ms, on_done=None):
+def slide_x(obj, from_x, to_x, duration_ms, on_done_cb=None):
     """Prepare (but do NOT start) an x slide. Returns anim."""
-    return _slide(obj, from_x, to_x, duration_ms, axis="x", on_done=on_done)
+    return _slide(obj, from_x, to_x, duration_ms, axis="x", on_done_cb=on_done_cb)
 
-def slide_y(obj, from_y, to_y, duration_ms, on_done=None):
+def slide_y(obj, from_y, to_y, duration_ms, on_done_cb=None):
     """Prepare (but do NOT start) a y slide. Returns anim."""
-    return _slide(obj, from_y, to_y, duration_ms, axis="y", on_done=on_done)
+    return _slide(obj, from_y, to_y, duration_ms, axis="y", on_done_cb=on_done_cb)
+
+def create_anims_for_transition(old_screen, new_screen, anim_type, on_done_cb=None):
+    """Prepare (but do NOT start) and return anim(s) for a screen transition of the given type."""
+    anims = []
+
+    content_w_old = old_screen.get_width()
+    content_w_new = new_screen.get_width()
+    assert(content_w_old == content_w_new)  # caller must ensure this for horizontal animations
+    assert(content_w_old == SCREEN_WIDTH)  # caller must ensure this for horizontal animations
+    W = SCREEN_WIDTH
+
+    content_h_old = old_screen.get_height()
+    content_h_new = new_screen.get_height()
+    assert(content_h_old == content_h_new)  # caller must ensure this for vertical animations
+    H = content_h_old
+
+    if anim_type == GUIAnimations.horizontal_slide_in:
+        anims.append(slide_x(new_screen, W, 0, ANIM_MS_HORIZONTAL, on_done_cb=on_done_cb))
+    elif anim_type == GUIAnimations.horizontal_slide_out:
+        new_screen.set_x(0)
+        old_screen.move_foreground()  # old must be on top so its slide-out is visible
+        anims.append(slide_x(old_screen, 0, W, ANIM_MS_HORIZONTAL, on_done_cb=on_done_cb))
+    elif anim_type == GUIAnimations.horizontal_push_in:
+        anims.append(slide_x(new_screen, W, 0, ANIM_MS_HORIZONTAL))
+        anims.append(slide_x(old_screen, 0, -W, ANIM_MS_HORIZONTAL, on_done_cb=on_done_cb))
+    elif anim_type == GUIAnimations.horizontal_push_out:
+        anims.append(slide_x(new_screen, -W, 0, ANIM_MS_HORIZONTAL))
+        anims.append(slide_x(old_screen, 0, W, ANIM_MS_HORIZONTAL, on_done_cb=on_done_cb))
+    elif anim_type == GUIAnimations.vertical_slide_in:
+        # New slides up from below; old stays
+        anims.append(slide_y(new_screen, H, 0, ANIM_MS_VERTICAL, on_done_cb=on_done_cb))
+    elif anim_type == GUIAnimations.vertical_slide_out:
+        # Old slides down to reveal new which is already in place
+        new_screen.set_y(0)
+        old_screen.move_foreground()  # old must cover new while sliding away
+        anims.append(slide_y(old_screen, 0, H, ANIM_MS_VERTICAL, on_done_cb=on_done_cb))
+    return anims

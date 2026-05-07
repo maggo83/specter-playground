@@ -59,7 +59,7 @@ class LockedMenu(TitledScreen):
 
         # Firmware version – shown as a subtitle directly under the title bar,
         # inside the TITLE_PADDING gap so it doesn't push body content down.
-        fw_ver = body_label(self, t("LOCKED_MENU_FW_VERSION") + str(self.state.fw_version), font=SMALL_TEXT_FONT)
+        fw_ver = body_label(self, t("LOCKED_MENU_FW_VERSION") + str(self.device_state.fw_version), font=SMALL_TEXT_FONT)
         fw_ver.align_to(self.title_bar, lv.ALIGN.OUT_BOTTOM_MID, 0, 1)
 
         # Instruction label
@@ -135,7 +135,7 @@ class LockedMenu(TitledScreen):
             return
         pin = self.pin_buf
         # attempt unlock; SpecterState.unlock will check PIN
-        unlocked = self.state.unlock(pin)
+        unlocked = self.device_state.unlock(pin)
         if unlocked:
             # reset UI history and show main menu
             self.gui.ui_state.clear_history()

@@ -27,10 +27,8 @@ class SpecterState:
 
         # Seed related — ephemeral, cleared on power cycle
         self.loaded_seeds = []
-        self.active_seed = None
 
         # Wallet (descriptor) related — persisted in flash
-        self.active_wallet = None
         self.registered_wallets = []
 
         #KeyStores
@@ -88,36 +86,14 @@ class SpecterState:
 
     # ── Seed helpers ─────────────────────────────────────────────────
     def add_seed(self, seed):
-        """Load a seed into memory and make it active."""
+        """Load a seed into memory. Returns the default wallet (created if needed)."""
         self.loaded_seeds.append(seed)
-        # Auto-create default wallet for this seed if none exists
-        default_wallet = self._ensure_default_wallet()
-        if not self.active_wallet:
-            self.set_active_wallet(default_wallet)
-        self.set_active_seed(seed)
-
-    def set_active_seed(self, seed):
-        """Switch the active seed. Auto-adjusts active wallet if needed."""
-        self.active_seed = seed
-
-        # If current wallet doesn't match the new seed, switch to default
-        if not self.seed_matches_wallet(seed, self.active_wallet):
-            self.active_wallet = self._ensure_default_wallet()
+        return self._ensure_default_wallet()
 
     def remove_seed(self, seed):
-        """Remove a seed from loaded seeds and clean up all wallets it owns."""
+        """Remove a seed from loaded seeds."""
         if seed in self.loaded_seeds:
             self.loaded_seeds.remove(seed)
-        if self.active_seed is seed:
-            self.active_seed = self.loaded_seeds[0] if self.loaded_seeds else None
-        # Remove wallets that belonged exclusively to this seed (non-default, not multisig shared)
-        fp = seed.get_fingerprint()
-        self.registered_wallets = [
-            w for w in self.registered_wallets
-            if not (fp in w.required_fingerprints and len(w.required_fingerprints) == 1 and not w.is_default_wallet())
-        ]
-        if self.active_wallet not in self.registered_wallets:
-            self.active_wallet = self.registered_wallets[0] if self.registered_wallets else None
 
     def wallets_for_seed(self, seed):
         """Return wallets that match this seed (including the shared Default Wallet)."""
@@ -127,19 +103,15 @@ class SpecterState:
         return [wallet for wallet in self.registered_wallets
                 if wallet.is_default_wallet() or fp in wallet.required_fingerprints]
 
-    def seed_matches_wallet(self, seed=None, wallet=None):
+    def seed_matches_wallet(self, seed, wallet):
         """Check if a seed's fingerprint is in the wallet's required signers."""
-        if not seed:
-            seed=self.active_seed
-        if not wallet:
-            wallet=self.active_wallet
         if not seed or not wallet:
             return False
         return wallet in self.wallets_for_seed(seed)
 
     # ── Wallet helpers ───────────────────────────────────────────────
     def register_wallet(self, wallet, imported=False):
-        """Register a wallet descriptor.
+        """Register a wallet descriptor. Returns the wallet.
 
         Args:
             wallet: Wallet instance to register.
@@ -150,22 +122,12 @@ class SpecterState:
         if imported:
             wallet.has_been_exported = True
         self.registered_wallets.append(wallet)
-        self.set_active_wallet(wallet)
-
-    def set_active_wallet(self, wallet):
-        self.active_wallet = wallet
+        return wallet
 
     def remove_wallet(self, wallet):
-        """Remove a wallet and select the next available one."""
+        """Remove a wallet descriptor."""
         if wallet in self.registered_wallets:
             self.registered_wallets.remove(wallet)
-        if self.active_wallet is wallet:
-            candidate_wallets = None
-            if self.active_seed is not None:
-                candidate_wallets = self.wallets_for_seed(self.active_seed)
-            else:
-                candidate_wallets = self.registered_wallets
-            self.active_wallet = candidate_wallets[0] if candidate_wallets else None
 
     def _ensure_default_wallet(self):
         """Ensure the shared Default Wallet exists.
@@ -196,24 +158,21 @@ class SpecterState:
         return [seed for seed in self.loaded_seeds
                 if seed.get_fingerprint() in fps] 
 
-    def signing_match_count(self, wallet = None):
-        """Return (matched_count, required_count) for the given wallet (default: active wallet)."""
-        if not wallet:
-            wallet = self.active_wallet
-
+    def signing_match_count(self, wallet):
+        """Return (matched_count, required_count) for the given wallet."""
         if not wallet:
             return (0, 0)
-        # Default wallet: always 1-of-1 when a seed is loaded
+        # Default wallet: 1-of-1 whenever any seed is loaded
         if wallet.is_default_wallet():
-            return (1, 1) if self.active_seed else (0, 1)
-        
+            return (1, 1) if self.loaded_seeds else (0, 1)
+
         if wallet.is_standard():
             loaded_fps = set(seed.get_fingerprint() for seed in self.loaded_seeds)
             matched = len(loaded_fps & set(wallet.required_fingerprints))
             return (matched, len(wallet.required_fingerprints))
         else:
             # For non-standard wallets, we can't analyze the descriptor, so just return dummy values
-            return (1, 1) if self.active_seed else (0, 1)
+            return (1, 1) if self.loaded_seeds else (0, 1)
 
     # ── Lock helpers ─────────────────────────────────────────────────
     def lock(self):
