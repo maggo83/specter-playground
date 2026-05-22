@@ -1,8 +1,15 @@
-# Hallmarks v1.0 — MicroPython reference implementation.
+# Sha256Vis — MicroPython port of the Sha256Vis visual identity algorithm.
 # SPDX-License-Identifier: MIT
 #
-# Spec:    SPEC.md  (CC0 1.0)  — https://hallmarks.info
-# Licence: MIT      — see LICENSE at the repo root
+# Algorithm: https://github.com/specter-diy/hallmarks  (Sha256Vis variant)
+#
+# Pipeline:
+#   1. sha256(input) → 32 bytes hb[0..31]
+#   2. For i in 0..3:  c[i] = CRC-8/SMBUS(hb[i], hb[i+4], …, hb[i+28])
+#   3. c[0] → hue (top 4 bits) + chroma offset (bottom 4 bits)
+#      c[1]+c[2]+top 5 bits of c[3] → 21 cell bits (7 rows × 3 cols, mirrored to 7×5)
+#      bit 2 of c[3] → flip bit; bits 1..0 of c[3] → luminance index
+#   4. Mirror 7×3 grid → 7×5 cells (on/off only, no accent).
 #
 # ── BIP-39 wordlist dependency ────────────────────────────────────────────────
 # This module tries to import the BIP-39 English wordlist from embit
@@ -24,38 +31,44 @@ except ImportError:
     from bip39_english import WORDLIST as _BIP39
 
 # =============================================================================
-# Style parameters — OKLCH [L, C] per role  (SPEC §4)
+# Tunable constants (matching Sha256Vis Java reference implementation)
 # =============================================================================
 
-_STYLES = {
-    "standard":      {"bg": (0.96, 0.025), "fg": (0.52, 0.16),  "ac": (0.66, 0.18)},
-    "high-contrast": {"bg": (0.98, 0.04),  "fg": (0.28, 0.32),  "ac": (0.15, 0.40)},
-    "monochrome":    {"bg": (0.96, 0.0),   "fg": (0.30, 0.0),   "ac": (0.30, 0.0)},
-}
+_BASE_L_MIN      = 0.60
+_BASE_L_MAX      = 0.80
+_CHROMA_MIN      = 0.10
+_CHROMA_MAX      = 0.30
+_HC_L_ADD        = 0.20
+_BG_L_SPREAD     = 0.50
+_BG_L_EXTRA_HC   = 0.30
+_CHROMA_STD_ADD  = 0.00
+_CHROMA_HC_ADD   = 0.10
 
 # =============================================================================
-# Mulberry32 PRNG  (SPEC §3.6)
-# All arithmetic is mod 2^32; intermediate products are explicitly masked.
+# CRC-8/SMBUS (poly=0x07, init=0x00, no reflect, no xorout)
 # =============================================================================
 
-def _m32_seed(b, off):
-    """Return a 1-element list [state] seeded from 4 bytes of *b* at *off*."""
-    return [((b[off] << 24) | (b[off + 1] << 16) | (b[off + 2] << 8) | b[off + 3]) & 0xFFFFFFFF]
+def _crc8(data):
+    crc = 0
+    for b in data:
+        crc ^= b
+        for _ in range(8):
+            if crc & 0x80:
+                crc = ((crc << 1) ^ 0x07) & 0xFF
+            else:
+                crc = (crc << 1) & 0xFF
+    return crc
 
 
-def _m32_next(st):
-    """Advance state in-place and return a float in [0, 1] (divisor 2^32-1)."""
-    st[0] = (st[0] + 0x6D2B79F5) & 0xFFFFFFFF
-    t = st[0]
-    # Step 1
-    t = ((t ^ (t >> 15)) * (t | 1)) & 0xFFFFFFFF
-    # Step 2  — t0 is the value of t *before* this assignment (per spec)
-    t0 = t
-    mul = ((t ^ (t >> 7)) * (t | 61)) & 0xFFFFFFFF
-    t = ((t + mul) & 0xFFFFFFFF) ^ t0
-    # Result
-    result = (t ^ (t >> 14)) & 0xFFFFFFFF
-    return result / 0xFFFFFFFF          # divide by 2^32-1, matching spec §3.6
+def _c_bytes(hb):
+    """Compute the four c-bytes from a 32-byte hash via CRC-8/SMBUS."""
+    c = [0, 0, 0, 0]
+    buf = bytearray(8)
+    for i in range(4):
+        for k in range(8):
+            buf[k] = hb[i + k * 4]
+        c[i] = _crc8(buf)
+    return c
 
 # =============================================================================
 # OKLCH → sRGB  (SPEC §3.7)
@@ -92,63 +105,63 @@ def _oklch_to_hex(L, C, h):
     return "#{:02x}{:02x}{:02x}".format(ri, gi, bi)
 
 # =============================================================================
-# Color derivation  (SPEC §3.2)
-# Returns (bg_hex, primary_hex, accent_hex) for the given style.
+# Color derivation — dynamic OKLCH colors derived from c[0] and c[3].
+# Returns (bg_hex, fg_hex) for the given style.
 # =============================================================================
 
-def _derive_colors(hb, style):
-    h1 = ((hb[0] << 8) | hb[1]) / 65536.0 * 360.0
-    offset_raw = ((hb[2] << 8) | hb[3]) / 65536.0
-    h2 = (h1 + 100.0 + offset_raw * 160.0) % 360.0
+def _derive_colors(c, style):
+    hi4 = (c[0] >> 4) & 0xF
+    lo4 = c[0] & 0xF
+    hue        = hi4 * (360.0 / 16.0)
+    chroma_off = _CHROMA_MIN + lo4 * ((_CHROMA_MAX - _CHROMA_MIN) / 15.0)
 
-    p = _STYLES[style]
-    hue_a = 0.0 if style == "monochrome" else h1
-    hue_b = 0.0 if style == "monochrome" else h2
+    flip    = ((c[3] >> 2) & 1) == 1
+    lum_idx = c[3] & 0x3
+    base_l  = _BASE_L_MIN + lum_idx * ((_BASE_L_MAX - _BASE_L_MIN) / 3.0)
 
-    return (
-        _oklch_to_hex(p["bg"][0], p["bg"][1], hue_a),
-        _oklch_to_hex(p["fg"][0], p["fg"][1], hue_a),
-        _oklch_to_hex(p["ac"][0], p["ac"][1], hue_b),
-    )
+    if style == "standard":
+        fg_l = base_l
+        bg_l = fg_l - _BG_L_SPREAD
+        fg_c = chroma_off + _CHROMA_STD_ADD
+        bg_c = chroma_off + _CHROMA_STD_ADD
+    elif style == "high-contrast":
+        fg_l = base_l + _HC_L_ADD
+        bg_l = fg_l - _BG_L_SPREAD - _BG_L_EXTRA_HC
+        fg_c = chroma_off + _CHROMA_HC_ADD
+        bg_c = chroma_off + _CHROMA_HC_ADD
+    else:  # monochrome
+        fg_l = base_l + _HC_L_ADD
+        bg_l = fg_l - _BG_L_SPREAD - _BG_L_EXTRA_HC
+        fg_c = 0.0
+        bg_c = 0.0
+
+    fg_l = max(0.0, min(1.0, fg_l))
+    bg_l = max(0.0, min(1.0, bg_l))
+
+    if flip:
+        fg_l, bg_l = bg_l, fg_l
+
+    fg_h = hue
+    bg_h = (hue + 180.0) % 360.0
+
+    return _oklch_to_hex(bg_l, bg_c, bg_h), _oklch_to_hex(fg_l, fg_c, fg_h)
 
 # =============================================================================
-# Pattern generation  (SPEC §3.3)
-# Produces a list[7][5] of ints (0=background, 1=primary, 2=accent).
+# Cell generation — 21-bit stream from c[1]/c[2]/c[3] into a 7×5 mirrored grid.
+# Produces a list[7][5] of ints (0=background, 1=foreground).
 # =============================================================================
 
-def _gen_pattern(hb):
-    for attempt in range(8):
-        off = (4 + attempt * 4) % 28
-        st = _m32_seed(hb, off)
-        cells = []
-        filled = 0
-        for _ in range(7):                  # rows
-            half = []
-            for _ in range(3):              # half-columns (before mirror)
-                v = _m32_next(st)
-                if v < 0.50:
-                    c = 0
-                elif v < 0.85:
-                    c = 1
-                    filled += 1
-                else:
-                    c = 2
-                    filled += 1
-                half.append(c)
-            # Mirror [a, b, c] → [a, b, c, b, a]
-            cells.append([half[0], half[1], half[2], half[1], half[0]])
-        if 0.45 <= filled / 21 <= 0.75:
-            return cells
-
-    # Fallback: use attempt 0 unconditionally  (SPEC §3.3, last paragraph)
-    st = _m32_seed(hb, 4)
-    cells = []
-    for _ in range(7):
-        half = []
-        for _ in range(3):
-            v = _m32_next(st)
-            half.append(0 if v < 0.50 else (1 if v < 0.85 else 2))
-        cells.append([half[0], half[1], half[2], half[1], half[0]])
+def _build_cells(c):
+    # Pack 21 bits MSB-first from c[1] (bits 7..0 → stream bits 20..13),
+    # c[2] (bits 7..0 → 12..5), top 5 bits of c[3] (bits 7..3 → 4..0).
+    stream = (c[1] << 13) | (c[2] << 5) | (c[3] >> 3)
+    base = [[0] * 3 for _ in range(7)]
+    for idx in range(21):
+        base[idx // 3][idx % 3] = (stream >> (20 - idx)) & 1
+    # Mirror [a, b, c] → [a, b, c, b, a]
+    cells = [None] * 7
+    for r in range(7):
+        cells[r] = [base[r][0], base[r][1], base[r][2], base[r][1], base[r][0]]
     return cells
 
 # =============================================================================
@@ -183,24 +196,21 @@ def _derive_words(hb):
 def _gen_pixels_packed(cells):
     """Generate the 14x20 pixel grid directly in 2-bit-packed form.
 
+    Each on-cell fills a 2×2 block in the top-left corner of its 3×3 slot.
+    Only values 0 (background) and 1 (foreground) are produced — no accent.
+
     Returns bytearray(70).  No intermediate 280-byte allocation is made.
     """
     px = bytearray(70)
     for y in range(7):
         for x in range(5):
-            v = cells[y][x]
-            if v == 0:
+            if cells[y][x] == 0:
                 continue
             bx = x * 3
             by = y * 3
-            if v == 1:              # primary: solid 2×2 block
-                for ry, cx in ((by, bx), (by, bx + 1), (by + 1, bx), (by + 1, bx + 1)):
-                    fi = ry * 14 + cx
-                    px[fi >> 2] |= 1 << ((3 - (fi & 3)) * 2)
-            else:                   # accent: top-left + bottom-right diagonal
-                for ry, cx in ((by, bx), (by + 1, bx + 1)):
-                    fi = ry * 14 + cx
-                    px[fi >> 2] |= 2 << ((3 - (fi & 3)) * 2)
+            for ry, cx in ((by, bx), (by, bx + 1), (by + 1, bx), (by + 1, bx + 1)):
+                fi = ry * 14 + cx
+                px[fi >> 2] |= 1 << ((3 - (fi & 3)) * 2)
     return px
 
 
@@ -289,15 +299,16 @@ def hallmark_spec(input_str=None, style="standard", hb=None):
     """
     if hb is None:
         hb = hashlib.sha256(input_str.encode()).digest()
-    cells  = _gen_pattern(hb)
+    c      = _c_bytes(hb)
+    cells  = _build_cells(c)
     words  = _derive_words(hb)
     packed = _gen_pixels_packed(cells)
-    bg, fg, ac = _derive_colors(hb, style)
+    bg, fg = _derive_colors(c, style)
     return {
         "cells":      cells,
         "words":      words,
         "words_text": " ".join(words),
-        "colors":     {"background": bg, "primary": fg, "accent": ac},
+        "colors":     {"background": bg, "primary": fg, "accent": fg},
         "pixels":     pixels_unpack(packed),
         "style":      style,
     }
@@ -379,7 +390,8 @@ def hallmark_pixels_packed(input_str=None, style="standard", hb=None):
     """
     if hb is None:
         hb = hashlib.sha256(input_str.encode()).digest()
-    cells  = _gen_pattern(hb)
+    c      = _c_bytes(hb)
+    cells  = _build_cells(c)
     pixels = _gen_pixels_packed(cells)
-    bg, fg, ac = _derive_colors(hb, style)
-    return pixels, {"background": bg, "primary": fg, "accent": ac}
+    bg, fg = _derive_colors(c, style)
+    return pixels, {"background": bg, "primary": fg, "accent": fg}
