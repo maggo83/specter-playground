@@ -100,8 +100,13 @@ class ControlServer:
         """Directly toggle / open / close a drop-up panel."""
         which = cmd.get("which", "seed")   # "seed" or "wallet"
         op = cmd.get("op", "toggle")        # "toggle", "open", "close"
-        nav = self.nav
-        dropup = getattr(nav, "_seed_dropup" if which == "seed" else "_wallet_dropup", None)
+        attr = "_seed_dropup" if which == "seed" else "_wallet_dropup"
+        # dropup may live on nav directly or on nav.navigation_bar
+        dropup = getattr(self.nav, attr, None)
+        if dropup is None:
+            nav_bar = getattr(self.nav, "navigation_bar", None)
+            if nav_bar is not None:
+                dropup = getattr(nav_bar, attr, None)
         if dropup is None:
             return {"ok": False, "error": "dropup not registered: " + which}
         try:
@@ -192,8 +197,8 @@ class ControlServer:
 
     def _cmd_get_state(self):
         """Return DeviceState and UIState."""
-        ss = self.nav.specter_state
-        us = self.nav.ui_state
+        ss = getattr(self.nav, "device_state", None) or getattr(self.nav, "specter_state", None)
+        us = getattr(self.nav, "ui_state", None)
 
         # Serialize DeviceState — use getattr for forwards/backwards compat
         specter = {
@@ -248,8 +253,8 @@ class ControlServer:
         if not attr:
             return {"ok": False, "error": "Must provide 'attr'"}
 
-        ss = self.nav.specter_state
-        if not hasattr(ss, attr):
+        ss = getattr(self.nav, "device_state", None) or getattr(self.nav, "specter_state", None)
+        if not ss:
             return {"ok": False, "error": "Unknown attr: " + attr}
 
         setattr(ss, attr, value)

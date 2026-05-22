@@ -7,6 +7,7 @@ from .labels import body_label, section_header, form_label, set_label_color
 from .inputs import title_textarea, form_textarea, ACCEPTED_CHARS
 from .menu_item import MenuItem
 from .battery import Battery
+from .hallmark_widget import HallmarkWidget, clear_hallmark_cache
 
 __all__ = [
     "ModalOverlay", "ActionModal",
@@ -17,4 +18,5 @@ __all__ = [
     "title_textarea", "form_textarea", "ACCEPTED_CHARS",
     "MenuItem",
     "Battery",
+    "HallmarkWidget", "clear_hallmark_cache",
 ]
