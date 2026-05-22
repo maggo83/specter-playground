@@ -34,11 +34,11 @@ except ImportError:
 # Tunable constants (matching Sha256Vis Java reference implementation)
 # =============================================================================
 
-_BASE_L_MIN      = 0.60
-_BASE_L_MAX      = 0.80
-_CHROMA_MIN      = 0.10
-_CHROMA_MAX      = 0.30
-_HC_L_ADD        = 0.20
+_BASE_L_MIN      = 0.50
+_BASE_L_MAX      = 0.70
+_CHROMA_MIN      = 0.05
+_CHROMA_MAX      = 0.25
+_HC_L_ADD        = 0.30
 _BG_L_SPREAD     = 0.50
 _BG_L_EXTRA_HC   = 0.30
 _CHROMA_STD_ADD  = 0.00
@@ -69,6 +69,17 @@ def _c_bytes(hb):
             buf[k] = hb[i + k * 4]
         c[i] = _crc8(buf)
     return c
+
+
+def _sha_parity(hb):
+    """XOR-parity of all 32 SHA-256 bytes: True when total set-bit count is odd."""
+    p = 0
+    for b in hb:
+        v = b
+        v = v - ((v >> 1) & 0x55)
+        v = (v & 0x33) + ((v >> 2) & 0x33)
+        p ^= (v + (v >> 4)) & 0x0F
+    return (p & 1) == 1
 
 # =============================================================================
 # OKLCH → sRGB  (SPEC §3.7)
@@ -109,14 +120,16 @@ def _oklch_to_hex(L, C, h):
 # Returns (bg_hex, fg_hex) for the given style.
 # =============================================================================
 
-def _derive_colors(c, style):
+def _derive_colors(c, style, swap_luminance):
+    """Derive bg/fg hex colors from c-bytes.
+    swap_luminance (bool): when True, swap fg and bg luminance (driven by SHA parity).
+    """
     hi4 = (c[0] >> 4) & 0xF
     lo4 = c[0] & 0xF
     hue        = hi4 * (360.0 / 16.0)
     chroma_off = _CHROMA_MIN + lo4 * ((_CHROMA_MAX - _CHROMA_MIN) / 15.0)
 
-    flip    = ((c[3] >> 2) & 1) == 1
-    lum_idx = c[3] & 0x3
+    lum_idx = (c[3] >> 2) & 0x3   # c[3] bits 3..2
     base_l  = _BASE_L_MIN + lum_idx * ((_BASE_L_MAX - _BASE_L_MIN) / 3.0)
 
     if style == "standard":
@@ -138,7 +151,7 @@ def _derive_colors(c, style):
     fg_l = max(0.0, min(1.0, fg_l))
     bg_l = max(0.0, min(1.0, bg_l))
 
-    if flip:
+    if swap_luminance:
         fg_l, bg_l = bg_l, fg_l
 
     fg_h = hue
@@ -147,22 +160,93 @@ def _derive_colors(c, style):
     return _oklch_to_hex(bg_l, bg_c, bg_h), _oklch_to_hex(fg_l, fg_c, fg_h)
 
 # =============================================================================
-# Cell generation — 21-bit stream from c[1]/c[2]/c[3] into a 7×5 mirrored grid.
+# Cell generation — 20-bit stream from c[1]/c[2]/c[3] into a 7×5 grid.
 # Produces a list[7][5] of ints (0=background, 1=foreground).
+#
+# Mirror mode selected by parity_odd:
+#   Even: vertical mirror  — rows 4,5,6 mirror rows 2,1,0; center cell = 0
+#   Odd:  horizontal mirror — cols 3,4 mirror cols 1,0;   center cell = 1
+#
+# Point-mirror override: if swap=True and raw set-bit count < 10, use POINT_MAP.
 # =============================================================================
 
-def _build_cells(c):
-    # Pack 21 bits MSB-first from c[1] (bits 7..0 → stream bits 20..13),
-    # c[2] (bits 7..0 → 12..5), top 5 bits of c[3] (bits 7..3 → 4..0).
-    stream = (c[1] << 13) | (c[2] << 5) | (c[3] >> 3)
-    base = [[0] * 3 for _ in range(7)]
-    for idx in range(21):
-        base[idx // 3][idx % 3] = (stream >> (20 - idx)) & 1
-    # Mirror [a, b, c] → [a, b, c, b, a]
-    cells = [None] * 7
+# 180°-rotationally-symmetric layout for the point-mirror override.
+# Cells sharing the same index are symmetric around [3][2].
+_POINT_MAP = (
+     0,  1,  2,  3,  4,
+     5,  6,  7,  8,  9,
+    10, 11, 12, 13, 17,
+    14, 15, 16, 15, 14,
+    17, 18, 12, 11, 10,
+    19,  8,  7,  6,  5,
+     4,  3,  2,  1,  0,
+)
+
+
+def _invert_cells(grid):
     for r in range(7):
-        cells[r] = [base[r][0], base[r][1], base[r][2], base[r][1], base[r][0]]
-    return cells
+        for col in range(5):
+            grid[r][col] ^= 1
+
+
+def _build_axis_grid(stream, parity_odd):
+    grid = [[0] * 5 for _ in range(7)]
+    if not parity_odd:
+        # Even parity: vertical mirror (top↔bottom), center cell forced off.
+        bit = 0
+        for r in range(4):
+            for col in range(5):
+                grid[r][col] = (stream >> (19 - bit)) & 1
+                bit += 1
+        grid[3][2] = 0
+        for col in range(5):
+            grid[4][col] = grid[2][col]
+            grid[5][col] = grid[1][col]
+            grid[6][col] = grid[0][col]
+    else:
+        # Odd parity: horizontal mirror (left↔right), center cell forced on.
+        bit = 0
+        for col in range(3):
+            for r in range(7):
+                if r == 3 and col == 2:
+                    continue
+                grid[r][col] = (stream >> (19 - bit)) & 1
+                bit += 1
+        grid[3][2] = 1
+        for r in range(7):
+            grid[r][3] = grid[r][1]
+            grid[r][4] = grid[r][0]
+    return grid
+
+
+def _build_point_grid(stream):
+    grid = [[0] * 5 for _ in range(7)]
+    for i in range(35):
+        grid[i // 5][i % 5] = (stream >> (19 - _POINT_MAP[i])) & 1
+    return grid
+
+
+def _build_cells(c, flip, parity_odd, swap):
+    """Build the 7×5 cell grid.
+    flip       — c[3] bit 1: invert cells (on↔off) after mirroring.
+    parity_odd — SHA-256 parity (True=odd): selects mirror axis.
+    swap       — c[3] bit 0: enables point-mirror override when set-bit count < 10.
+    """
+    stream = (c[1] << 12) | (c[2] << 4) | (c[3] >> 4)   # 20-bit
+
+    grid = _build_axis_grid(stream, parity_odd)
+    if flip:
+        _invert_cells(grid)
+
+    # Raw set-bit count in the 20-bit stream (adjusted for flip inversion)
+    raw_bits = stream & 0xFFFFF
+    raw_set = (20 - bin(raw_bits).count('1')) if flip else bin(raw_bits).count('1')
+    if swap and raw_set < 10:
+        grid = _build_point_grid(stream)
+        if flip:
+            _invert_cells(grid)
+
+    return grid
 
 # =============================================================================
 # Verbal companion  (SPEC §3.4)
@@ -299,11 +383,14 @@ def hallmark_spec(input_str=None, style="standard", hb=None):
     """
     if hb is None:
         hb = hashlib.sha256(input_str.encode()).digest()
-    c      = _c_bytes(hb)
-    cells  = _build_cells(c)
+    c          = _c_bytes(hb)
+    parity_odd = _sha_parity(hb)
+    flip       = ((c[3] >> 1) & 1) == 1
+    swap       = (c[3] & 1) == 1
+    cells  = _build_cells(c, flip, parity_odd, swap)
     words  = _derive_words(hb)
     packed = _gen_pixels_packed(cells)
-    bg, fg = _derive_colors(c, style)
+    bg, fg = _derive_colors(c, style, swap)
     return {
         "cells":      cells,
         "words":      words,
@@ -390,8 +477,11 @@ def hallmark_pixels_packed(input_str=None, style="standard", hb=None):
     """
     if hb is None:
         hb = hashlib.sha256(input_str.encode()).digest()
-    c      = _c_bytes(hb)
-    cells  = _build_cells(c)
+    c          = _c_bytes(hb)
+    parity_odd = _sha_parity(hb)
+    flip       = ((c[3] >> 1) & 1) == 1
+    swap       = (c[3] & 1) == 1
+    cells  = _build_cells(c, flip, parity_odd, swap)
     pixels = _gen_pixels_packed(cells)
-    bg, fg = _derive_colors(c, style)
+    bg, fg = _derive_colors(c, style, swap)
     return pixels, {"background": bg, "primary": fg, "accent": fg}
