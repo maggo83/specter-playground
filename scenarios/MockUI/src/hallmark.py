@@ -60,8 +60,8 @@ def _crc8(data):
     return crc
 
 
-def _c_bytes(hb):
-    """Compute the four c-bytes from a 32-byte hash via CRC-8/SMBUS."""
+def _c_bytes_crc8(hb):
+    """Four c-bytes via CRC-8/SMBUS on interleaved column slices."""
     c = [0, 0, 0, 0]
     buf = bytearray(8)
     for i in range(4):
@@ -69,6 +69,39 @@ def _c_bytes(hb):
             buf[k] = hb[i + k * 4]
         c[i] = _crc8(buf)
     return c
+
+
+# =============================================================================
+# CRC-32/ISO-HDLC (poly=0xEDB88320, init=0xFFFFFFFF, reflect in+out, xorout 0xFFFFFFFF)
+# =============================================================================
+
+def _crc32(data):
+    crc = 0xFFFFFFFF
+    for b in data:
+        crc ^= b
+        for _ in range(8):
+            if crc & 1:
+                crc = (crc >> 1) ^ 0xEDB88320
+            else:
+                crc >>= 1
+    return crc ^ 0xFFFFFFFF
+
+
+def _c_bytes_crc32(hb):
+    """Four c-bytes from a single CRC-32/ISO-HDLC over all 32 hash bytes (big-endian split)."""
+    r = _crc32(hb)
+    return [(r >> 24) & 0xFF, (r >> 16) & 0xFF, (r >> 8) & 0xFF, r & 0xFF]
+
+
+def _c_bytes(hb, mode="crc8"):
+    """Compute the four c-bytes from a 32-byte hash.
+
+    mode : str
+        ``"crc8"`` (default) — four CRC-8/SMBUS passes over interleaved column
+        slices.  ``"crc32"`` — single CRC-32/ISO-HDLC over all 32 bytes, split
+        big-endian into four bytes.
+    """
+    return _c_bytes_crc32(hb) if mode == "crc32" else _c_bytes_crc8(hb)
 
 
 def _sha_parity(hb):
@@ -357,7 +390,7 @@ def hallmark_digest(input_str):
     return hashlib.sha256(input_str.encode()).digest()
 
 
-def hallmark_spec(input_str=None, style="standard", hb=None):
+def hallmark_spec(input_str=None, style="standard", hb=None, cmode="crc8"):
     """Return the full Hallmark specification.
 
     Parameters
@@ -383,7 +416,7 @@ def hallmark_spec(input_str=None, style="standard", hb=None):
     """
     if hb is None:
         hb = hashlib.sha256(input_str.encode()).digest()
-    c          = _c_bytes(hb)
+    c          = _c_bytes(hb, cmode)
     parity_odd = _sha_parity(hb)
     flip       = ((c[3] >> 1) & 1) == 1
     swap       = (c[3] & 1) == 1
@@ -423,7 +456,7 @@ def hallmark_words(input_str=None, hb=None):
     return _derive_words(hb)
 
 
-def hallmark_pixels(input_str=None, style="standard", hb=None):
+def hallmark_pixels(input_str=None, style="standard", hb=None, cmode="crc8"):
     """Return the 14x20 pixel raster and the resolved paint colors.
 
     This is the primary output for embedded displays.  The pixel grid is
@@ -447,11 +480,11 @@ def hallmark_pixels(input_str=None, style="standard", hb=None):
         colors — dict {background, primary, accent} → ``"#rrggbb"`` hex strings.
                  For monochrome displays collapse values 1 and 2 to "on".
     """
-    packed, colors = hallmark_pixels_packed(input_str, style, hb=hb)
+    packed, colors = hallmark_pixels_packed(input_str, style, hb=hb, cmode=cmode)
     return pixels_unpack(packed), colors
 
 
-def hallmark_pixels_packed(input_str=None, style="standard", hb=None):
+def hallmark_pixels_packed(input_str=None, style="standard", hb=None, cmode="crc8"):
     """Return the 14x20 pixel grid in compact 2-bit-packed form.
 
     This is the preferred entry point on memory-constrained devices.  The
@@ -477,7 +510,7 @@ def hallmark_pixels_packed(input_str=None, style="standard", hb=None):
     """
     if hb is None:
         hb = hashlib.sha256(input_str.encode()).digest()
-    c          = _c_bytes(hb)
+    c          = _c_bytes(hb, cmode)
     parity_odd = _sha_parity(hb)
     flip       = ((c[3] >> 1) & 1) == 1
     swap       = (c[3] & 1) == 1
