@@ -312,7 +312,7 @@ class WalletDropUp(_DropUp):
         any_account = any(getattr(w, "account", 0) != 0 for w in state.registered_wallets)
         any_net     = any(w.net != "mainnet" for w in state.registered_wallets)
 
-        active_slots = ["hallmark", "type_icon", "name", "threshold"]
+        active_slots = ["type_icon", "name", "hallmark", "threshold"]
         if any_account:
             active_slots.append("account")
         if any_net:

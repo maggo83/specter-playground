@@ -4,7 +4,7 @@ All containers have border, padding, and radius zeroed by default.
 """
 
 import lvgl as lv
-from ..ui_consts import DIALOG_RADIUS, BIG_PAD, WHITE_HEX, DROPUP_DIVIDER_OPA
+from ..ui_consts import DIALOG_RADIUS, BIG_PAD, GREY_HEX, DROPUP_DIVIDER_OPA
 from ..ui_utils import configure_as_bare, configure_flex
 
 
@@ -74,7 +74,7 @@ def card_row(parent, height, width, pad=BIG_PAD, border=True, transparent_bg=Tru
     if border:
         row.set_style_border_width(1, 0)
         row.set_style_border_side(lv.BORDER_SIDE.BOTTOM, 0)
-        row.set_style_border_color(WHITE_HEX, 0)
+        row.set_style_border_color(GREY_HEX, 0)
         row.set_style_border_opa(DROPUP_DIVIDER_OPA, 0)
     row.set_scroll_dir(lv.DIR.NONE)
     row.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
