@@ -58,8 +58,8 @@ EXPLAINER_WIDTH_PCT = const(70)   # Width of explainer text box (percentage of s
 EXPLAINER_HEIGHT_PCT = const(40)  # Height of explainer text box (percentage of screen)
 
 # Animation constants
-ANIM_MS_HORIZONTAL = const(150)   # horizontal slide duration (ms)
-ANIM_MS_VERTICAL = const(300)     # vertical slide duration (ms)
+ANIM_MS_HORIZONTAL = const(150)    # horizontal slide duration (ms)
+ANIM_MS_VERTICAL = const(300)      # vertical slide duration (ms)
 GUI_REFRESH_MS = const(2000)      # periodic UI refresh interval (ms)
 
 # Fonts

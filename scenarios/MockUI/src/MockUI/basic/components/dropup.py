@@ -114,6 +114,50 @@ class _DropUp(SpecterGuiMixin):
 
         return self.get_state()
 
+    def snap_open(self, container):
+        """Build the panel at its final position WITHOUT animation.
+
+        Used by the HW compositor path: the panel must already be in
+        its final on-screen position when the offscreen FB2 render
+        captures it; the visual slide is then performed by the LTDC
+        compositor.
+
+        Returns the panel rect ``(x, y, w, h)`` so the caller can use
+        it as the HW transition sub-rect, or ``None`` if the drop-up
+        was already open/animating.
+        """
+        state = self.get_state()
+        if state in (DropUpState.OPENING, DropUpState.CLOSING, DropUpState.OPEN):
+            return None
+
+        self._panel = flex_col(
+            container,
+            width=SCREEN_WIDTH,
+            height=_PANEL_MAX_H,
+            main_align=lv.FLEX_ALIGN.START,
+            transparent_bg=False,
+        )
+        self._panel.set_style_radius(0, 0)
+        self._panel.set_style_pad_row(0, 0)
+        self._panel.set_scroll_dir(lv.DIR.VER)
+        self._panel.set_scrollbar_mode(lv.SCROLLBAR_MODE.AUTO)
+        self._panel.add_event_cb(lambda e: setattr(e, 'stop_bubbling', 1), lv.EVENT.CLICKED, None)
+
+        # _fill_panel sets the panel size and positions it at
+        # (0, _PANEL_MAX_H - panel_h) -- its FINAL on-screen position.
+        self._fill_panel()
+        self._animating = False
+        self._closing = False
+        self._anim = None
+
+        # Compute panel_y deterministically: relying on self._panel.get_y()
+        # right after creation returns 0 (LVGL layout has not yet run for
+        # the brand-new widget), which would make the HW sub-rect span the
+        # entire content area and look like a full-screen slide.
+        panel_h = self._compute_panel_h()
+        panel_y = _PANEL_MAX_H - panel_h
+        return (0, panel_y, SCREEN_WIDTH, panel_h)
+
     def close(self):
         state = self.get_state()
         if state in (DropUpState.OPENING, DropUpState.CLOSING, DropUpState.CLOSED):
@@ -201,7 +245,9 @@ class _DropUp(SpecterGuiMixin):
         return min(content_h, _PANEL_MAX_H)
 
     def _add_cb(self, event=None):
-        self.close()
+        # Navigation case: skip self.close(); the GUI's navigation
+        # pipeline will run a chained HW close-then-screen-change.
+        # Calling close() here would race the snap-delete and fault.
         self._navigate_add()
 
     def _make_row_cb(self, item):
@@ -215,12 +261,22 @@ class _DropUp(SpecterGuiMixin):
         def _cb(e):
             if e.get_code() != lv.EVENT.CLICKED:
                 return
-            self.close()
             if (self.ui_state.active_context == ctx
                     and getattr(self.ui_state, attr) is not None):
+                # In-place switch (no screen change): we must close
+                # the dropup ourselves.
+                self.close()
                 getattr(self.ui_state, setter)(item)
                 self.gui.refresh_ui()
             else:
+                # Navigation case: the GUI's navigation pipeline will
+                # detect the open dropup and run a chained HW
+                # close-then-screen-change. Calling self.close() here
+                # would start an LV slide_y anim on the panel and the
+                # pipeline would immediately snap-delete the panel,
+                # leaving the anim's per-tick callback firing on
+                # freed memory (HardFault, LEDs flash). Skip the LV
+                # close and let HW phase 1 own the panel teardown.
                 self.on_navigate(target, **{kwarg: item})
         return _cb
 
@@ -265,9 +321,10 @@ class SeedDropUp(_DropUp):
                     if self.ui_state.active_seed is s:
                         self.ui_state.active_seed = None
                     if not self.device_state.loaded_seeds:
-                        # Last seed gone: close the drop-up and return home;
-                        # on_navigate("main") handles the refresh itself.
-                        self.close()
+                        # Last seed gone: return home. Navigation
+                        # pipeline runs HW close-then-screen-change;
+                        # do not call self.close() here (would race
+                        # the snap-delete and fault).
                         self.on_navigate("main")
                     else:
                         self.gui.refresh_ui()

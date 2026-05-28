@@ -106,13 +106,36 @@ class NavigationBar(SpecterGuiElement):
             self.close_dropups()
 
     def _open_dropup(self, dropup):
-        """Ensure the shared backdrop exists and open *dropup* inside it."""
+        """Ensure the shared backdrop exists and open *dropup* inside it.
+
+        Uses the HW compositor path when animations are enabled (so
+        the panel slides up via the LTDC slide-in compositor); falls
+        back to the legacy LV slide-y animation otherwise (e.g. on the
+        unix simulator where ``udisplay.transition`` is unavailable).
+        """
         container = self._ensure_backdrop()
-        dropup.open(container)
+        use_hw = (
+            getattr(self.gui, 'ui_state', None) is not None
+            and self.gui.ui_state.are_animations_enabled
+            and hasattr(self.gui, '_hw_dropup_slide_in')
+        )
+        if use_hw:
+            self.gui._hw_dropup_slide_in(dropup, container)
+        else:
+            dropup.open(container)
 
     def _close_dropup(self, dropup):
-        """Close a specific drop-up."""
-        if dropup.get_state() in (DropUpState.OPENING, DropUpState.OPEN):
+        """Close a specific drop-up via the HW compositor slide-out."""
+        if dropup.get_state() not in (DropUpState.OPENING, DropUpState.OPEN):
+            return
+        use_hw = (
+            getattr(self.gui, 'ui_state', None) is not None
+            and self.gui.ui_state.are_animations_enabled
+            and hasattr(self.gui, '_hw_dropup_close_pure')
+        )
+        if use_hw:
+            self.gui._hw_dropup_close_pure()
+        else:
             dropup.close()
 
     # ── Public API ────────────────────────────────────────────────────────────
@@ -187,12 +210,29 @@ class NavigationBar(SpecterGuiElement):
     def _dropup_button_cb(self, own_dropup, other_dropup):
         """Shared logic for Seed and Wallet nav buttons.
 
-        - Closes ``other_dropup`` first (mutual exclusion).
-        - If already inside ``own_menus``: exit context root or jump to it.
-        - Otherwise: toggle ``own_dropup`` open/closed.
+        Mutual-exclusion sequencing:
+        - If ``other_dropup`` is open and the user taps ``own_dropup``:
+          run HW slide-out of the old drop-up (phase 1), THEN open the
+          new drop-up (phase 2). This guarantees the two animations
+          never run simultaneously.
+        - If ``own_dropup`` is already open: close it.
+        - Otherwise (nothing open): open ``own_dropup``.
         """
-        self._close_dropup(other_dropup)
-        if own_dropup.get_state() in (DropUpState.OPENING, DropUpState.OPEN):
+        other_open = other_dropup.get_state() in (
+            DropUpState.OPENING, DropUpState.OPEN)
+        own_open = own_dropup.get_state() in (
+            DropUpState.OPENING, DropUpState.OPEN)
+
+        if other_open:
+            # Chain: HW slide-out old -> open new (LV slide-in).
+            def _open_new_after_close():
+                self._open_dropup(own_dropup)
+                self.refresh()
+
+            self.gui._hw_dropup_slide_out(_open_new_after_close)
+            return
+
+        if own_open:
             self._close_dropup(own_dropup)
         else:
             self._open_dropup(own_dropup)
@@ -209,8 +249,9 @@ class NavigationBar(SpecterGuiElement):
     def _back_cb(self, event=None):
         if self._any_animation_ongoing():
             return
-        # If a drop-up is open, close it first, then navigate back
-        self.close_dropups()
+        # If a drop-up is open the navigation pipeline (_transition_full_screen
+        # -> _close_dropups_then) chains the HW slide-out with the screen
+        # transition; no need to pre-close here.
         self.on_navigate(None)
 
     def _seed_cb(self, event=None):
@@ -222,7 +263,7 @@ class NavigationBar(SpecterGuiElement):
         if self._any_animation_ongoing():
             return
         # History clearing is handled inside on_navigate/show_menu for target="main"
-        self.close_dropups()
+        # Dropup close (if any) is chained by the navigation pipeline.
         self.gui.on_navigate("main")
 
     def _wallet_cb(self, event=None):
@@ -234,9 +275,11 @@ class NavigationBar(SpecterGuiElement):
         if self._any_animation_ongoing():
             return
 
-        #always close drop ups if they are open
-        self.close_dropups()
-        
         if self.context != Context.DEVICE:
+            # Navigation pipeline chains the dropup close with the
+            # screen transition.
             self.on_navigate("manage_settings")
+        else:
+            # Already on Device context: just close any open dropup.
+            self.close_dropups()
         self.refresh()
