@@ -22,8 +22,9 @@ from .confirm_modals import confirm_delete_seed, confirm_delete_wallet
 from ..utils.ui_consts import (
     BTC_ICON_WIDTH, SMALL_TEXT_FONT, STATUS_BTN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT,
     STATUS_BAR_PCT, WHITE_HEX, ORANGE_HEX, BIG_PAD, CARD_H,
-    DROPUP_DIVIDER_OPA, ANIM_MS_VERTICAL, TEXT_FONT
+    DROPUP_DIVIDER_OPA, TEXT_FONT
 )
+from ..utils.ui_consts import anim_duration_ms
 from ..symbol_lib import BTC_ICONS
 from ..widgets.containers import flex_col, flex_row
 from ..widgets.btn import Btn
@@ -109,7 +110,10 @@ class _DropUp(SpecterGuiMixin):
                 self._anim = None
 
             panel_y = _PANEL_MAX_H - self._compute_panel_h()
-            self._anim = slide_y(self._panel, _PANEL_MAX_H, panel_y, ANIM_MS_VERTICAL, on_done_cb=_on_open_done)
+            # Travel distance = panel height (slides up by exactly its own height).
+            self._anim = slide_y(self._panel, _PANEL_MAX_H, panel_y,
+                                 anim_duration_ms(_PANEL_MAX_H - panel_y),
+                                 on_done_cb=_on_open_done)
             self._anim.start()
 
         return self.get_state()
@@ -180,7 +184,10 @@ class _DropUp(SpecterGuiMixin):
             panel_y_now = self._panel.get_y()
             panel_y_end = _PANEL_MAX_H  # slide off-screen down
 
-            self._anim = slide_y(self._panel, panel_y_now, panel_y_end, ANIM_MS_VERTICAL, on_done_cb=_on_close_done)
+            # Travel distance = how far the panel still needs to slide down.
+            self._anim = slide_y(self._panel, panel_y_now, panel_y_end,
+                                 anim_duration_ms(panel_y_end - panel_y_now),
+                                 on_done_cb=_on_close_done)
             self._anim.start()
         else:
             _on_close_done(None)

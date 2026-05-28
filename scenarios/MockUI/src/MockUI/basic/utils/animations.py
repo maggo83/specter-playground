@@ -16,7 +16,7 @@ Typical usage::
 """
 
 import lvgl as lv
-from .ui_consts import SCREEN_WIDTH, SCREEN_HEIGHT, CONTENT_PCT, ANIM_MS_HORIZONTAL, ANIM_MS_VERTICAL
+from .ui_consts import SCREEN_WIDTH, SCREEN_HEIGHT, CONTENT_PCT, anim_duration_ms
 
 _CONTENT_H = SCREEN_HEIGHT * CONTENT_PCT // 100
 
@@ -72,32 +72,38 @@ def create_anims_for_transition(old_screen, new_screen, anim_type, on_done_cb=No
     assert(content_w_old == SCREEN_WIDTH)  # caller must ensure this for horizontal animations
     W = SCREEN_WIDTH
 
+    # Slide animations use a constant pixel-per-second speed; duration is
+    # derived from the actual travel distance so perceived speed is uniform
+    # regardless of how far the animated object moves.
+    dur_h = anim_duration_ms(W)
+    dur_v = anim_duration_ms(_CONTENT_H)
+
     if anim_type == GUIAnimations.horizontal_slide_in:
-        anims.append(slide_x(new_screen, W, 0, ANIM_MS_HORIZONTAL, on_done_cb=on_done_cb))
+        anims.append(slide_x(new_screen, W, 0, dur_h, on_done_cb=on_done_cb))
     elif anim_type == GUIAnimations.horizontal_slide_out:
         new_screen.set_x(0)
         old_screen.move_foreground()  # old must be on top so its slide-out is visible
-        anims.append(slide_x(old_screen, 0, W, ANIM_MS_HORIZONTAL, on_done_cb=on_done_cb))
+        anims.append(slide_x(old_screen, 0, W, dur_h, on_done_cb=on_done_cb))
     elif anim_type == GUIAnimations.horizontal_push_in:
-        anims.append(slide_x(new_screen, W, 0, ANIM_MS_HORIZONTAL))
-        anims.append(slide_x(old_screen, 0, -W, ANIM_MS_HORIZONTAL, on_done_cb=on_done_cb))
+        anims.append(slide_x(new_screen, W, 0, dur_h))
+        anims.append(slide_x(old_screen, 0, -W, dur_h, on_done_cb=on_done_cb))
     elif anim_type == GUIAnimations.horizontal_push_out:
-        anims.append(slide_x(new_screen, -W, 0, ANIM_MS_HORIZONTAL))
-        anims.append(slide_x(old_screen, 0, W, ANIM_MS_HORIZONTAL, on_done_cb=on_done_cb))
+        anims.append(slide_x(new_screen, -W, 0, dur_h))
+        anims.append(slide_x(old_screen, 0, W, dur_h, on_done_cb=on_done_cb))
     elif anim_type == GUIAnimations.vertical_slide_in:
         # Screen and bar form a unit of total height _CONTENT_H.  Both must travel
         # _CONTENT_H pixels so they stay visually glued together.
         # (content is offset by bar height when a bar is present, so the screen must
         # start at content y=_CONTENT_H even though its own height is smaller.)
-        anims.append(slide_y(new_screen, _CONTENT_H, 0, ANIM_MS_VERTICAL, on_done_cb=on_done_cb))
+        anims.append(slide_y(new_screen, _CONTENT_H, 0, dur_v, on_done_cb=on_done_cb))
         if new_bar:
-            anims.append(slide_y(new_bar, _CONTENT_H, 0, ANIM_MS_VERTICAL))
+            anims.append(slide_y(new_bar, _CONTENT_H, 0, dur_v))
     elif anim_type == GUIAnimations.vertical_slide_out:
         # Mirror of slide_in: both screen and bar exit downward by _CONTENT_H pixels.
         new_screen.set_y(0)
         old_screen.move_foreground()  # old must cover new while sliding away
-        anims.append(slide_y(old_screen, 0, _CONTENT_H, ANIM_MS_VERTICAL, on_done_cb=on_done_cb))
+        anims.append(slide_y(old_screen, 0, _CONTENT_H, dur_v, on_done_cb=on_done_cb))
         if old_bar:
             old_bar.move_foreground()
-            anims.append(slide_y(old_bar, 0, _CONTENT_H, ANIM_MS_VERTICAL))
+            anims.append(slide_y(old_bar, 0, _CONTENT_H, dur_v))
     return anims

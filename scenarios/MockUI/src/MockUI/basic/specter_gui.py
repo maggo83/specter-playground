@@ -14,7 +14,7 @@ _HW_ANIM_HORIZONTAL_PUSH_OUT  = 4
 _HW_ANIM_VERTICAL_SLIDE_IN    = 5
 _HW_ANIM_VERTICAL_SLIDE_OUT   = 6
 
-from .utils.ui_consts import SCREEN_HEIGHT, SCREEN_WIDTH, CONTENT_PCT, ANIM_MS_HORIZONTAL, ANIM_MS_VERTICAL, GUI_REFRESH_MS, TITLE_ROW_HEIGHT
+from .utils.ui_consts import SCREEN_HEIGHT, SCREEN_WIDTH, CONTENT_PCT, anim_duration_ms, GUI_REFRESH_MS, TITLE_ROW_HEIGHT
 from ..stubs import DeviceState
 from .ui_state import UIState, Context
 from .i18n import I18nManager
@@ -264,12 +264,12 @@ class SpecterGui(lv.obj):
 
         if anim_type == GUIAnimations.horizontal_slide_in:
             new_view.set_x(W)
-            anims.append(slide_x(new_view, W, 0, ANIM_MS_HORIZONTAL,
+            anims.append(slide_x(new_view, W, 0, anim_duration_ms(W),
                                 on_done_cb=lambda a: _cleanup_case3()))
         elif anim_type == GUIAnimations.horizontal_slide_out:
             new_view.set_x(0)
             old_view.move_foreground()
-            anims.append(slide_x(old_view, 0, W, ANIM_MS_HORIZONTAL,
+            anims.append(slide_x(old_view, 0, W, anim_duration_ms(W),
                                 on_done_cb=lambda a: _cleanup_case3()))
 
         for a in anims:
@@ -284,7 +284,7 @@ class SpecterGui(lv.obj):
         and slides the view interior at 60 Hz with no LVGL CPU cost per
         frame.
         """
-        hw_type, dur_ms = self._hw_anim_table()[anim_type]
+        hw_type = self._hw_anim_table()[anim_type]
 
         old_screen = self.screen
         old_view = old_screen.view
@@ -338,6 +338,13 @@ class SpecterGui(lv.obj):
             self.refresh_ui()
 
         self._hw_anim_done_cb = _on_done
+        # Travel distance: horizontal -> rect_w, vertical -> rect_h. Here the
+        # rect is the content area between the context bar and the nav bar.
+        if anim_type in (GUIAnimations.vertical_slide_in,
+                         GUIAnimations.vertical_slide_out):
+            dur_ms = anim_duration_ms(rect_h)
+        else:
+            dur_ms = anim_duration_ms(SCREEN_WIDTH)
         _udisplay.transition(hw_type, dur_ms,
                              0, rect_y, SCREEN_WIDTH, rect_h,
                              _on_done)
@@ -350,12 +357,12 @@ class SpecterGui(lv.obj):
     def _hw_anim_table(cls):
         if cls._HW_ANIM_TABLE is None:
             cls._HW_ANIM_TABLE = {
-                GUIAnimations.horizontal_slide_in:  (_HW_ANIM_HORIZONTAL_SLIDE_IN,  ANIM_MS_HORIZONTAL),
-                GUIAnimations.horizontal_slide_out: (_HW_ANIM_HORIZONTAL_SLIDE_OUT, ANIM_MS_HORIZONTAL),
-                GUIAnimations.horizontal_push_in:   (_HW_ANIM_HORIZONTAL_PUSH_IN,   ANIM_MS_HORIZONTAL),
-                GUIAnimations.horizontal_push_out:  (_HW_ANIM_HORIZONTAL_PUSH_OUT,  ANIM_MS_HORIZONTAL),
-                GUIAnimations.vertical_slide_in:    (_HW_ANIM_VERTICAL_SLIDE_IN,    ANIM_MS_VERTICAL),
-                GUIAnimations.vertical_slide_out:   (_HW_ANIM_VERTICAL_SLIDE_OUT,   ANIM_MS_VERTICAL),
+                GUIAnimations.horizontal_slide_in:  _HW_ANIM_HORIZONTAL_SLIDE_IN,
+                GUIAnimations.horizontal_slide_out: _HW_ANIM_HORIZONTAL_SLIDE_OUT,
+                GUIAnimations.horizontal_push_in:   _HW_ANIM_HORIZONTAL_PUSH_IN,
+                GUIAnimations.horizontal_push_out:  _HW_ANIM_HORIZONTAL_PUSH_OUT,
+                GUIAnimations.vertical_slide_in:    _HW_ANIM_VERTICAL_SLIDE_IN,
+                GUIAnimations.vertical_slide_out:   _HW_ANIM_VERTICAL_SLIDE_OUT,
             }
         return cls._HW_ANIM_TABLE
 
@@ -368,7 +375,7 @@ class SpecterGui(lv.obj):
         Completion is reported via a scheduled Python callback which
         deletes old_screen and finalises navigation state.
         """
-        hw_type, dur_ms = self._hw_anim_table()[anim_type]
+        hw_type = self._hw_anim_table()[anim_type]
 
         old_screen = self.screen
         new_screen = self._make_screen()
@@ -506,6 +513,14 @@ class SpecterGui(lv.obj):
         # while it is queued by mp_sched_schedule.
         self._hw_anim_done_cb = _on_hw_transition_done
 
+        # Travel distance: horizontal moves the rect by its full width,
+        # vertical by its full height. Here the rect is the whole content
+        # area (0, 0, SCREEN_WIDTH, _CONTENT_H).
+        if anim_type in (GUIAnimations.vertical_slide_in,
+                         GUIAnimations.vertical_slide_out):
+            dur_ms = anim_duration_ms(_CONTENT_H)
+        else:
+            dur_ms = anim_duration_ms(SCREEN_WIDTH)
         _udisplay.transition(hw_type, dur_ms,
                              0, 0, SCREEN_WIDTH, _CONTENT_H,
                              _on_hw_transition_done)
@@ -597,7 +612,8 @@ class SpecterGui(lv.obj):
 
         self._animating = True
         self._hw_anim_done_cb = _on_phase1_done
-        _udisplay.transition(_HW_ANIM_VERTICAL_SLIDE_OUT, ANIM_MS_VERTICAL,
+        # Travel distance = panel slide height (capped at content height).
+        _udisplay.transition(_HW_ANIM_VERTICAL_SLIDE_OUT, anim_duration_ms(rect_h),
                              0, rect_y, SCREEN_WIDTH, rect_h,
                              _on_phase1_done)
 
@@ -652,7 +668,8 @@ class SpecterGui(lv.obj):
 
         self._animating = True
         self._hw_anim_done_cb = _on_open_done
-        _udisplay.transition(_HW_ANIM_VERTICAL_SLIDE_IN, ANIM_MS_VERTICAL,
+        # Travel distance = panel slide height (capped at content height).
+        _udisplay.transition(_HW_ANIM_VERTICAL_SLIDE_IN, anim_duration_ms(rect_h),
                              rect_x, rect_y, rect_w, rect_h,
                              _on_open_done)
 
@@ -782,26 +799,26 @@ class SpecterGui(lv.obj):
         W = SCREEN_WIDTH
 
         if anim_type == GUIAnimations.horizontal_slide_in:
-            anims.append(slide_x(new_screen, W, 0, ANIM_MS_HORIZONTAL,
+            anims.append(slide_x(new_screen, W, 0, anim_duration_ms(W),
                                 on_done_cb=lambda a: _cleanup_whole()))
         elif anim_type == GUIAnimations.horizontal_slide_out:
             old_screen.move_foreground()   # old on top within anim_clip
-            anims.append(slide_x(old_screen, 0, W, ANIM_MS_HORIZONTAL,
+            anims.append(slide_x(old_screen, 0, W, anim_duration_ms(W),
                                 on_done_cb=lambda a: _cleanup_whole()))
         elif anim_type == GUIAnimations.horizontal_push_in:
-            anims.append(slide_x(new_screen, W, 0, ANIM_MS_HORIZONTAL))
-            anims.append(slide_x(old_screen, 0, -W, ANIM_MS_HORIZONTAL,
+            anims.append(slide_x(new_screen, W, 0, anim_duration_ms(W)))
+            anims.append(slide_x(old_screen, 0, -W, anim_duration_ms(W),
                                 on_done_cb=lambda a: _cleanup_whole()))
         elif anim_type == GUIAnimations.horizontal_push_out:
-            anims.append(slide_x(new_screen, -W, 0, ANIM_MS_HORIZONTAL))
-            anims.append(slide_x(old_screen, 0, W, ANIM_MS_HORIZONTAL,
+            anims.append(slide_x(new_screen, -W, 0, anim_duration_ms(W)))
+            anims.append(slide_x(old_screen, 0, W, anim_duration_ms(W),
                                 on_done_cb=lambda a: _cleanup_whole()))
         elif anim_type == GUIAnimations.vertical_slide_in:
-            anims.append(slide_y(new_screen, _CONTENT_H, 0, ANIM_MS_VERTICAL,
+            anims.append(slide_y(new_screen, _CONTENT_H, 0, anim_duration_ms(_CONTENT_H),
                                 on_done_cb=lambda a: _cleanup_whole()))
         elif anim_type == GUIAnimations.vertical_slide_out:
             old_screen.move_foreground()   # old on top within anim_clip
-            anims.append(slide_y(old_screen, 0, _CONTENT_H, ANIM_MS_VERTICAL,
+            anims.append(slide_y(old_screen, 0, _CONTENT_H, anim_duration_ms(_CONTENT_H),
                                 on_done_cb=lambda a: _cleanup_whole()))
 
         for a in anims:

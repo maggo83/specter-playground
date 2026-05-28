@@ -58,9 +58,25 @@ EXPLAINER_WIDTH_PCT = const(70)   # Width of explainer text box (percentage of s
 EXPLAINER_HEIGHT_PCT = const(40)  # Height of explainer text box (percentage of screen)
 
 # Animation constants
-ANIM_MS_HORIZONTAL = const(150)    # horizontal slide duration (ms)
-ANIM_MS_VERTICAL = const(300)      # vertical slide duration (ms)
-GUI_REFRESH_MS = const(2000)      # periodic UI refresh interval (ms)
+# Constant-velocity model: every slide animation traverses its actual
+# travel distance at this speed, so the duration is computed per-call
+# (see `anim_duration_ms` below). This keeps perceived speed uniform
+# regardless of how far the animated object actually moves (full-screen
+# vs. dropup, with or without context bar, etc.).
+ANIM_SPEED_PX_PER_SEC = const(1000)
+GUI_REFRESH_MS = const(15000)      # periodic UI refresh interval (ms)
+
+
+def anim_duration_ms(distance_px):
+    """Compute slide animation duration (ms) for a travel distance (px).
+
+    Uses ``ANIM_SPEED_PX_PER_SEC`` as a constant velocity. Distance is
+    clamped to >= 1 px to avoid zero-length animations.
+    """
+    d = int(distance_px)
+    if d < 1:
+        d = 1
+    return (d * 1000 + ANIM_SPEED_PX_PER_SEC - 1) // ANIM_SPEED_PX_PER_SEC
 
 # Fonts
 TITLE_FONT = lv.font_montserrat_28
