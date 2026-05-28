@@ -145,6 +145,21 @@ class NavigationBar(SpecterGuiElement):
         self._close_dropup(self._seed_dropup)
         self._close_dropup(self._wallet_dropup)
 
+    def close_dropups_sync(self):
+        """Dismiss any open drop-up via the LV path, bypassing the HW
+        compositor wrapper.
+
+        Used by callers that cannot kick the HW chained close — i.e.
+        navigation paths that take the no-animation branch, or
+        full-screen transitions on builds without ``udisplay.transition``
+        (e.g. the unix simulator). The shared backdrop is released via
+        the existing ``_on_closed`` -> ``_on_any_panel_closed`` chain.
+        Respects ``ui_state.are_animations_enabled``: with animations
+        off the panel is removed instantly, otherwise it slides down."""
+        for d in (self._seed_dropup, self._wallet_dropup):
+            if d.get_state() in (DropUpState.OPENING, DropUpState.OPEN):
+                d.close()
+
     def refresh(self):
         """Update filled/outline icons and Back button visibility.
 

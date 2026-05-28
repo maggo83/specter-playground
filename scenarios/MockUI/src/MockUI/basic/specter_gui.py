@@ -188,6 +188,13 @@ class SpecterGui(lv.obj):
         if anim is not None and self.ui_state.are_animations_enabled:
             self._do_transition(anim)
         else:
+            # Synchronously dismiss any open drop-up before rebuilding
+            # the screen. Without an animation we have no chained close
+            # path, so an open drop-up (and its backdrop) would otherwise
+            # stay drawn on top of the new screen content.
+            nav = getattr(self, "navigation_bar", None)
+            if nav is not None:
+                nav.close_dropups_sync()
             if self.screen:
                 self.screen.delete()
             self.screen = self._make_screen()
@@ -772,6 +779,12 @@ class SpecterGui(lv.obj):
             else:
                 self._transition_full_screen_hw(anim_type)
             return
+
+        # Legacy LV path (no HW compositor available, e.g. unix
+        # simulator). We cannot chain an HW slide-out for the dropup,
+        # so dismiss it synchronously before swapping screens.
+        if dropup_open and nav is not None:
+            nav.close_dropups_sync()
 
         old_screen = self.screen
         new_screen = self._make_screen()
