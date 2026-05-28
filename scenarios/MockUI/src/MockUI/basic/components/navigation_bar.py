@@ -36,6 +36,16 @@ from ..utils.ui_utils import configure_as_bare, set_background_visible
 from .dropup import SeedDropUp, WalletDropUp, DropUpState
 from ..ui_state import Context
 
+# Feature probe: the LTDC/DMA2D compositor that powers the HW slide
+# animations lives in the firmware-side `udisplay` module. On the unix
+# simulator the stub module exists but does not expose `transition`, so
+# we must fall back to the legacy LVGL animation. Probe at import time.
+try:  # pragma: no cover - hardware-only path
+    import udisplay as _udisplay  # type: ignore
+    _HAS_HW_TRANSITION = hasattr(_udisplay, "transition")
+except ImportError:  # pragma: no cover
+    _HAS_HW_TRANSITION = False
+
 class NavigationBar(SpecterGuiElement):
     """Permanent bottom navigation bar with 5 fixed-position icon buttons."""
 
@@ -115,7 +125,8 @@ class NavigationBar(SpecterGuiElement):
         """
         container = self._ensure_backdrop()
         use_hw = (
-            getattr(self.gui, 'ui_state', None) is not None
+            _HAS_HW_TRANSITION
+            and getattr(self.gui, 'ui_state', None) is not None
             and self.gui.ui_state.are_animations_enabled
             and hasattr(self.gui, '_hw_dropup_slide_in')
         )
@@ -129,7 +140,8 @@ class NavigationBar(SpecterGuiElement):
         if dropup.get_state() not in (DropUpState.OPENING, DropUpState.OPEN):
             return
         use_hw = (
-            getattr(self.gui, 'ui_state', None) is not None
+            _HAS_HW_TRANSITION
+            and getattr(self.gui, 'ui_state', None) is not None
             and self.gui.ui_state.are_animations_enabled
             and hasattr(self.gui, '_hw_dropup_close_pure')
         )
@@ -239,12 +251,19 @@ class NavigationBar(SpecterGuiElement):
             DropUpState.OPENING, DropUpState.OPEN)
 
         if other_open:
-            # Chain: HW slide-out old -> open new (LV slide-in).
-            def _open_new_after_close():
+            if _HAS_HW_TRANSITION:
+                # Chain: HW slide-out old -> open new (LV slide-in).
+                def _open_new_after_close():
+                    self._open_dropup(own_dropup)
+                    self.refresh()
+
+                self.gui._hw_dropup_slide_out(_open_new_after_close)
+            else:
+                # Simulator / no HW compositor: close old via LV path,
+                # then open new.
+                self._close_dropup(other_dropup)
                 self._open_dropup(own_dropup)
                 self.refresh()
-
-            self.gui._hw_dropup_slide_out(_open_new_after_close)
             return
 
         if own_open:

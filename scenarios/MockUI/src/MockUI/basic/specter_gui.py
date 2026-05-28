@@ -5,6 +5,11 @@ try:  # only present on the f469 firmware build, not on the unix simulator
 except ImportError:  # pragma: no cover
     _udisplay = None
 
+# Some builds expose a stub `udisplay` module without the HW compositor
+# (e.g. unix simulator). Probe for the actual entry point so HW paths
+# stay disabled there and fall back to the LVGL animation.
+_HAS_HW_TRANSITION = _udisplay is not None and hasattr(_udisplay, "transition")
+
 # Anim-type IDs accepted by udisplay.transition() (must match the
 # TFT_ANIM_* macros in f469-disco/usermods/udisplay_f469/lv_stm_hal/lv_stm_hal.h).
 _HW_ANIM_HORIZONTAL_SLIDE_IN  = 1
@@ -250,7 +255,7 @@ class SpecterGui(lv.obj):
             # the HW compositor too -- the legacy LVGL slide on the view
             # widget is slow and tears against the live FB. On the unix
             # simulator (no udisplay) fall back to the legacy path.
-            if _udisplay is not None and anim_type in self._hw_anim_table():
+            if _HAS_HW_TRANSITION and anim_type in self._hw_anim_table():
                 self._transition_within_context_hw(anim_type)
             else:
                 self._transition_within_context(anim_type)
@@ -772,7 +777,7 @@ class SpecterGui(lv.obj):
         dropup_open = (nav is not None
                        and getattr(nav, "_backdrop", None) is not None)
 
-        if (_udisplay is not None
+        if (_HAS_HW_TRANSITION
                 and anim_type in self._hw_anim_table()):
             if dropup_open:
                 self._close_dropups_then(anim_type)
