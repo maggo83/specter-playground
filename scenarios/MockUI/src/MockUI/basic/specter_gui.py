@@ -14,6 +14,20 @@ _HW_ANIM_HORIZONTAL_PUSH_OUT  = 4
 _HW_ANIM_VERTICAL_SLIDE_IN    = 5
 _HW_ANIM_VERTICAL_SLIDE_OUT   = 6
 
+# Easing kind IDs (must match TFT_EASING_* in lv_stm_hal.h). The compositor
+# applies the curve to the elapsed-time axis at each VBLANK tick to map
+# linear time -> eased pixel offset. Pick one default here; the per-call
+# site can override by passing `easing=` directly.
+_HW_EASE_LINEAR            = 0
+_HW_EASE_IN_CUBIC          = 1
+_HW_EASE_OUT_CUBIC         = 2
+_HW_EASE_IN_OUT_CUBIC      = 3
+_HW_EASE_OUT_QUINT         = 4
+
+# Default curve used by every HW transition unless the caller overrides
+# it. Change this single line to retune the feel of the whole UI.
+_HW_EASING_DEFAULT = _HW_EASE_IN_OUT_CUBIC
+
 from .utils.ui_consts import SCREEN_HEIGHT, SCREEN_WIDTH, CONTENT_PCT, anim_duration_ms, GUI_REFRESH_MS, TITLE_ROW_HEIGHT
 from ..stubs import DeviceState
 from .ui_state import UIState, Context
@@ -347,7 +361,7 @@ class SpecterGui(lv.obj):
             dur_ms = anim_duration_ms(SCREEN_WIDTH)
         _udisplay.transition(hw_type, dur_ms,
                              0, rect_y, SCREEN_WIDTH, rect_h,
-                             _on_done)
+                             _on_done, _HW_EASING_DEFAULT)
         self._anim_refs = None
     # first use because GUIAnimations may be a class-level enum that
     # cannot be evaluated at module import time on the simulator.
@@ -523,7 +537,7 @@ class SpecterGui(lv.obj):
             dur_ms = anim_duration_ms(SCREEN_WIDTH)
         _udisplay.transition(hw_type, dur_ms,
                              0, 0, SCREEN_WIDTH, _CONTENT_H,
-                             _on_hw_transition_done)
+                             _on_hw_transition_done, _HW_EASING_DEFAULT)
         # No LVGL animations to register; compositor drives everything.
         self._anim_refs = None
 
@@ -615,7 +629,7 @@ class SpecterGui(lv.obj):
         # Travel distance = panel slide height (capped at content height).
         _udisplay.transition(_HW_ANIM_VERTICAL_SLIDE_OUT, anim_duration_ms(rect_h),
                              0, rect_y, SCREEN_WIDTH, rect_h,
-                             _on_phase1_done)
+                             _on_phase1_done, _HW_EASING_DEFAULT)
 
     def _hw_dropup_slide_in(self, dropup, container, on_done=None):
         """HW slide a dropup panel UP into view (vertical_slide_in).
@@ -671,7 +685,7 @@ class SpecterGui(lv.obj):
         # Travel distance = panel slide height (capped at content height).
         _udisplay.transition(_HW_ANIM_VERTICAL_SLIDE_IN, anim_duration_ms(rect_h),
                              rect_x, rect_y, rect_w, rect_h,
-                             _on_open_done)
+                             _on_open_done, _HW_EASING_DEFAULT)
 
     def _hw_dropup_close_pure(self, on_done=None):
         """HW slide the open dropup(s) down; no chained screen change.
