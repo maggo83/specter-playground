@@ -8,6 +8,7 @@ FROZEN_MANIFEST_DEBUG ?= ../../../../manifests/debug.py
 FROZEN_MANIFEST_UNIX ?= ../../../../manifests/unix.py
 FROZEN_MANIFEST_PLAYGROUND ?= ../../../../manifests/playground.py
 FROZEN_MANIFEST_HELLO ?= ../../../../manifests/hello.py
+FROZEN_MANIFEST_TETRIS ?= ../../../../manifests/tetris.py
 FROZEN_MANIFEST_MOCKUI ?= ../../../../manifests/mockui.py
 DEBUG ?= 0
 USE_DBOOT ?= 0
@@ -148,6 +149,23 @@ hello: $(TARGET_DIR) mpy-cross $(MPY_DIR)/ports/stm32
 		$(TARGET_DIR)/hello.bin && \
 	cp $(MPY_DIR)/ports/stm32/build-STM32F469DISC/firmware.hex \
 		$(TARGET_DIR)/hello.hex
+
+# Tetris scenario
+tetris: $(TARGET_DIR) mpy-cross $(MPY_DIR)/ports/stm32
+	@echo Building Tetris firmware
+	make -C $(MPY_DIR)/ports/stm32 \
+		BOARD=$(BOARD) \
+		FLAVOR=$(FLAVOR) \
+		USE_DBOOT=$(USE_DBOOT) \
+		USER_C_MODULES=$(USER_C_MODULES) \
+		FROZEN_MANIFEST=$(FROZEN_MANIFEST_TETRIS) \
+		CFLAGS_EXTRA='-DMP_CONFIGFILE="<mpconfigport_specter.h>"' \
+		DEBUG=$(DEBUG) && \
+	arm-none-eabi-objcopy -O binary \
+		$(MPY_DIR)/ports/stm32/build-STM32F469DISC/firmware.elf \
+		$(TARGET_DIR)/tetris.bin && \
+	cp $(MPY_DIR)/ports/stm32/build-STM32F469DISC/firmware.hex \
+		$(TARGET_DIR)/tetris.hex
 
 # MockUI firmware with embedded filesystem
 mockui: $(TARGET_DIR) mpy-cross trim-icons build-i18n build-flash-image $(MPY_DIR)/ports/stm32
