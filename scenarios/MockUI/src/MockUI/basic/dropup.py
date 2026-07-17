@@ -29,6 +29,7 @@ from .widgets.containers import flex_col, flex_row
 from .widgets.btn import Btn
 from .widgets.seed_widgets import build_seed_card
 from .widgets.wallet_widgets import build_wallet_card, wallet_net_text
+from .widgets.bitsquiggles_widget import clear_bitsquiggles_cache
 from .animations import slide_y
 from .specter_gui_base import SpecterGuiMixin
 from ..stubs.ui_state import Context
@@ -126,6 +127,7 @@ class _DropUp(SpecterGuiMixin):
             if self._panel is not None:
                 self._panel.delete()
             self._panel = None
+            clear_bitsquiggles_cache()
             if self._on_closed is not None:
                 self._on_closed()
 
@@ -277,7 +279,7 @@ class SeedDropUp(_DropUp):
         build_seed_card(
             parent,
             seed,
-            slots=("name", "backup_warning", "passphrase", "fingerprint", "delete"),
+            slots=("bitsquiggles", "name", "backup_warning", "passphrase", "fingerprint", "delete"),
             on_card_click=self._make_row_cb(seed),
             on_backup_warning=_make_warn_cb(seed),
             on_delete=_make_delete_cb(seed),
@@ -310,7 +312,7 @@ class WalletDropUp(_DropUp):
         any_account = any(getattr(w, "account", 0) != 0 for w in state.registered_wallets)
         any_net     = any(w.net != "mainnet" for w in state.registered_wallets)
 
-        active_slots = ["type_icon", "name", "threshold"]
+        active_slots = ["type_icon", "name", "bitsquiggles", "threshold"]
         if any_account:
             active_slots.append("account")
         if any_net:

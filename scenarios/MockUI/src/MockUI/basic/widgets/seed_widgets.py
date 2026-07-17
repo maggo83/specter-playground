@@ -10,12 +10,13 @@ from ..ui_consts import (
 from .icon_widgets import make_icon
 from .labels import make_label, best_font_for_size
 from .card_helpers import build_card_row, build_leading_icon_slot, build_name_slot, build_delete_slot, compute_name_width
+from .bitsquiggles_widget import BitsquigglesRasterWidget
 
 # Width contributions of fixed slots (pixels)
 _ICON_W = BTC_ICON_WIDTH          # any single icon slot
 _FP_W   = _ICON_W + FINGERPRINT_LBL_WIDTH   # relay icon + 4-char label
 
-SEED_SLOTS = ("leading_icon", "name", "backup_warning", "passphrase", "fingerprint", "delete")
+SEED_SLOTS = ("bitsquiggles", "leading_icon", "name", "backup_warning", "passphrase", "fingerprint", "delete")
 
 
 def fingerprint_badge(parent, seed, digits=4):
@@ -142,6 +143,7 @@ def build_seed_card(
 
     # ── Width budget for the name slot ───────────────────────────────────────
     slot_costs = {
+        "bitsquiggles":   BitsquigglesRasterWidget.WIDTH,
         "leading_icon":   _ICON_W,
         "backup_warning": _ICON_W if not seed.is_backed_up else 0,
         "passphrase":     _ICON_W if seed.passphrase is not None else 0,
@@ -155,7 +157,11 @@ def build_seed_card(
     ta = None
 
     for slot in slots:
-        if slot == "leading_icon":
+        if slot == "bitsquiggles":
+            BitsquigglesRasterWidget(
+                row, seed.get_fingerprint(), style="high-contrast", render="smooth")
+
+        elif slot == "leading_icon":
             build_leading_icon_slot(row, leading_icon)
 
         elif slot == "name":

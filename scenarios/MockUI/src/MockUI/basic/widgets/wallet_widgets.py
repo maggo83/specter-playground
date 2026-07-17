@@ -10,9 +10,10 @@ from ..ui_consts import (
 from .icon_widgets import make_icon
 from .labels import make_label, best_font_for_size
 from .card_helpers import build_card_row, build_leading_icon_slot, build_name_slot, build_delete_slot, compute_name_width
+from .bitsquiggles_widget import BitsquigglesRasterWidget, text_prefix_to_bits
 
 # Wallet-card slot names (ordered as they appear left-to-right in default layout)
-WALLET_SLOTS = ("leading_icon", "type_icon", "name", "threshold", "account", "net", "delete")
+WALLET_SLOTS = ("bitsquiggles", "leading_icon", "type_icon", "name", "threshold", "account", "net", "delete")
 
 # Fixed width budgets
 _ICON_W    = BTC_ICON_WIDTH
@@ -135,6 +136,7 @@ def build_wallet_card(
 
     # ── Width budget for the name slot ─────────────────────────────────────
     slot_costs = {
+        "bitsquiggles": BitsquigglesRasterWidget.WIDTH,
         "leading_icon": _ICON_W,
         "type_icon":    _ICON_W,
         "threshold":    _THRESH_W if show_threshold else 0,
@@ -149,7 +151,11 @@ def build_wallet_card(
     ta = None
 
     for slot in slots:
-        if slot == "leading_icon":
+        if slot == "bitsquiggles":
+            BitsquigglesRasterWidget(
+                row, text_prefix_to_bits(wallet.label), style="standard", render="pixel")
+
+        elif slot == "leading_icon":
             build_leading_icon_slot(row, leading_icon)
 
         elif slot == "type_icon":
