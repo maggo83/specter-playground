@@ -1,8 +1,8 @@
 """Optional LVGL renderers for the dependency-free BitSquiggles core.
 
 ``render_raster`` preserves the exact binary grid through an integer-scaled
-RGB565 image. ``render_smooth`` draws the same selected cells and connections as
-an antialiased rounded geometric union on an LVGL canvas.
+RGB565 image. ``render_smooth`` draws the canonical smooth-blob decomposition
+as an antialiased rounded geometric union on an LVGL canvas.
 
 The module deliberately accepts core outputs rather than fingerprints:
 
@@ -118,9 +118,9 @@ def _draw_rect(layer, color, x, y, width, height, radius):
 def render_smooth(parent, visual, scale=4, bordered=False):
     """Return a rounded LVGL canvas for a canonical BitSquiggles visual.
 
-    The renderer draws a geometric union of active rounded cells, selected
-    bridges, and four-cell junctions. It preserves every selected and
-    unselected connection while using LVGL's antialiased shape rasterization.
+    The renderer draws the core's canonical smooth blobs. It preserves every
+    selected and unselected connection while using LVGL's antialiased shape
+    rasterization.
     """
     _require_scale(scale)
     width = bitsquiggle32.PIXEL_WIDTH * scale
@@ -152,51 +152,15 @@ def render_smooth(parent, visual, scale=4, bordered=False):
 
     layer = lv.layer_t()
     canvas.init_layer(layer)
-    cell_size = 2 * scale
-    cell_radius = scale
-    connections = visual["connections"]
-    cells = visual["cells"]
-
-    # Paint one overlapping foreground union. Drawing independent antialiased
-    # shapes edge-to-edge leaves background hairlines on LVGL targets, so draw
-    # junctions and expanded bridges first, then cover their joins with cells.
-    for row in range(bitsquiggle32.ROWS - 1):
-        for column in range(bitsquiggle32.COLUMNS - 1):
-            if (_connection(connections, row, column, row, column + 1)
-                    and _connection(connections, row + 1, column, row + 1, column + 1)
-                    and _connection(connections, row, column, row + 1, column)
-                    and _connection(connections, row, column + 1, row + 1, column + 1)):
-                _draw_rect(layer, foreground, (3 + 3 * column) * scale,
-                           (3 + 3 * row) * scale, scale, scale, 0)
-
-    for index, edge in enumerate(bitsquiggle32.EDGES):
-        if not connections[index]:
-            continue
-        start_row, start_column, end_row, end_column = edge
-        x = (1 + 3 * start_column) * scale
-        y = (1 + 3 * start_row) * scale
-        if start_row == end_row:
-            _draw_rect(layer, foreground, x + cell_size - cell_radius, y,
-                       scale + 2 * cell_radius, cell_size, 0)
-        else:
-            _draw_rect(layer, foreground, x, y + cell_size - cell_radius,
-                       cell_size, scale + 2 * cell_radius, 0)
-
-    for row in range(bitsquiggle32.ROWS):
-        for column in range(bitsquiggle32.COLUMNS):
-            if cells[row][column]:
-                _draw_rect(layer, foreground, (1 + 3 * column) * scale,
-                           (1 + 3 * row) * scale, cell_size, cell_size, cell_radius)
+    for top, left, bottom, right in bitsquiggle32.smooth_blobs(visual["connections"]):
+        x = (1 + 3 * left) * scale
+        y = (1 + 3 * top) * scale
+        width = (2 + 3 * (right - left)) * scale
+        height = (2 + 3 * (bottom - top)) * scale
+        _draw_rect(layer, foreground, x, y, width, height, scale)
 
     canvas.finish_layer(layer)
     return wrapper
-
-
-def _connection(connections, start_row, start_column, end_row, end_column):
-    for index, edge in enumerate(bitsquiggle32.EDGES):
-        if edge == (start_row, start_column, end_row, end_column):
-            return connections[index]
-    raise ValueError("not a canonical edge")
 
 
 def clear_cache():

@@ -24,7 +24,7 @@ class BitsquigglesRasterWidget:
                 parent, bitsquiggle32.pixels(bits, style), scale=2)
         elif render in ("smooth", "canvas"):
             widget = lvgl_renderer.render_smooth(
-                parent, bitsquiggle32.spec(bits, style), scale=3, bordered=bordered)
+                parent, bitsquiggle32.spec(bits, style), scale=2, bordered=bordered)
         else:
             raise ValueError("render must be 'pixel' or 'smooth'")
         widget.set_style_margin_left(self.H_PAD, 0)

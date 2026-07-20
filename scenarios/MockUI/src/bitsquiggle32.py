@@ -35,6 +35,7 @@ __all__ = (
     "STANDARD", "HIGH_CONTRAST", "MONOCHROME", "STYLES",
     "LEFT_RIGHT", "TOP_BOTTOM", "HALF_TURN", "DIAGONAL_SLASH", "MODES",
     "mix32", "free_connection_count", "matches_mode", "spec", "pixels",
+    "smooth_blobs",
 )
 
 BASE_L_MIN = 0.5
@@ -380,3 +381,181 @@ def pixels(bits, style=STANDARD):
         "foreground": visual["foreground"],
         "style": style,
     }
+
+
+def _horizontal_edge_index(row, column):
+    offset = column if row == ROWS - 1 else 2 * column
+    return row * (2 * COLUMNS - 1) + offset
+
+
+def _vertical_edge_index(row, column):
+    offset = 2 * COLUMNS - 2 if column == COLUMNS - 1 else 2 * column + 1
+    return row * (2 * COLUMNS - 1) + offset
+
+
+def _junction_index(row, column):
+    return row * (COLUMNS - 1) + column
+
+
+def _required_edges(connections):
+    if connections is None or len(connections) != EDGE_COUNT:
+        raise ValueError("connections must contain 58 entries")
+    result = 0
+    for index in range(EDGE_COUNT):
+        if connections[index] != 0 and connections[index] != 1:
+            raise ValueError("connections must contain only zeroes and ones")
+        if connections[index]:
+            result |= 1 << index
+    return result
+
+
+def _connected_rectangle_edge_mask(top, left, bottom, right, required_edges):
+    result = 0
+    for row in range(top, bottom + 1):
+        for column in range(left, right + 1):
+            if column < right:
+                edge = 1 << _horizontal_edge_index(row, column)
+                if not required_edges & edge:
+                    return 0
+                result |= edge
+            if row < bottom:
+                edge = 1 << _vertical_edge_index(row, column)
+                if not required_edges & edge:
+                    return 0
+                result |= edge
+    return result
+
+
+def _required_junctions(required_edges):
+    result = 0
+    for row in range(ROWS - 1):
+        for column in range(COLUMNS - 1):
+            if _connected_rectangle_edge_mask(
+                    row, column, row + 1, column + 1, required_edges):
+                result |= 1 << _junction_index(row, column)
+    return result
+
+
+def _rectangle_junction_mask(top, left, bottom, right, required_junctions):
+    result = 0
+    for row in range(top, bottom):
+        for column in range(left, right):
+            bit = 1 << _junction_index(row, column)
+            if required_junctions & bit:
+                result |= bit
+    return result
+
+
+def _is_better_blob(top, left, bottom, right, new_edges, new_junctions,
+                    best_top, best_left, best_bottom, best_right,
+                    best_new_edges, best_new_junctions):
+    junction_count = _popcount(new_junctions)
+    best_junction_count = _popcount(best_new_junctions)
+    if junction_count != best_junction_count:
+        return junction_count > best_junction_count
+    edge_count = _popcount(new_edges)
+    best_edge_count = _popcount(best_new_edges)
+    if edge_count != best_edge_count:
+        return edge_count > best_edge_count
+    area = (bottom - top + 1) * (right - left + 1)
+    best_area = (best_bottom - best_top + 1) * (best_right - best_left + 1)
+    if area != best_area:
+        return area < best_area
+    if top != best_top:
+        return top < best_top
+    if left != best_left:
+        return left < best_left
+    if bottom != best_bottom:
+        return bottom < best_bottom
+    return right < best_right
+
+
+def _first_uncovered_edge(required_edges, covered_edges):
+    for index in range(EDGE_COUNT):
+        if required_edges & ~covered_edges & (1 << index):
+            return index
+    return -1
+
+
+def _first_uncovered_junction(required_junctions, covered_junctions):
+    for index in range((ROWS - 1) * (COLUMNS - 1)):
+        if required_junctions & ~covered_junctions & (1 << index):
+            return index
+    return -1
+
+
+def smooth_blobs(connections):
+    """Return canonical ``(top_row, left_column, bottom_row, right_column)`` blobs.
+
+    Four packed integer feature masks and early-aborted candidate scans keep
+    the working set small; output is bounded at 82 blobs.
+    """
+    required_edges = _required_edges(connections)
+    required_junctions = _required_junctions(required_edges)
+    covered_edges = 0
+    covered_junctions = 0
+    result = [None] * (EDGE_COUNT + (ROWS - 1) * (COLUMNS - 1))  # type: list
+    result_count = 0
+
+    while True:
+        anchor_edge = _first_uncovered_edge(required_edges, covered_edges)
+        if anchor_edge >= 0:
+            anchor_top, anchor_left, anchor_bottom, anchor_right = EDGES[anchor_edge]
+        else:
+            anchor_junction = _first_uncovered_junction(
+                required_junctions, covered_junctions)
+            if anchor_junction < 0:
+                break
+            anchor_top = anchor_junction // (COLUMNS - 1)
+            anchor_left = anchor_junction % (COLUMNS - 1)
+            anchor_bottom = anchor_top + 1
+            anchor_right = anchor_left + 1
+
+        best = None
+        best_new_edges = 0
+        best_new_junctions = 0
+        left_inclusive = 0
+        for top in range(anchor_top, -1, -1):
+            for left in range(anchor_left, left_inclusive - 1, -1):
+                right_exclusive = COLUMNS
+                stop_left_expansion = False
+                for bottom in range(anchor_bottom, ROWS):
+                    for right in range(anchor_right, right_exclusive):
+                        edges = _connected_rectangle_edge_mask(
+                            top, left, bottom, right, required_edges)
+                        if not edges:
+                            if bottom == anchor_bottom and right == anchor_right:
+                                left_inclusive = left + 1
+                                stop_left_expansion = True
+                            else:
+                                right_exclusive = right
+                            break
+                        junctions = _rectangle_junction_mask(
+                            top, left, bottom, right, required_junctions)
+                        new_edges = edges & ~covered_edges
+                        new_junctions = junctions & ~covered_junctions
+                        if new_edges == 0 and new_junctions == 0:
+                            continue
+                        if best is None or _is_better_blob(
+                                top, left, bottom, right,
+                                new_edges, new_junctions,
+                                best[0], best[1], best[2], best[3],
+                                best_new_edges, best_new_junctions):
+                            best = (top, left, bottom, right)
+                            best_new_edges = new_edges
+                            best_new_junctions = new_junctions
+                    if stop_left_expansion or right_exclusive == anchor_right:
+                        break
+                if stop_left_expansion:
+                    break
+
+        if best is None:
+            raise RuntimeError("uncoverable smooth feature")
+        result[result_count] = best
+        result_count += 1
+        covered_edges |= _connected_rectangle_edge_mask(
+            best[0], best[1], best[2], best[3], required_edges)
+        covered_junctions |= _rectangle_junction_mask(
+            best[0], best[1], best[2], best[3], required_junctions)
+
+    return tuple(result[:result_count])
