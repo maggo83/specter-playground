@@ -1,13 +1,14 @@
 """Optional LVGL renderers for the dependency-free BitSquiggles core.
 
-``render_raster`` preserves the exact binary grid through an integer-scaled
-RGB565 image. ``render_smooth`` draws the canonical smooth-blob decomposition
-as an antialiased rounded geometric union on an LVGL canvas.
+Use this module for an LVGL target. ``render_raster`` preserves the exact
+binary grid through an integer-scaled RGB565 image. ``render_smooth`` draws the
+canonical smooth-blob decomposition as an antialiased rounded geometric union
+on an LVGL canvas.
 
-The module deliberately accepts core outputs rather than fingerprints:
+Create canonical values before drawing:
 
-    visual = bitsquiggle32.spec(bits, bitsquiggle32.HIGH_CONTRAST)
-    raster = bitsquiggle32.pixels(bits, bitsquiggle32.HIGH_CONTRAST)
+    visual = spec(bits, HIGH_CONTRAST)
+    raster = pixels(bits, HIGH_CONTRAST)
     render_raster(parent, raster, scale=2)
     render_smooth(parent, visual, scale=4)
 
@@ -18,6 +19,11 @@ canvases. The core remains usable without importing LVGL or this module.
 import lvgl as lv
 
 import bitsquiggle32
+from bitsquiggle32 import *
+
+__all__ = bitsquiggle32.__all__ + (
+    "render_raster", "render_smooth", "clear_cache",
+)
 
 _RASTER_CACHE = {}
 _SMOOTH_DRAW_BUFS = []

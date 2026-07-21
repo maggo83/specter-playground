@@ -17,7 +17,8 @@ PIXEL_HEIGHT = 22
 STANDARD = "standard"
 HIGH_CONTRAST = "high-contrast"
 MONOCHROME = "monochrome"
-STYLES = (STANDARD, HIGH_CONTRAST, MONOCHROME)
+BLACK_AND_WHITE = "black-and-white"
+STYLES = (STANDARD, HIGH_CONTRAST, MONOCHROME, BLACK_AND_WHITE)
 
 LEFT_RIGHT = "A|"
 TOP_BOTTOM = "A-"
@@ -32,7 +33,7 @@ MODES = (
 
 __all__ = (
     "ROWS", "COLUMNS", "EDGE_COUNT", "PIXEL_WIDTH", "PIXEL_HEIGHT", "EDGES",
-    "STANDARD", "HIGH_CONTRAST", "MONOCHROME", "STYLES",
+    "STANDARD", "HIGH_CONTRAST", "MONOCHROME", "BLACK_AND_WHITE", "STYLES",
     "LEFT_RIGHT", "TOP_BOTTOM", "HALF_TURN", "DIAGONAL_SLASH", "MODES",
     "mix32", "free_connection_count", "matches_mode", "spec", "pixels",
     "smooth_blobs",
@@ -280,9 +281,14 @@ def _derive_colors(hue_index, chroma_index, luminance_index, swap, style):
         background_l = foreground_l - BG_L_SPREAD - BG_L_EXTRA_HC
         foreground_c = chroma + CHROMA_HC_ADD
         background_c = chroma + CHROMA_HC_ADD
-    else:
+    elif style == MONOCHROME:
         foreground_l = base_l + HC_L_ADD
         background_l = foreground_l - BG_L_SPREAD - BG_L_EXTRA_HC
+        foreground_c = 0.0
+        background_c = 0.0
+    else:
+        foreground_l = 1.0
+        background_l = 0.0
         foreground_c = 0.0
         background_c = 0.0
     foreground_l = _clamp01(foreground_l)
@@ -384,7 +390,7 @@ def pixels(bits, style=STANDARD):
 
 
 def _horizontal_edge_index(row, column):
-    offset = column if row == ROWS - 1 else 2 * column
+    offset = (column if row == ROWS - 1 else 2 * column)
     return row * (2 * COLUMNS - 1) + offset
 
 
@@ -487,8 +493,10 @@ def _first_uncovered_junction(required_junctions, covered_junctions):
 def smooth_blobs(connections):
     """Return canonical ``(top_row, left_column, bottom_row, right_column)`` blobs.
 
-    Four packed integer feature masks and early-aborted candidate scans keep
-    the working set small; output is bounded at 82 blobs.
+    The result covers selected connections and required four-cell junctions with
+    valid, overlapping rounded rectangles. Four packed integer feature masks
+    and early-aborted candidate scans keep the working set small; output is
+    bounded at 82 blobs.
     """
     required_edges = _required_edges(connections)
     required_junctions = _required_junctions(required_edges)
@@ -536,11 +544,11 @@ def smooth_blobs(connections):
                         new_junctions = junctions & ~covered_junctions
                         if new_edges == 0 and new_junctions == 0:
                             continue
-                        if best is None or _is_better_blob(
+                        if (best is None or _is_better_blob(
                                 top, left, bottom, right,
                                 new_edges, new_junctions,
                                 best[0], best[1], best[2], best[3],
-                                best_new_edges, best_new_junctions):
+                                best_new_edges, best_new_junctions)):
                             best = (top, left, bottom, right)
                             best_new_edges = new_edges
                             best_new_junctions = new_junctions
