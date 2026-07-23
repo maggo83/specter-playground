@@ -153,7 +153,7 @@ def build_wallet_card(
 
     for slot in slots:
         if slot == "hallmark":
-            HallmarkWidget(row, wallet.label)
+            HallmarkWidget(row, wallet.label, render="pixel", style="standard", bordered=False)
 
         elif slot == "leading_icon":
             build_leading_icon_slot(row, leading_icon)

@@ -159,7 +159,7 @@ def build_seed_card(
 
     for slot in slots:
         if slot == "hallmark":
-            HallmarkWidget(row, seed.get_fingerprint(), "high-contrast", "canvas")
+            HallmarkWidget(row, seed.get_fingerprint(), style="high-contrast", render="canvas", bordered=False)
 
         elif slot == "leading_icon":
             build_leading_icon_slot(row, leading_icon)

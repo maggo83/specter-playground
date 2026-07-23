@@ -53,10 +53,10 @@ DEFAULT_MODAL_BG_OPA = const(180)  # default backdrop opacity for modals (0-255,
 # DropUp style
 DROPUP_DIVIDER_OPA = const(200)  # opacity of divider line between dropup items (0-255, ~80% = 200)
 
-# Hallmark widget rendered size
-HALLMARK_W        = const(28)   # pixel mode (SPEC §3.8): 14×20 grid upscaled 2×
-HALLMARK_H        = const(40)   # height shared by both modes
-HALLMARK_CANVAS_W = const(30)   # canvas mode (SPEC §3.5): W = H/1.32 ≈ 30
+# Bit32Vis widget rendered size (16×22 native raster upscaled 2×)
+HALLMARK_W        = const(32)   # pixel/canvas mode: 16×2 = 32 px wide
+HALLMARK_H        = const(44)   # pixel/canvas mode: 22×2 = 44 px tall
+HALLMARK_CANVAS_W = const(32)   # canvas mode width (same as pixel mode)
 
 # UIExplainer dimensions and style
 EXPLAINER_WIDTH_PCT = const(70)   # Width of explainer text box (percentage of screen)
