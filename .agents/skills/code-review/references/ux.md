@@ -10,9 +10,25 @@ What the user sees for any fund-relevant action is governed first by Core Invari
 |---|---|
 | [emilkowalski/skills](https://github.com/emilkowalski/skills) (MIT): `emil-design-eng`, `find-animation-opportunities`, `animation-performance`, `break-ui` | Principles taken, web specifics dropped |
 | The `apple-design` skill of the same repo, a distillation of Apple's WWDC talks (*Designing Fluid Interfaces*, the design-principles talks, *Designing Audio-Haptic Experiences*, *The Details of UI Typography*) | Principles taken; the original talks were not re-watched, so check a rule against its talk before quoting it as Apple's |
+| [Material 3, Target sizes](https://m3.material.io/foundations/designing/structure#touch-targets), [Apple HIG, Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility), [WCAG 2.2 SC 2.5.8](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) | Used for touch-target size, spacing and contrast; read from the pages |
 | This project (hardware wallet, small touch display, LVGL on MicroPython) | Added: fund-relevant actions, i18n and legibility, accessibility, worst-case data, hardware limits |
 
-Dropped because they do not apply here: Swift, React, Framer Motion, CSS and browser APIs (`transition`, `clip-path`, `backdrop-filter`, WAAPI, pointer capture, `@starting-style`), hover states (touch only), `/mobile-native` web fixes, UI library picking, the toast library, system fonts and dynamic type, velocity-projecting springs (LVGL scrolling already has momentum; a custom spring engine costs more than it gives), blur and translucent materials (cost on this hardware until measured), stagger entrances.
+Dropped because they do not apply here: Swift, React, Framer Motion, CSS and browser APIs (`transition`, `clip-path`, `backdrop-filter`, WAAPI, pointer capture, `@starting-style`), hover states (touch only), `/mobile-native` web fixes, UI library picking, the toast library, system fonts and dynamic type, velocity-projecting springs (LVGL scrolling already has momentum; a custom spring engine costs more than it gives), blur and translucent materials (cost on this hardware until measured), stagger entrances, and sound and haptics (see Hardware facts).
+
+## Hardware facts
+
+- Display: 480 x 800 px, portrait, read from a screenshot of the board. The F469 Discovery panel is 4 inch, which gives about 0.109 mm per pixel (52 x 87 mm). The diagonal is the board's specification, not something we measured; check with a ruler if a threshold is close.
+- No sound and no vibration. Scanning a QR code beeps today; that is out of scope and is to be disabled. Haptics are not planned. Nothing may depend on either.
+- Touch-target sizes, from [Material 3](https://m3.material.io/foundations/designing/structure#touch-targets) (48 dp is about 9 mm, recommended 7 to 10 mm, 8 dp or more between targets) and the [Apple HIG](https://developer.apple.com/design/human-interface-guidelines/accessibility) (iOS default 44 pt, minimum 28 pt; the pt to mm conversion is our approximation of 0.16 mm per pt):
+
+| Class | Size | Pixels here |
+|---|---|---|
+| Any control | 7 mm (Apple 44 pt, bottom of Material's range) | 64 px |
+| Frequent or fund-relevant (PIN keys, confirm, cancel) | 9 mm (Material 48 dp) | 83 px |
+| Floor, only with spacing, never fund-relevant | 4.4 mm (Apple 28 pt) | 40 px |
+| Gap between neighbouring targets | about 1.5 mm (Material 8 dp) | 14 px |
+
+- Measured so far, with exact LVGL hit-test sizes (`find` by `x` and `y`, bisecting each edge, no taps): the PIN pad keys are 115 x 85 px (12.5 x 9.3 mm, on the board), which meets the 9 mm class. The buttons of the welcome-tour dialog are 76 x 56 and 138 x 56 px (8.3 x 6.1 mm, in the simulator), so 6.1 mm tall is below the 7 mm default. Other screens are not measured: for list rows and the bottom navigation the hit-test returns a container, not the clickable widget, so their size has to come from the widget geometry in the source.
 
 ## 1. Purpose and simplicity
 
@@ -51,7 +67,7 @@ Dropped because they do not apply here: Swift, React, Framer Motion, CSS and bro
 - Layout survives longer translations and other scripts. Check the font actually covers the characters a language needs.
 - Plural and zero forms are correct ("1 wallet", "0 wallets"); numbers, units and dates are formatted consistently.
 - Contrast and size are legible at arm's length on the real display, in every theme. Color is never the only carrier of meaning (state, error, selection).
-- Touch targets are comfortably tappable with a finger. TODO: fix the minimum size once measured on the real display, then add it here.
+- Touch targets: see Hardware facts for the size thresholds. Compare the clickable area, not the visible icon, and keep neighbouring targets apart.
 
 ## 6. Worst-case data
 
@@ -100,7 +116,7 @@ The goal is understanding, not decoration. Default to no animation and add one o
 - Contrast in every theme; no information by color alone.
 - Text size legible without squinting; layout does not break when text is longer.
 - No flashing, no large fast-moving areas, no abrupt brightness jumps when switching themes.
-- Feedback by sound or vibration, if the hardware ever has it: only on causal events, in step with the visual, and only where it earns its place. TODO: confirm what the hardware supports.
+- Nothing is signalled by sound or vibration: the hardware has neither (see Hardware facts), so every state change, error and confirmation must be visible on screen.
 
 ## 9. Visual consistency
 
