@@ -11,6 +11,28 @@
 
 ## Simulator and Hardware Control
 
+To test, verify or prototype behavior and UI, use specter-devtools instead of
+reasoning from the code. Try in this order: unit tests (`make test`), then the
+simulator, and a board only with the user's approval. A screenshot from the
+simulator is stronger evidence than a code reading.
+
+**Board approval is asked once per session**, with one warning and one yes or
+no, not per test and not per operation. Ask at the first point where a board
+would help. If none is detected, ask anyway: never conclude that no board is
+available just because none is visible, the user can usually attach one. The
+question names, in plain words, everything the agent may then do, taken from
+[Hardware Safety](devtools/AGENTS.md#hardware-safety) (flashing, erasing, lock
+and unlock, power, resets, `explore` tapping buttons and changing device state),
+and says the board must hold no real funds. After a yes, use the board for all
+of that for the rest of the session without asking again.
+
+**Clean checkout:** devtools is a submodule, so `devtools/` is empty until
+`git submodule update --init --recursive` has run, and the `specter-devtools`
+command does not exist until devtools is set up. When either is missing, do both
+yourself, no approval needed: init the submodules, then follow the setup in the
+[devtools README](devtools/README.md) and run the command as
+`devtools/.venv/bin/specter-devtools`.
+
 [specter-devtools](devtools/README.md), the `devtools/` submodule, controls the
 simulator and an attached F469 board. Its own docs are the reference; read them
 before using it:
@@ -20,6 +42,8 @@ before using it:
 - [devtools/docs/control-contract.md](devtools/docs/control-contract.md):
   requests, responses, target differences, and
   [Visual Validation](devtools/docs/control-contract.md#visual-validation).
+- [Tests and Verification](devtools/AGENTS.md#tests-and-verification): what each
+  check proves, and how to say what you verified when reporting.
 - [Hardware Safety](devtools/AGENTS.md#hardware-safety): what to ask the user
   before acting on a board.
 
